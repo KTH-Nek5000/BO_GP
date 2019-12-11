@@ -38,3 +38,4 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
    - source: https://github.com/SheffieldML/GPyOpt
    - documentation: https://sheffieldml.github.io/GPyOpt/
 
+4. OpenFOAM 7

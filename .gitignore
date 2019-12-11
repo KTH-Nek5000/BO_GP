@@ -2,8 +2,16 @@
 .pyc
 .png
 .pdf
+log
 /figs/*
 /OFcase/constant/polyMesh/*
 /OFcase/0/C*
 /OFcase/0/*_IC
 /OFcase/dynamicCode/*
+/OFcase/processor*
+/OFcase/postProcessing
+/OFcase/log
+/OFpost/__pycache__
+/OFpost/Cdata
+/OFpost/pointsdata
+/gpOptim/__pycache__

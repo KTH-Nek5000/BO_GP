@@ -31,8 +31,8 @@ Ny = 238
 Nz = 1
 # t = 120
 
-t = (sys.argv);
-print('check: tEnd = ', t)
+t = int((sys.argv)[1]);
+# print('check: tEnd = ', t)
 
 beta_t = 0    # terget beta
 inlet_exclude = 0.2 # don't assess this region for objective
@@ -40,34 +40,30 @@ outlet_exclude = 0.1
 
 # %%
 
-def calc_beta(path2run,casename,U_infty,delta99_in,Nx,Ny,Nz,t):
+def calc_beta(path2run, casename, U_infty, delta99_in, Nx, Ny, Nz, t):
     #  grid load
-    print("########################### "+casename+" ############################")
+    print("########################### load data ############################")
     nu = postProcess_func.getNu(path2run,casename)
-    xc,yc,x,y \
-            = postProcess_func.load_grid(path2run,casename,Nx,Ny,Nz)
+    xc, yc, x, y \
+            = postProcess_func.load_grid(path2run, casename, Nx, Ny, Nz)
             
     #  main data load
 
-    U, V, p, nut,\
-     k, omega, tau_w\
+    U, V, p, nut, k, omega, tau_w\
         = postProcess_func.load_data(path2run,casename, Nx, Ny, Nz, t)
     print('start bl_calc')
     
     ###################### CHECK delta99 calc. in bl_calc #######################
     
-    beta = postProcess_func.bl_calc(Nx, Ny, Nz, xc, yc,\
-                                   x, y, U_infty,nu,\
-                                   U, V,\
-                                   p, nut,\
-                                   k, omega,tau_w)[-3]
+    beta = postProcess_func.bl_calc(Nx, Ny, Nz, xc, yc, x, y, U_infty,nu,\
+                                    U, V, p, nut, k, omega,tau_w)[-3]
     
     return beta
 
 def write_newTheta(obj):
     scf = open('../gpOptim/workDir/newResponse.dat','w')
-    scf.write('# Response from CFD code associated to the last drawn parameter sample')
-    scf.write('%g;' % obj)
+    scf.write('# Response from CFD code associated to the last drawn parameter sample\n')
+    scf.write('%g' % obj)
     scf.close()
 
 # %% ################## main ###########################
@@ -79,11 +75,10 @@ if __name__ == '__main__':
     
     # assess objective func
     n = len(beta)
+    obj = np.linalg.norm(beta[int(inlet_exclude*n):-int(outlet_exclude*n)], 2) # L2norm
     
-    obj = \
-        np.sqrt(sum((beta[int(inlet_exclude*n):-int(outlet_exclude*n)]-beta_t)**2))
-    # np.linalg.norm(, )
     # output obj
+    print("write objective")
     write_newTheta(obj)
     
     

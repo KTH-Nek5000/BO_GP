@@ -458,7 +458,8 @@ yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
 def nextGPsample():
     """ 
        Take the next sample of the parameters from their admissible space. 
-       If the number of the available samples is less than a limit (=nGPinit), take the initial samples randomly. Otherwise, use the BO-GP algorithm to draw the new sample. 
+       If the number of the available samples is less than a limit (=nGPinit), 
+       take the initial samples randomly. Otherwise, use the BO-GP algorithm to draw the new sample. 
     """
     nGPsamples=len(xList)
     if (nGPsamples<nGPinit):   #take initial random samples

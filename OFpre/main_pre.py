@@ -24,8 +24,12 @@ path2file = '../gpOptim/workDir/newSampledParam.dat'
 
 # %% funcs
 def get_params(path2file):
-    theta = np.loadtxt("%s" % path2file, skiprows=2)
-    return theta[-1,:] # return latest
+    try:
+        theta = np.array([np.loadtxt("%s" % path2file, skiprows=2)])
+    except:
+        print("Error: couldn't read %s" % path2file)
+        sys.exit(1)
+    return theta
 
 def write_curve(path2run,casename,theta):
     scf = open('%s/%s/system/yTopParams.in' % (path2run,casename),'w')
@@ -36,5 +40,6 @@ def write_curve(path2run,casename,theta):
 # %% ################## main ###########################
 if __name__ == '__main__':
     theta = get_params(path2file)
+    print('write %s/%s/system/yTopParams.in' % (path2run,casename))
     write_curve(path2run, casename, theta)
     

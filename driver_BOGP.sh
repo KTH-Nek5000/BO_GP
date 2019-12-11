@@ -11,10 +11,10 @@
 #---------------------------------------------
 #  SETTINGS
 #---------------------------------------------
-iStart=1   # Starting iteration 
+iStart=2   # Starting iteration 
 nRun=2   # number of times the script is run 
 tEnd=120   # last time-step (=folder name) to be written by OpenFOAM
-nProcessors=10 # number of processors
+nProcessors=10 # number of processors for calculation (check decomposeParDict & jobscript)
 bupAddress="/scratch/morita/OpenFOAM/morita-7/"   #directory to which OpenFOAM data at tEnd are backed up
 caseName="test1"  #for saving figures and output data
 #------------------------
@@ -29,9 +29,8 @@ for ((i=$iStart;i<=nRun;i++)); do
     clear;
     #1. Generate a sample from the parameters space
     cd ./gpOptim
-    python3 -c 'import gpOpt_gpTBL as X;X.nextGPsample()'
+    python3 -c 'import gpOpt_TBL as X;X.nextGPsample()'
     cd ../
-    echo "... new parameter sample was taken"
 
     #2. Grab sampled parameter and write yTopParams.in for blockMesh
     cd ./OFpre
@@ -45,16 +44,19 @@ for ((i=$iStart;i<=nRun;i++)); do
     rm -rf constant/polyMesh/*
     foamListTimes -rm # delete time directories (except 0)
     blockMesh
+    wait # wait $!
     rm -rf dynamicCode
     postProcess -func writeCellCentres -time 0 # write coordinate data (needed for post process)
     decomposePar
+    echo "main simulation start"
     bash OFrun.sh $nProcessors
+    echo "main simulation end"
     reconstructPar -latestTime
     cd ../
     
     #4. Post-process OpenFOAM
     cd ./OFpost
-    python3 main_post.py  $tEnd
+    python3 main_post.py $tEnd
     cd ../
 
     #get back to the current address (where this script is)
