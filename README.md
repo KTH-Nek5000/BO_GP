@@ -1,14 +1,19 @@
 #---------------
 # pgTBL_optim  |
 #---------------
+
 Bayesian optimization based on Gaussian processes for TBL with non-zero pressure gradient. 
 Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
 
 #list of included files and folders:
 
- - /OFcase/    OpenFOAM case
- - /OFpp/      Post-processing the results of OpenFOAM
- - /gp_optim/  Bayesian optimization based on Gaussian processes
+ - /gpOptim/  Bayesian optimization based on Gaussian processes
+   -  
+ - /OFpre/    Creating yTopParams.in using the latest parameter sample
+   - main_pre.py
+ - /OFcase/   OpenFOAM case
+   
+ - /OFpost/   Post-processing the results (latestTime) of OpenFOAM to extract the response
 
 # Requirements:
 1. python3 (+numpy, matplotlib)

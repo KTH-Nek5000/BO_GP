@@ -3,3 +3,4 @@
 .png
 .pdf
 /figs/*
+/OFcase/constant/polyMesh/*
