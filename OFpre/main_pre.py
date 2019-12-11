@@ -5,8 +5,14 @@ Created on Mon Dec  9 18:39:02 2019
 
 @author: morita
 """
+# %% Explanatinon
+"""
+pgTBL_optim/OFpre
 
-# import main_func
+get parameters from ../gpOptim/workDir/newSampledParam.dat
+write new geometry to ../OFcase/system/yTopParams.in
+"""
+# %% import libraries
 import numpy as np
 import subprocess
 import sys
@@ -19,49 +25,16 @@ path2file = '../gpOptim/workDir/newSampledParam.dat'
 # %% funcs
 def get_params(path2file):
     theta = np.loadtxt("%s" % path2file, skiprows=2)
-    return theta[-1,:]
+    return theta[-1,:] # return latest
 
 def write_curve(path2run,casename,theta):
     scf = open('%s/%s/system/yTopParams.in' % (path2run,casename),'w')
-    scf.write('hEnd %g;' % theta)
+    for i,param in enumerate(theta):
+        scf.write('theta%d %g;\n' % (i+1,param)) # start from theta1
     scf.close()
-
-# def preProc_bash():
-#     # OpenFOAM case setting
-#     a = 'cd %s/%s' % (path2run,casename)
-#     try:
-#         print(a)
-#         subprocess.check_call(a, shell=True)
-#     except:
-#         print("Error: preProc_bash")
-#         sys.exit(1)
-
-#     a = 'blockMesh'
-#     try:
-#         print(a)
-#         subprocess.check_call(a, shell=True)
-#     except:
-#         print("Error: preProc_bash")
-#         sys.exit(1)
-    
-#     a = 'decomposePar'
-#     try:
-#         print(a)
-#         subprocess.check_call(a, shell=True)
-#     except:
-#         print("Error: preProc_bash")
-#         sys.exit(1)
-    
-#     a = 'mpirun -np 10 simpleFoam -parallel > log &'
-#     try:
-#         print(a)
-#         subprocess.check_call(a, shell=True)
-#     except:
-#         print("Error: preProc_bash")
-#         sys.exit(1)
 
 # %% ################## main ###########################
 if __name__ == '__main__':
     theta = get_params(path2file)
     write_curve(path2run, casename, theta)
-    # preProc_bash()
+    

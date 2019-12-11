@@ -12,8 +12,19 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
  - /OFpre/    Creating yTopParams.in using the latest parameter sample
    - main_pre.py
  - /OFcase/   OpenFOAM case
+   - system
+     - yTopParams.in (from main_pre.py)
+     - blockMeshDict
+     - controlDict
+     - etc.
+   - 0
+   - constant
+   - OFrun.sh
    
  - /OFpost/   Post-processing the results (latestTime) of OpenFOAM to extract the response
+   - main_post.py
+   - postProcess_func.py (included to main_post.py)
+ - driver_BOGP.sh
 
 # Requirements:
 1. python3 (+numpy, matplotlib)

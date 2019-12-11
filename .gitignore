@@ -4,3 +4,5 @@
 .pdf
 /figs/*
 /OFcase/constant/polyMesh/*
+/OFcase/0/C*
+/OFcase/0/*_IC

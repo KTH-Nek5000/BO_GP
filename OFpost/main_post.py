@@ -5,28 +5,38 @@ Created on Mon Dec  9 17:47:10 2019
 
 @author: morita
 """
+# %% Explanatinon
+"""
+pgTBL_optim/OFpost
 
+calclate beta & objective
+write it to ../gpOptim/workDir/newResponse.dat
+"""
+# %% import libraries
 import numpy as np
-# import matplotlib.pyplot as plt
-#import subprocess
 import sys
 
 # user defined
 import postProcess_func
 
-# %% pnputs
+# %% inputs
 
-path2run ='/scratch/morita/OpenFOAM/morita-7/run'
-casename = 'GPtest'
+path2run ='..'
+casename = 'OFcase'
 
 U_infty = 1
 delta99_in = 0.05
 Nx = 2500
 Ny = 238
 Nz = 1
-t = 120
+# t = 120
 
-beta_t = 0# terget beta
+t = (sys.argv);
+print('check: tEnd = ', t)
+
+beta_t = 0    # terget beta
+inlet_exclude = 0.2 # don't assess this region for objective
+outlet_exclude = 0.1
 
 # %%
 
@@ -56,14 +66,12 @@ def calc_beta(path2run,casename,U_infty,delta99_in,Nx,Ny,Nz,t):
 
 def write_newTheta(obj):
     scf = open('../gpOptim/workDir/newResponse.dat','w')
-    scf.write('')
+    scf.write('# Response from CFD code associated to the last drawn parameter sample')
     scf.write('%g;' % obj)
     scf.close()
 
 # %% ################## main ###########################
 if __name__ == '__main__':
-    tEnd = (sys.argv);
-    print('check tEnd', tEnd)
     
     # calc beta
     print("################### calc beta ####################")
@@ -71,8 +79,6 @@ if __name__ == '__main__':
     
     # assess objective func
     n = len(beta)
-    inlet_exclude = 0.2
-    outlet_exclude = 0.1
     
     obj = \
         np.sqrt(sum((beta[int(inlet_exclude*n):-int(outlet_exclude*n)]-beta_t)**2))
