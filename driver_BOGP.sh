@@ -7,15 +7,15 @@
 # Saleh Rezaeiravesh, salehr@kth.se
 # Yuki Morita, morita@kth.se
 #--------------------------------------------------------------
-
+set -eu # stop when error occurs
 #---------------------------------------------
 #  SETTINGS
 #---------------------------------------------
-iStart=2   # Starting iteration 
+iStart=1   # Starting iteration 
 nRun=2   # number of times the script is run 
 tEnd=120   # last time-step (=folder name) to be written by OpenFOAM
-nProcessors=10 # number of processors for calculation (check decomposeParDict & jobscript)
-bupAddress="/scratch/morita/OpenFOAM/morita-7/"   #directory to which OpenFOAM data at tEnd are backed up
+nProcessors=30 # number of processors for calculation (check decomposeParDict & jobscript)
+bupAddress="/home/m/morita/OpenFOAM/morita-6/run/"   #directory to which OpenFOAM data at tEnd are backed up
 caseName="test1"  #for saving figures and output data
 #------------------------
 #------------------------
@@ -49,7 +49,9 @@ for ((i=$iStart;i<=nRun;i++)); do
     postProcess -func writeCellCentres -time 0 # write coordinate data (needed for post process)
     decomposePar
     echo "main simulation start"
-    bash OFrun.sh $nProcessors
+    #bash OFrun.sh $nProcessors
+    sbatch jobScript
+    wait
     echo "main simulation end"
     reconstructPar -latestTime
     cd ../

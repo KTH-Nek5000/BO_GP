@@ -18,7 +18,7 @@ FoamFile
 convertToMeters 1;
 Lx 25;
 Ly 2;
-middle #calc "0.5*$Ly";
+middle 1; // Ly/2
 
 Nx 2500;
 

@@ -10,6 +10,7 @@
 #SBATCH -n 30
 # time max. 24h
 #SBATCH --time=1:00:00
+#SBATCH -W
 
 # SBATCH -p largemem
 
