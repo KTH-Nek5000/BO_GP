@@ -1,0 +1,30 @@
+#!/bin/bash
+#SBATCH -A snic2018-2-4
+#SBATCH --output=log
+#SBATCH --error=err
+# Number of nodes
+# SBATCH -N 3
+# Number of MPI processes per node (the following is actually the default)
+# SBATCH --ntasks-per-node=24
+# Number of MPI processes.
+#SBATCH -n 30
+# time max. 24h
+#SBATCH --time=1:00:00
+
+# SBATCH -p largemem
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+
+# send mail to this address
+#SBATCH --mail-user=morita@kth.se
+
+# Load compiler toolchain module for MPI, compiler, libraries, etc. as needed/desired
+ml purge > /dev/null 2>&1 # Ignore some warnings from the purge command
+ml ifort/2018.1.163-GCC-6.4.0-2.28  impi/2018.1.163 OpenFOAM/6
+
+source $FOAM_BASH
+
+# Use mpirun on Kebnekaise. Change to srun on Abisko 
+mpirun simpleFoam -parallel
+wait
