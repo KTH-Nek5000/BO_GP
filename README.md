@@ -8,7 +8,8 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
 #list of included files and folders:
 
  - /gpOptim/  Bayesian optimization based on Gaussian processes
-   -  
+   - workDir
+   - gpOpt_TBL.py
  - /OFpre/    Creating yTopParams.in using the latest parameter sample
    - main_pre.py
  - /OFcase/   OpenFOAM case

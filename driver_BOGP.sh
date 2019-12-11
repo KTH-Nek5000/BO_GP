@@ -45,6 +45,7 @@ for ((i=$iStart;i<=nRun;i++)); do
     rm -rf constant/polyMesh/*
     foamListTimes -rm # delete time directories (except 0)
     blockMesh
+    rm -rf dynamicCode
     postProcess -func writeCellCentres -time 0 # write coordinate data (needed for post process)
     decomposePar
     bash OFrun.sh $nProcessors
