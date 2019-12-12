@@ -23,17 +23,15 @@ import postProcess_func
 
 # %% inputs
 
-path2run ='..'
-casename = 'OFcase'
 
-U_infty = 1
-delta99_in = 0.05
-Nx = 2500
-Ny = 238
-Nz = 1
+# U_infty = 1
+# delta99_in = 0.05
+# Nx = 2500
+# Ny = 238
+# Nz = 1
 # t = 120
 
-t = int((sys.argv)[1]);
+# t = int((sys.argv)[1])
 # print('check: tEnd = ', t)
 
 beta_t = 0    # terget beta
@@ -69,7 +67,19 @@ def write_newTheta(obj):
 
 # %% ################## main ###########################
 if __name__ == '__main__':
+    # input
+    path2run ='..'
+    casename = 'OFcase'
     
+    # t = int((sys.argv)[1])
+    # print('check: tEnd = ', t)
+    
+    beta_t = int((sys.argv)[1])    # terget beta
+    inlet_exclude = int((sys.argv)[2]) # don't assess this region for objective
+    outlet_exclude = int((sys.argv)[3])
+    
+    U_infty, delta99_in, Nx, Ny, Nz, t \
+        = np.loadtxt('../OFinput.dat',delimiter=',',skiprows=1,unpack=True)
     # calc beta
     print("################### calc beta ####################")
     beta = calc_beta(path2run,casename,U_infty,delta99_in,Nx,Ny,Nz,t)

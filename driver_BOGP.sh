@@ -12,9 +12,12 @@ set -eu # stop when error occurs
 #  SETTINGS
 #---------------------------------------------
 iStart=1   # Starting iteration 
-nRun=2   # number of times the script is run 
-tEnd=120   # last time-step (=folder name) to be written by OpenFOAM
+nRun=3   # number of times the script is run 
+#tEnd=120   # last time-step (=folder name) to be written by OpenFOAM
 #nProcessors=30 # number of processors for calculation (check decomposeParDict & jobscript)
+terget=0   # terget value for beta
+inlet_ignore=0.2   # ignore this region when assess the objective
+outlet_ignore=0.1
 bupAddress="/home/m/morita/OpenFOAM/morita-6/run/"   #directory to which OpenFOAM data at tEnd are backed up
 caseName="test1"  #for saving figures and output data
 #------------------------
@@ -58,7 +61,7 @@ for ((i=$iStart;i<=nRun;i++)); do
     
     #4. Post-process OpenFOAM
     cd ./OFpost
-    python3 main_post.py $tEnd
+    python3 main_post.py $target $inlet_ignore $outlet_ignore
     cd ../
     
     #5. 
