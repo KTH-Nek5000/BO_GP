@@ -12,8 +12,10 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
      - yTopParams.in (from main_pre.py)
      - blockMeshDict
      - controlDict
+     - decomposeParDict
      - etc.
    - 0/
+     - *_IC files
    - constant/
    - jobscript
 
@@ -56,10 +58,10 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
 
 # Note:
   - When you change the structure of geometry
-    - create new inflow using bl_inflow.py
+    - create new inflow from precursor using bl_inflow.py
     - check blockMeshDict
     - update OFinput.dat
     
   - When you change the nProcessor
-    - check decomposeParDict
-    - check jobScript
+    - update decomposeParDict
+    - update jobScript
