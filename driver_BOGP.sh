@@ -14,7 +14,7 @@ set -eu # stop when error occurs
 iStart=1   # Starting iteration 
 nRun=2   # number of times the script is run 
 tEnd=120   # last time-step (=folder name) to be written by OpenFOAM
-nProcessors=30 # number of processors for calculation (check decomposeParDict & jobscript)
+#nProcessors=30 # number of processors for calculation (check decomposeParDict & jobscript)
 bupAddress="/home/m/morita/OpenFOAM/morita-6/run/"   #directory to which OpenFOAM data at tEnd are backed up
 caseName="test1"  #for saving figures and output data
 #------------------------
@@ -60,7 +60,12 @@ for ((i=$iStart;i<=nRun;i++)); do
     cd ./OFpost
     python3 main_post.py $tEnd
     cd ../
-
+    
+    #5. 
+    cd ./gpOptim
+    python3 -c 'import gpOpt_TBL as X;X.BO_update_convergence()'
+    cd ../
+    
     #get back to the current address (where this script is)
     cd $here
 done

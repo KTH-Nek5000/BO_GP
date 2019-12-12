@@ -15,10 +15,10 @@
 # SBATCH -p largemem
 
 # mail alert at start, end and abortion of execution
-#SBATCH --mail-type=ALL
+# SBATCH --mail-type=ALL
 
 # send mail to this address
-#SBATCH --mail-user=morita@kth.se
+# SBATCH --mail-user=morita@kth.se
 
 # Load compiler toolchain module for MPI, compiler, libraries, etc. as needed/desired
 ml purge > /dev/null 2>&1 # Ignore some warnings from the purge command
@@ -28,4 +28,4 @@ source $FOAM_BASH
 
 # Use mpirun on Kebnekaise. Change to srun on Abisko 
 mpirun simpleFoam -parallel
-wait
+

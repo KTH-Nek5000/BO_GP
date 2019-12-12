@@ -8,9 +8,11 @@ Created on Mon Dec  9 17:47:10 2019
 # %% Explanatinon
 """
 pgTBL_optim/OFpost
+***** require postProcess_finc.py in same directory
 
 calclate beta & objective
 write it to ../gpOptim/workDir/newResponse.dat
+
 """
 # %% import libraries
 import numpy as np
@@ -42,19 +44,18 @@ outlet_exclude = 0.1
 
 def calc_beta(path2run, casename, U_infty, delta99_in, Nx, Ny, Nz, t):
     #  grid load
-    print("########################### load data ############################")
+    print("########################### load grid data ############################")
     nu = postProcess_func.getNu(path2run,casename)
     xc, yc, x, y \
             = postProcess_func.load_grid(path2run, casename, Nx, Ny, Nz)
             
     #  main data load
-
+    print("########################### load profile ############################")
     U, V, p, nut, k, omega, tau_w\
         = postProcess_func.load_data(path2run,casename, Nx, Ny, Nz, t)
+    
     print('start bl_calc')
-    
     ###################### CHECK delta99 calc. in bl_calc #######################
-    
     beta = postProcess_func.bl_calc(Nx, Ny, Nz, xc, yc, x, y, U_infty,nu,\
                                     U, V, p, nut, k, omega,tau_w)[-3]
     
