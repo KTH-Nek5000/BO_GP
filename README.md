@@ -7,15 +7,6 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
 
 #list of included files and folders:
 
- - /gpOptim/  Bayesian optimization based on Gaussian processes
-   - workDir/
-     - figs/
-     - etc.
-   - gpOpt_TBL.py
-   
- - /OFpre/    Creating yTopParams.in using the latest parameter sample
-   - main_pre.py
-   
  - /OFcase/   OpenFOAM case
    - system/
      - yTopParams.in (from main_pre.py)
@@ -25,11 +16,25 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
    - 0/
    - constant/
    - jobscript
-   
+
  - /OFpost/   Post-processing the results (latestTime) of OpenFOAM to extract the response
    - main_post.py
    - postProcess_func.py (included to main_post.py at run time)
- - driver_BOGP.sh
+
+ - /OFpre/    Creating yTopParams.in using the latest parameter sample
+   - main_pre.py
+   
+ - /gpOptim/  Bayesian optimization based on Gaussian processes
+   - workDir/
+     - figs/
+     - etc.
+   - gpOpt_TBL.py
+   
+ - OFinput.dat
+   
+ - driver_BOGP.sh: main driver
+ 
+ - reset_gpList.sh: reset gpOptim/workDir/gpList.dat
 
 # setting & input:
  - driver: about optimization loop
