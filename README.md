@@ -29,6 +29,11 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
    - postProcess_func.py (included to main_post.py at run time)
  - driver_BOGP.sh
 
+# setting & input:
+ - driver: about optimization loop
+ - /gpOptim/gpOpt_TBL.py: number of parameters, renge, tolerance, kernel, xi, number of randam generate parameters, etc.
+ - OFinput.dat: U_infty, delta99_in, Nx, Ny, Nz, t
+
 # Requirements:
 1. python3 (+numpy, matplotlib)
 

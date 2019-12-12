@@ -14,13 +14,11 @@ write new geometry to ../OFcase/system/yTopParams.in
 """
 # %% import libraries
 import numpy as np
-import subprocess
 import sys
 
 # %% inputs
-path2run ='..'
-casename = 'OFcase' # in 'run' directory
-path2file = '../gpOptim/workDir/newSampledParam.dat'
+path2run ='..' # without last "/"
+casename = 'OFcase'
 
 # %% funcs
 def get_params(path2file):
@@ -31,7 +29,7 @@ def get_params(path2file):
         sys.exit(1)
     return theta
 
-def write_curve(path2run,casename,theta):
+def write_yTopParams(path2run,casename,theta):
     scf = open('%s/%s/system/yTopParams.in' % (path2run,casename),'w')
     for i,param in enumerate(theta):
         scf.write('theta%d %g;\n' % (i+1,param)) # start from theta1
@@ -39,7 +37,8 @@ def write_curve(path2run,casename,theta):
 
 # %% ################## main ###########################
 if __name__ == '__main__':
-    theta = get_params(path2file)
+    theta = get_params('../gpOptim/workDir/newSampledParam.dat')
+    print('new sampled parameter is ', theta)
     print('write %s/%s/system/yTopParams.in' % (path2run,casename))
-    write_curve(path2run, casename, theta)
+    write_yTopParams(path2run, casename, theta)
     
