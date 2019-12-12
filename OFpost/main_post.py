@@ -70,21 +70,25 @@ if __name__ == '__main__':
     # input
     path2run ='..'
     casename = 'OFcase'
-    
-    # t = int((sys.argv)[1])
-    # print('check: tEnd = ', t)
-    
-    beta_t = int((sys.argv)[1])    # terget beta
-    inlet_exclude = int((sys.argv)[2]) # don't assess this region for objective
-    outlet_exclude = int((sys.argv)[3])
+        
+    beta_t = float((sys.argv)[1])    # terget beta
+    inlet_exclude = float((sys.argv)[2]) # don't assess this region for objective
+    outlet_exclude = float((sys.argv)[3])
     
     U_infty, delta99_in, Nx, Ny, Nz, t \
         = np.loadtxt('../OFinput.dat',delimiter=',',skiprows=1,unpack=True)
+    
+    Nx = int(Nx)
+    Ny = int(Ny)
+    Nz = int(Nz)
+    t = int(t)
+    
     # calc beta
     print("################### calc beta ####################")
     beta = calc_beta(path2run,casename,U_infty,delta99_in,Nx,Ny,Nz,t)
     
     # assess objective func
+    print("################### calc objective ####################")
     n = len(beta)
     obj = np.linalg.norm(beta[int(inlet_exclude*n):-int(outlet_exclude*n)], 2) # L2norm
     

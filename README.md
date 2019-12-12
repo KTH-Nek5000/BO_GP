@@ -12,8 +12,10 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
      - figs/
      - etc.
    - gpOpt_TBL.py
+   
  - /OFpre/    Creating yTopParams.in using the latest parameter sample
    - main_pre.py
+   
  - /OFcase/   OpenFOAM case
    - system/
      - yTopParams.in (from main_pre.py)
@@ -46,3 +48,13 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
    - documentation: https://sheffieldml.github.io/GPyOpt/
 
 4. OpenFOAM 7
+
+# Note:
+  - When you change the structure of geometry
+    - create new inflow using bl_inflow.py
+    - check blockMeshDict
+    - update OFinput.dat
+    
+  - When you change the nProcessor
+    - check decomposeParDict
+    - check jobScript
