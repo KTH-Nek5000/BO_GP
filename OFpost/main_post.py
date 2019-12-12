@@ -93,6 +93,7 @@ if __name__ == '__main__':
     obj = np.linalg.norm(beta[int(inlet_exclude*n):-int(outlet_exclude*n)], 2) # L2norm
     
     # output obj
+    print("objective = ",obj)
     print("write objective")
     write_newTheta(obj)
     
