@@ -13,9 +13,8 @@ set -eu # stop when error occurs
 #---------------------------------------------
 iStart=1   # Starting iteration 
 nRun=3   # number of times the script is run 
-#tEnd=120   # last time-step (=folder name) to be written by OpenFOAM
-#nProcessors=30 # number of processors for calculation (check decomposeParDict & jobscript)
-terget=0   # terget value for beta
+#nProcessors=30 # number of processors for calculation (check decomposeParDict & jobScript)
+target=0   # terget value for beta
 inlet_ignore=0.2   # ignore this region when assess the objective
 outlet_ignore=0.1
 bupAddress="/home/m/morita/OpenFOAM/morita-6/run/"   #directory to which OpenFOAM data at tEnd are backed up
