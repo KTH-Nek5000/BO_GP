@@ -12,9 +12,10 @@ set -eu # stop when error occurs
 #  SETTINGS
 #---------------------------------------------
 iStart=1   # Starting iteration 
-nRun=5   # number of times the script is run 
+nRun=10   # number of times the script is run 
 #nProcessors=30 # number of processors for calculation (check decomposeParDict & jobScript)
-tEnd=120
+tEnd=`cut -f 7 OFinput.dat | sed -n 2p`
+echo $tEnd
 target=0   # terget value for beta
 inlet_ignore=0.2   # ignore this region when assess the objective
 outlet_ignore=0.1
@@ -23,9 +24,9 @@ caseName="test1"  #for saving figures and output data
 #------------------------
 # FUNCTIONS
 #------------------------
-get_tEnd() {
-    echo `cut -f 7 OFinput.dat | sed -n 2p`
-}
+#get_tEnd() {
+#    echo `cut -f 7 ../OFinput.dat | sed -n 2p`
+#}
 #------------------------
 # MAIN
 #------------------------
@@ -44,7 +45,7 @@ for ((i=$iStart;i<=nRun;i++)); do
     #2. Grab sampled parameter and write yTopParams.in for blockMesh
     cd ./OFpre
     echo "main_pre.py"
-    python3 main_pre.py > main_pre.log
+    python3 main_pre.py
     cd ../
 
     #3. Run OpenFOAM
@@ -67,13 +68,14 @@ for ((i=$iStart;i<=nRun;i++)); do
     
     echo "MAIN SIMULATION END"
     reconstructPar -latestTime
-    cp -r `get_tEnd` $bupAddress$caseName$i
+    echo "COPY THE LATEST TIME DATA TO " $bupAddress$caseName/$tEnd-$i
+    cp -r $tEnd $bupAddress$caseName/$tEnd-$i
     cd ../
     
     #4. Post-process OpenFOAM
     cd ./OFpost
     echo "main_post.py"
-    python3 main_post.py $target $inlet_ignore $outlet_ignore > main_post.log
+    python3 main_post.py $target $inlet_ignore $outlet_ignore
     cd ../
     
     #5. Post-process optimization

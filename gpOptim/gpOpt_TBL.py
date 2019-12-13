@@ -420,7 +420,7 @@ tol_b=1e-2        #deviation between best f(x+) in two consequtive iterations
                   #note if err_d<tol_d and err_b<tol_b => convergence in (x_opt , f(x_opt))
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-qBound=[[2,3.]]# , [-0.7,0.7]]
+qBound=[[2,3]]# , [-0.7,0.7]]
 nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm to avoid random sampling from the parameter space
 #---------------------------------------------------------------------------
 #---------------------------------------------------------------------------
