@@ -302,7 +302,7 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
     if 'whichOptim' in plotOpts.keys():
        if plotOpts['whichOptim']=='max':   #for plotting the GPR after computing max
           meanPred=-meanPred;
-          yTrain=-yTrain
+          yTrain=-yGP
           ifac=-1.0
     n=len(meanPred);
     #confidence interval
