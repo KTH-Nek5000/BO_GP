@@ -65,3 +65,6 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
   - When you change the nProcessor
     - update decomposeParDict
     - update jobScript
+
+  - Use reset_gpList.sh before running new case
+  

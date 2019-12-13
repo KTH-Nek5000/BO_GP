@@ -133,10 +133,12 @@ def my_convergence_plot(xList,yList,whichOptim,figDir,figName):
     nData=xList.shape[0];
     for i in range(1,nData):
         xDistList.append(norm(xList[i][:]-xList[i-1][:]))
+    for i in range(nData):
         if whichOptim=='min':
-           yBestList.append(min(yList[0:i]))
+           yBestList.append(min(yList[0:i+1]))
         elif whichOptim=='max':
-           yBestList.append(max(yList[0:i]))
+           yBestList.append(max(yList[0:i+1]))
+    
     fig=plt.figure()
     plt.subplot(2,1,1)
     plt.semilogy(xDistList,'-ob',lw=2)
