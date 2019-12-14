@@ -14,19 +14,12 @@ set -eu # stop when error occurs
 iStart=1   # Starting iteration 
 nRun=10   # number of times the script is run 
 #nProcessors=30 # number of processors for calculation (check decomposeParDict & jobScript)
-tEnd=`cut -f 7 OFinput.dat | sed -n 2p`
-echo $tEnd
+tEnd=`cut -f 7 OFinput.dat | sed -n 2p` # read from OFinput.dat
 target=0   # terget value for beta
 inlet_ignore=0.2   # ignore this region when assess the objective
 outlet_ignore=0.1
 bupAddress="/home/m/morita/OpenFOAM/morita-6/run/"   #directory to which OpenFOAM data at tEnd are backed up
 caseName="test1"  #for saving figures and output data
-#------------------------
-# FUNCTIONS
-#------------------------
-#get_tEnd() {
-#    echo `cut -f 7 ../OFinput.dat | sed -n 2p`
-#}
 #------------------------
 # MAIN
 #------------------------
