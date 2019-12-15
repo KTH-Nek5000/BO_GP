@@ -416,8 +416,8 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
 nPar=1;           #number of parameters= p = dimension of x={x1,x2,...,xp} where y=f(x)
 sigma_d=0.0       #sdev of the white noise in the measured data   
 whichOptim='min'  #find 'max' or 'min' of f(x)?
-tol_d=0.02        #minimum distace between two cionsequtive samples x to keep the code running
-tol_b=1e-2        #deviation between best f(x+) in two consequtive iterations
+tol_d=0.02        #minimum distace between two consequtive samples x to keep the code running
+tol_b=1e-2        #deviation between best f(x+) in two consequtive iterations (relative error)
                   #note if err_d<tol_d and err_b<tol_b => convergence in (x_opt , f(x_opt))
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
@@ -459,7 +459,7 @@ yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
 ##########################
 #/////////////////////////
 def nextGPsample():
-    """ 
+    """
        Take the next sample of the parameters from their admissible space. 
        If the number of the available samples is less than a limit (=nGPinit), 
        take the initial samples randomly. Otherwise, use the BO-GP algorithm to draw the new sample. 
@@ -534,23 +534,24 @@ def BO_update_convergence():
 
     #Check convergence of BO
     #>>>>> plot convergence
-    iLast=0
-    if len(yList_)>1:
+    n=len(yList_)
+    if n>1:
        [xDistList,yBestList]=my_convergence_plot(xList_,yList_,whichOptim,'./workDir/figs/','bo_convergence')
-       iLast=len(xDistList)-1;
-
-    #>>>> Converged Optimal Value:
-    if (iLast>3): # check convergence
-       err_d=xDistList[iLast]
-       if (err_d<tol_d):
-          err_b=abs(yBestList[iLast]-yBestList[iLast-1])/abs(yBestList[iLast])
-          if (err_b<tol_b):
-             xOpt=xList_[xList_.shape[0]-1]
-             fxOpt=yList_[yList_.shape[0]-1]
-             print(' ******* Converged Optimal Values (x,f(x))= (%g,%g)',xOpt,fxOpt)
-             print('err_d, err_b=%f %f' %(err_d,err_b))
-             #send convergence signal
-             #?????
+      # iLast=len(xDistList)-1;
+      #>>>> Converged Optimal Value:
+       if (n>2): # check convergence
+           err_d=xDistList[-1]
+           if (err_d<tol_d):
+               err_b=abs(yBestList[-1]-yBestList[-2])/abs(yBestList[-1])
+               if (err_b<tol_b):
+                   xOpt=xList_[xList_.shape[0]-1]
+                   fxOpt=yList_[yList_.shape[0]-1]
+                   print(' ******* Converged Optimal Values (x,f(x))= (%g,%g)' % (xOpt,fxOpt))
+                   print('err_d, err_b=%f %f' %(err_d,err_b))
+                   #send convergence signal
+                   sys.exit(0)
+               else:
+                   sys.exit(1)
 
 #////////////////////////////////////
 def gpSurface_plot():

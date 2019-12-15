@@ -11,6 +11,7 @@ gpOptim/workDir/figs/*
 /OFcase/processor*
 /OFcase/postProcessing
 /OFcase/log
+/OFcase/err
 /OFpost/__pycache__
 /OFpost/Cdata
 /OFpost/pointsdata
