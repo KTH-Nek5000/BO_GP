@@ -417,7 +417,7 @@ nPar=1;           #number of parameters= p = dimension of x={x1,x2,...,xp} where
 sigma_d=0.0       #sdev of the white noise in the measured data   
 whichOptim='min'  #find 'max' or 'min' of f(x)?
 tol_d=0.02        #minimum distace between two consequtive samples x to keep the code running
-tol_b=1e-2        #deviation between best f(x+) in two consequtive iterations (relative error)
+tol_b=0.1        #deviation between best f(x+) in two consequtive iterations (relative error)
                   #note if err_d<tol_d and err_b<tol_b => convergence in (x_opt , f(x_opt))
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
