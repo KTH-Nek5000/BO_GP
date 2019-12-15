@@ -74,7 +74,7 @@ for ((i=$iStart;i<=nRun;i++)); do
     #5. Post-process optimization
     cd ./gpOptim
     python3 -c 'import gpOpt_TBL as X;X.BO_update_convergence()'
-    conv=$?
+    conv=$? # conv=1 if converged
     echo "isConv?" $conv
     python3 -c 'import gpOpt_TBL as X;X.gpSurface_plot()'
     cd ../
@@ -82,7 +82,7 @@ for ((i=$iStart;i<=nRun;i++)); do
     echo "LOOP END"
     #get back to the current address (where this script is)
     cd $here
-    if [$conv = 0]; then
+    if [ $conv = 1 ]; then
 	echo "optimization is converged: i = " $i
 	break
     fi

@@ -549,8 +549,6 @@ def BO_update_convergence():
                    print(' ******* Converged Optimal Values (x,f(x))= (%g,%g)' % (xOpt,fxOpt))
                    print('err_d, err_b=%f %f' %(err_d,err_b))
                    #send convergence signal
-                   sys.exit(0)
-               else:
                    sys.exit(1)
 
 #////////////////////////////////////

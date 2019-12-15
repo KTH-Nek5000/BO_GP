@@ -23,17 +23,6 @@ import postProcess_func
 
 # %% inputs
 
-
-# U_infty = 1
-# delta99_in = 0.05
-# Nx = 2500
-# Ny = 238
-# Nz = 1
-# t = 120
-
-# t = int((sys.argv)[1])
-# print('check: tEnd = ', t)
-
 beta_t = 0    # terget beta
 inlet_exclude = 0.2 # don't assess this region for objective
 outlet_exclude = 0.1
