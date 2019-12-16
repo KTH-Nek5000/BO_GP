@@ -36,8 +36,8 @@ def read_available_GPsamples(gpInputFile,nPar):
     ain_sep=[];
     for i in range(len(ain)):
         ain_sep.append(ain[i].split())
-    iskip=2;  # no of lines to skip from the beginning of the input file
-    n=len(ain_sep)-iskip;  
+    iskip=2;  # no. of lines to skip from the beginning of the input file
+    n=len(ain_sep)-iskip;
     xList=np.zeros((n,nPar))
     yList=np.zeros(n)
     for i in range(n):
@@ -81,7 +81,7 @@ def write_newGPsample(newSampleFile,xNext):
        Write the new sample in file
     """
     F2=open(newSampleFile,'w')
-    F2.write('# New samples for parameters which are taken by ../gpOpt1_newSample.py \n')
+    F2.write('# New samples for parameters which are taken by nextGPsample() \n')
     F2.write('# ')
     for i in range(len(xNext[0])):
         tmp='par'+str(i)+'\t'
@@ -422,7 +422,8 @@ tol_b=0.1        #deviation between best f(x+) in two consequtive iterations (re
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
 qBound=[[2,3]]# , [-0.7,0.7]]
-nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm to avoid random sampling from the parameter space
+nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm 
+            #to avoid random sampling from the parameter space
 #---------------------------------------------------------------------------
 #---------------------------------------------------------------------------
 
@@ -536,8 +537,8 @@ def BO_update_convergence():
     #>>>>> plot convergence
     n=len(yList_)
     if n>1:
-       [xDistList,yBestList]=my_convergence_plot(xList_,yList_,whichOptim,'./workDir/figs/','bo_convergence')
-      # iLast=len(xDistList)-1;
+       [xDistList,yBestList]=\
+           my_convergence_plot(xList_,yList_,whichOptim,'./workDir/figs/','bo_convergence')
       #>>>> Converged Optimal Value:
        if (n>2): # check convergence
            err_d=xDistList[-1]
