@@ -536,8 +536,8 @@ def BO_update_convergence():
 
     #Check convergence of BO
     #>>>>> plot convergence
-    n=len(yList_)
-    if n>1:
+    nData=len(yList_)
+    if nData>1:
        [xDistList,yBestList]=\
            my_convergence_plot(xList_,yList_,whichOptim,'./workDir/figs/','bo_convergence')
       #>>>> Converged Optimal Value:
@@ -552,7 +552,7 @@ def BO_update_convergence():
        #             print('err_d, err_b=%f %f' %(err_d,err_b))
        #             #send convergence signal
        #             sys.exit(1)
-       if n>2: # check convergence: only for minimize !!!
+       if nData>2: # check convergence: only for minimize !!!
            if yBestList[-1]<tol_abs:
                nOpt=yList_.argmin()
                xOpt=xList_[nOpt]
@@ -564,7 +564,7 @@ def BO_update_convergence():
 #////////////////////////////////////
 def gpSurface_plot():
     """ 
-       Reconstruct the GPR and plot it in 2D planes of the parameters admissible space (for nPar>1). 
+       Reconstruct the GPR and plot it in 2D (or 1D) planes of the parameters admissible space
     """
     #read the updated gpList.dat
     [xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
@@ -576,8 +576,8 @@ def gpSurface_plot():
     xGP=np.asarray(xList)
 
     #>>>> Reconstruct and Plot GP surrogate in parameter space
-#   if (nData%10)==0: 
-    if nPar>1:  
+#   if (nData%10)==0:
+    if nPar>1:
        if 0==0 and nData>0:
           #plot in 2D subspace of the parameters space
           plotOpts={'figDir':'./workDir/figs/',
@@ -585,7 +585,7 @@ def gpSurface_plot():
                     'kernelType':kernelType,   #required to construct the final GPR
                     'whichOptim':whichOptim}
           gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts)
-    elif nPar==1:   
+    elif nPar==1:
           nTest=100   #no of test points, only for plot
           plotOpts={'figDir':'./workDir/figs/',
                     'figName':'gp1D',
