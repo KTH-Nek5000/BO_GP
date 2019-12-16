@@ -21,7 +21,6 @@ from GPyOpt.methods import BayesianOptimization
 from GPyOpt import Design_space
 from GPyOpt.experiment_design import initial_design
 from numpy.linalg import norm
-import matplotlib.cm as cm
 
 ##################
 # INT FUNCTIONS
@@ -80,15 +79,16 @@ def write_newGPsample(newSampleFile,xNext):
     """
        Write the new sample in file
     """
+    n=len(xNext)
     F2=open(newSampleFile,'w')
     F2.write('# New samples for parameters which are taken by nextGPsample() \n')
     F2.write('# ')
-    for i in range(len(xNext[0])):
+    for i in range(n):
         tmp='par'+str(i)+'\t'
         F2.write(tmp)
     F2.write('\n')
-    for i in range(len(xNext[0])):
-        tmp=str(xNext[0][i])+'\t'
+    for i in range(n):
+        tmp=str(xNext[i])+'\t'
         F2.write(tmp)
     F2.close()
 
@@ -106,7 +106,7 @@ def read_last_GPsample(newSampleFile,nPar):
     xList=[]
     for j in range(nPar):
         xList.append(float(ain_sep[iskip][j]))
-    F1.close()    
+    F1.close()
     return xList
 
 #///////////////////////////////////////
@@ -133,18 +133,18 @@ def my_convergence_plot(xList,yList,whichOptim,figDir,figName):
     yBestList=[];  #Best response value up to any iteration
     nData=xList.shape[0];
     for i in range(1,nData):
-        xDistList.append(norm(xList[i][:]-xList[i-1][:]))
+        xDistList.append(norm(xList[i][:]-xList[i-1][:])) # 2-norm
     for i in range(nData):
         if whichOptim=='min':
-           yBestList.append(min(yList[0:i+1]))
+           yBestList.append(min(yList[:i+1]))
         elif whichOptim=='max':
-           yBestList.append(max(yList[0:i+1]))
+           yBestList.append(max(yList[:i+1]))
     
     fig=plt.figure()
     plt.subplot(2,1,1)
     plt.semilogy(xDistList,'-ob',lw=2)
     plt.title("Distance between 2 consecutive parameter samples",fontsize=20)
-    plt.xlabel('#Samples-1',fontsize=20)
+    plt.xlabel('\#Samples-1',fontsize=20)
     plt.ylabel(r'$\|x^{(n+1)}-x^{(n)}\|$',fontsize=22)
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
@@ -152,7 +152,7 @@ def my_convergence_plot(xList,yList,whichOptim,figDir,figName):
     plt.subplot(2,1,2)
     plt.plot(yBestList,'-or',lw=2)
     plt.title('Best Value So Far')
-    plt.xlabel('#Samples-1',fontsize=20)
+    plt.xlabel('\#Samples-1',fontsize=20)
     plt.ylabel(r'$f(x^+)$',fontsize=22)
     plt.tick_params(labelsize=20)
     plt.grid()
@@ -416,14 +416,15 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
 nPar=1;           #number of parameters= p = dimension of x={x1,x2,...,xp} where y=f(x)
 sigma_d=0.0       #sdev of the white noise in the measured data   
 whichOptim='min'  #find 'max' or 'min' of f(x)?
-tol_d=0.02        #minimum distace between two consequtive samples x to keep the code running
-tol_b=0.1        #deviation between best f(x+) in two consequtive iterations (relative error)
+# tol_d=0.02        #minimum distace between two consequtive samples x to keep the code running
+# tol_b=0.1        #deviation between best f(x+) in two consequtive iterations (relative error)
                   #note if err_d<tol_d and err_b<tol_b => convergence in (x_opt , f(x_opt))
+tol_abs=0.1
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-qBound=[[2,3]]# , [-0.7,0.7]]
-nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm 
-            #to avoid random sampling from the parameter space
+qBound=[[2,3]]#, [-0.7,0.7]]
+nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
+            #to avoid random sampling from the parameter space: see nextGPsample()
 #---------------------------------------------------------------------------
 #---------------------------------------------------------------------------
 
@@ -465,8 +466,8 @@ def nextGPsample():
        If the number of the available samples is less than a limit (=nGPinit), 
        take the initial samples randomly. Otherwise, use the BO-GP algorithm to draw the new sample. 
     """
-    nGPsamples=len(xList)
-    if (nGPsamples<nGPinit):   #take initial random samples
+    
+    if (nData<nGPinit):   #take initial random samples
        tmp=[];
        for i in range(nPar):
           ##random initial sample
@@ -474,7 +475,7 @@ def nextGPsample():
           maxPar=domain[i]['domain'][1]
           tmp.append(np.random.uniform(minPar,maxPar))
           ##some arbitrary value set by user
-#           tmp.append(0.0)   
+#           tmp.append(0.0)
        xNext=[];
        xNext.append(tmp)
     else:      #take GP samples  based on BO-GP algorithm
@@ -512,7 +513,7 @@ def nextGPsample():
        #Find the next x-sample
        xNext=gprOpt.suggest_next_locations(context=None, pending_X=None, ignored_X=None)
     #write the new sample in file
-    write_newGPsample('./workDir/newSampledParam.dat',xNext)
+    write_newGPsample('./workDir/newSampledParam.dat',xNext[0])
     print('**** New GP sample is taken!')
 
 #///////////////////////////
@@ -535,27 +536,35 @@ def BO_update_convergence():
 
     #Check convergence of BO
     #>>>>> plot convergence
-    n=len(yList_)
-    if n>1:
+    nData=len(yList_)
+    if nData>1:
        [xDistList,yBestList]=\
            my_convergence_plot(xList_,yList_,whichOptim,'./workDir/figs/','bo_convergence')
       #>>>> Converged Optimal Value:
-       if (n>2): # check convergence
-           err_d=xDistList[-1]
-           if (err_d<tol_d):
-               err_b=abs(yBestList[-1]-yBestList[-2])/abs(yBestList[-1])
-               if (err_b<tol_b):
-                   xOpt=xList_[xList_.shape[0]-1]
-                   fxOpt=yList_[yList_.shape[0]-1]
-                   print(' ******* Converged Optimal Values (x,f(x))= (%g,%g)' % (xOpt,fxOpt))
-                   print('err_d, err_b=%f %f' %(err_d,err_b))
-                   #send convergence signal
-                   sys.exit(1)
-
+       # if (n>2): # check convergence
+       #     err_d=xDistList[-1]
+       #     if (err_d<tol_d):
+       #         err_b=abs(yBestList[-1]-yBestList[-2])/abs(yBestList[-1])
+       #         if (err_b<tol_b):
+       #             xOpt=xList_[xList_.shape[0]-1]
+       #             fxOpt=yList_[yList_.shape[0]-1]
+       #             print(' ******* Converged Optimal Values (x,f(x))= (%g,%g)' % (xOpt,fxOpt))
+       #             print('err_d, err_b=%f %f' %(err_d,err_b))
+       #             #send convergence signal
+       #             sys.exit(1)
+       if nData>2: # check convergence: only for minimize !!!
+           if yBestList[-1]<tol_abs:
+               nOpt=yList_.argmin()
+               xOpt=xList_[nOpt]
+               fxOpt=yList_[nOpt]
+               print(' ******* Converged Optimal Values x = ', xOpt, ',y = ', fxOpt)
+               #send convergence signal
+               sys.exit(1) # read as "$isConv" in driver
+    
 #////////////////////////////////////
 def gpSurface_plot():
     """ 
-       Reconstruct the GPR and plot it in 2D planes of the parameters admissible space (for nPar>1). 
+       Reconstruct the GPR and plot it in 2D (or 1D) planes of the parameters admissible space
     """
     #read the updated gpList.dat
     [xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
@@ -567,8 +576,8 @@ def gpSurface_plot():
     xGP=np.asarray(xList)
 
     #>>>> Reconstruct and Plot GP surrogate in parameter space
-#   if (nData%10)==0: 
-    if nPar>1:  
+#   if (nData%10)==0:
+    if nPar>1:
        if 0==0 and nData>0:
           #plot in 2D subspace of the parameters space
           plotOpts={'figDir':'./workDir/figs/',
@@ -576,7 +585,7 @@ def gpSurface_plot():
                     'kernelType':kernelType,   #required to construct the final GPR
                     'whichOptim':whichOptim}
           gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts)
-    elif nPar==1:   
+    elif nPar==1:
           nTest=100   #no of test points, only for plot
           plotOpts={'figDir':'./workDir/figs/',
                     'figName':'gp1D',
