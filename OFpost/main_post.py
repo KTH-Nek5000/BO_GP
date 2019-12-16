@@ -21,12 +21,6 @@ import sys
 # user defined
 import postProcess_func
 
-# %% inputs
-
-beta_t = 0    # terget beta
-inlet_exclude = 0.2 # don't assess this region for objective
-outlet_exclude = 0.1
-
 # %%
 
 def calc_beta(path2run, casename, U_infty, delta99_in, Nx, Ny, Nz, t):
