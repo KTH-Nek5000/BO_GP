@@ -8,10 +8,11 @@
 # Yuki Morita, morita@kth.se
 #--------------------------------------------------------------
 set -eu # stop when error occurs
+echo "process id = " $$
 #---------------------------------------------
 #  SETTINGS
 #---------------------------------------------
-iStart=1   # Starting iteration 
+iStart=11   # Starting iteration 
 nRun=10   # number of times the script is run 
 #nProcessors=30 # number of processors for calculation (check decomposeParDict & jobScript)
 tEnd=`cut -f 7 OFinput.dat | sed -n 2p` # read from OFinput.dat
@@ -28,7 +29,7 @@ then
    mkdir $bupAddress$caseName
 fi
 here=$PWD
-for ((i=$iStart;i<=nRun;i++)); do
+for ((i=$iStart;i<$iStart+$nRun;i++)); do
     clear;
     #1. Generate a sample from the parameters space
     cd ./gpOptim
