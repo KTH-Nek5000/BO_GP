@@ -581,14 +581,14 @@ def gpSurface_plot():
        if 0==0 and nData>0:
           #plot in 2D subspace of the parameters space
           plotOpts={'figDir':'./workDir/figs/',
-                    'figName':'gp2D',
+                    'figName':'gp2D_'+str(nData),
                     'kernelType':kernelType,   #required to construct the final GPR
                     'whichOptim':whichOptim}
           gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts)
     elif nPar==1:
           nTest=100   #no of test points, only for plot
           plotOpts={'figDir':'./workDir/figs/',
-                    'figName':'gp1D',
+                    'figName':'gp1D_'+str(nData),
                     'kernelType':kernelType,   #required to construct the final GPR
                     'whichOptim':whichOptim,
                     'arbitSample':'yes'}

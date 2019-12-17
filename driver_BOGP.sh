@@ -1,5 +1,5 @@
 #!/bin/bash
-###############################################################
+0;136;0c###############################################################
 #   Bayesian Optimization based on Gaussian Processes
 # Find the upper boundary shape s.t. a given pressure gradient 
 #      for the TBL at the lower wall is maintained
@@ -80,7 +80,7 @@ for ((i=$iStart;i<$iStart+$nRun;i++)); do
     conv=$? # conv=1 if converged
     echo "isConv?" $conv
     python3 -c 'import gpOpt_TBL as X;X.gpSurface_plot()'
-    mv ./workDir/figs/gp1D.pdf ./workDir/figs/gp1D_$i.pdf
+    #mv ./workDir/figs/gp1D.pdf ./workDir/figs/gp1D_$i.pdf
     cd ../
 
     echo "LOOP END"
