@@ -7,7 +7,7 @@
 # Saleh Rezaeiravesh, salehr@kth.se
 # Yuki Morita, morita@kth.se
 #--------------------------------------------------------------
-#set -eu # stop when error occurs
+set -eu # stop when error occurs
 echo "process id = " $$
 #---------------------------------------------
 #  SETTINGS
@@ -74,7 +74,9 @@ for ((i=$iStart;i<$iStart+$nRun;i++)); do
     
     #5. Post-process optimization
     cd ./gpOptim
+    set +e
     python3 -c 'import gpOpt_TBL as X;X.BO_update_convergence()'
+    set -e
     conv=$? # conv=1 if converged
     echo "isConv?" $conv
     python3 -c 'import gpOpt_TBL as X;X.gpSurface_plot()'
