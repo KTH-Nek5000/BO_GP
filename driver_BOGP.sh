@@ -74,12 +74,13 @@ for ((i=$iStart;i<$iStart+$nRun;i++)); do
     
     #5. Post-process optimization
     cd ./gpOptim
-    set +e
+    set +e # allow to arise error temporaly
     python3 -c 'import gpOpt_TBL as X;X.BO_update_convergence()'
     set -e
     conv=$? # conv=1 if converged
     echo "isConv?" $conv
     python3 -c 'import gpOpt_TBL as X;X.gpSurface_plot()'
+    mv ./workDir/figs/gp1D.pdf ./workDir/figs/gp1D_$i.pdf
     cd ../
 
     echo "LOOP END"
