@@ -142,7 +142,7 @@ def my_convergence_plot(xList,yList,whichOptim,figDir,figName):
     
     fig=plt.figure()
     plt.subplot(2,1,1)
-    plt.semilogy(xDistList,'-ob',lw=2)
+    plt.semilogy(range(1,nData),xDistList,'-ob',lw=2)
     plt.title("Distance between 2 consecutive parameter samples",fontsize=20)
     plt.xlabel('\#Samples-1',fontsize=20)
     plt.ylabel(r'$\|x^{(n+1)}-x^{(n)}\|$',fontsize=22)
@@ -150,7 +150,7 @@ def my_convergence_plot(xList,yList,whichOptim,figDir,figName):
     plt.yticks(fontsize=20)
     plt.grid()
     plt.subplot(2,1,2)
-    plt.plot(yBestList,'-or',lw=2)
+    plt.semilogy(range(1,nData+1),yBestList,'-or',lw=2)
     plt.title('Best Value So Far')
     plt.xlabel('\#Samples-1',fontsize=20)
     plt.ylabel(r'$f(x^+)$',fontsize=22)
