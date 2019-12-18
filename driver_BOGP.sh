@@ -69,7 +69,7 @@ for ((i=$iStart;i<$iStart+$nRun;i++)); do
     #4. Post-process OpenFOAM
     cd ./OFpost
     echo "main_post.py"
-    python3 main_post.py $target $inlet_ignore $outlet_ignore
+    python3 main_post.py $target $inlet_ignore $outlet_ignore $i
     cd ../
     
     #5. Post-process optimization
