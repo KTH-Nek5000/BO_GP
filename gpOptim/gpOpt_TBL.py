@@ -338,7 +338,7 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
     if 'ylim' in plotOpts.keys():
        ylim=plotOpts['ylim']
        plt.ylim((ylim[0],ylim[1]))
-       plt.text(0.1*xmin,0.9*ylim[1],"min(y) = %f" % np.min(yGP))
+    plt.title("min(y) = %f" % np.min(yGP))
     plt.grid();
     #save fig
     if 'figDir' in plotOpts.keys():
