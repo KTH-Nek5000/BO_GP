@@ -76,18 +76,16 @@ for ((i=$iStart;i<$iStart+$nRun;i++)); do
     cd ./gpOptim
     set +e # allow to arise error temporaly
     python3 -c 'import gpOpt_TBL as X;X.BO_update_convergence()'
-    set -e
-    conv=$? # conv=1 if converged
-    echo "isConv?" $conv
+    isConv=$? # isConv=1 if converged
+    set -eu
     python3 -c 'import gpOpt_TBL as X;X.gpSurface_plot()'
-    #mv ./workDir/figs/gp1D.pdf ./workDir/figs/gp1D_$i.pdf
     cd ../
 
     echo "LOOP END"
     #get back to the current address (where this script is)
     cd $here
-    if [ $conv = 1 ]; then
-	echo "optimization is converged: i = " $i
+    if [ $isConv = 1 ]; then
+	echo "optimization is converged at i = " $i
 	break
     fi
 done
