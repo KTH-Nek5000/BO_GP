@@ -327,14 +327,18 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
     if (len(ySample1)>0):
        plt.plot(xTest,ySample1,'--r',linewidth=2,label='Arbitrary Sample',dashes=[3,2])
 
+    xmin=qBound[0][0]
+    xmax=qBound[0][1]
     plt.xlabel(r'$x$',fontsize=22)
     plt.ylabel(r'$y$',fontsize=22)
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
     plt.legend(loc='best',fontsize=20);
+    plt.xlim(xmin,xmax)
     if 'ylim' in plotOpts.keys():
        ylim=plotOpts['ylim']
        plt.ylim((ylim[0],ylim[1]))
+       plt.text(0.1*xmin,0.9*ylim[1],"min(y) = %f" % np.min(yGP))
     plt.grid();
     #save fig
     if 'figDir' in plotOpts.keys():
@@ -591,5 +595,6 @@ def gpSurface_plot():
                     'figName':'gp1D_'+str(nData),
                     'kernelType':kernelType,   #required to construct the final GPR
                     'whichOptim':whichOptim,
-                    'arbitSample':'yes'}
+                    'arbitSample':'yes',
+                    'ylim':[-10,30]}
           gpOpt1d_postProc(xGP,yGP,sigma_d,domain,nTest,plotOpts)
