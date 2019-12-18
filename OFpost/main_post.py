@@ -17,16 +17,19 @@ write it to ../gpOptim/workDir/newResponse.dat
 # %% import libraries
 import numpy as np
 import sys
+import matplotlib
+matplotlib.use('PDF') # AGG for png ?
+import matplotlib.pyplot as plt
 
 # user defined
 import postProcess_func
 
 # default setting for figures
-from matplotlib import rc
-rc('text', usetex=True)
-plt.rcParams['font.family'] = 'Times New Roman'
-plt.rcParams['xtick.direction'] = 'in'
-plt.rcParams['ytick.direction'] = 'in'
+#from matplotlib import rc
+#rc('text', usetex=True)
+#plt.rcParams['font.family'] = 'Times New Roman'
+#plt.rcParams['xtick.direction'] = 'in'
+#plt.rcParams['ytick.direction'] = 'in'
 
 # %% functions
 def calc_beta(path2run, casename, U_infty, delta99_in, Nx, Ny, Nz, t):
@@ -60,9 +63,9 @@ def save_beta(saveFigPath,iMain,x,beta,delta99_in):
     plt.ylabel(r'$\beta$')
     plt.xlim(x[1],x[-2])
     plt.ylim(-0.01,0.01)
-    saveFileName = "beta_"+str(iMain)+".png"
-    plt.savefig(savefigpath + saveFileName,bbox_inches="tight",\
-                                    dpi=300, pad_inches=0.05)
+    saveFileName = "beta_%02d"% iMain
+    plt.savefig(saveFigPath + saveFileName + ".pdf",bbox_inches="tight")
+    print("save beta figureas %s%s.pdf" % (saveFigPath,saveFileName))
     
 # %% ################## main ###########################
 if __name__ == '__main__':

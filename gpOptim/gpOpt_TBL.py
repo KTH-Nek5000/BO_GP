@@ -592,7 +592,7 @@ def gpSurface_plot():
     elif nPar==1:
           nTest=100   #no of test points, only for plot
           plotOpts={'figDir':'./workDir/figs/',
-                    'figName':'gp1D_'+str(nData),
+                    'figName':'gp1D_%02d' % (nData),
                     'kernelType':kernelType,   #required to construct the final GPR
                     'whichOptim':whichOptim,
                     'arbitSample':'yes',
