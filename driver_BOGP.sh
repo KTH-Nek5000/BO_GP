@@ -1,5 +1,5 @@
 #!/bin/bash
-0;136;0c###############################################################
+###############################################################
 #   Bayesian Optimization based on Gaussian Processes
 # Find the upper boundary shape s.t. a given pressure gradient 
 #      for the TBL at the lower wall is maintained
