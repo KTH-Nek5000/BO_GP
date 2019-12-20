@@ -423,10 +423,10 @@ whichOptim='min'  #find 'max' or 'min' of f(x)?
 # tol_d=0.02        #minimum distace between two consequtive samples x to keep the code running
 # tol_b=0.1        #deviation between best f(x+) in two consequtive iterations (relative error)
                   #note if err_d<tol_d and err_b<tol_b => convergence in (x_opt , f(x_opt))
-tol_abs=0.1
+tol_abs=0.01
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-qBound=[[2,3]]#, [-0.7,0.7]]
+qBound=[[2,2.3]]#, [-0.7,0.7]]
 nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
             #to avoid random sampling from the parameter space: see nextGPsample()
 #---------------------------------------------------------------------------

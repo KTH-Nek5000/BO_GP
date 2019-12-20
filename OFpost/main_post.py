@@ -57,12 +57,22 @@ def write_newTheta(obj):
     scf.write('%g' % obj)
     scf.close()
 
-def save_beta(saveFigPath,iMain,x,beta,delta99_in):
-    plt.plot(x[1:-1]/delta99_in,beta)
-    plt.xlabel(r'$x/\delta_{99}^{in}$')
+def save_beta(saveFigPath,iMain,x,beta,delta99_in,in_exc,out_exc,beta_t):
+    n=len(beta)
+    plt.plot(x[1:-1], beta)
+    #plt.xlabel(r'$x/\delta_{99}^{in}$')
+    xmin=x[0]
+    xmax=x[-1]
+    ymin=-0.05 # set depends on your beta_t
+    ymax=0.05
+    plt.plot([x[int(n*in_exc)+1],x[int(n*in_exc)+1]],[ymin,ymax],'k-.')
+    plt.plot([x[-int(n*out_exc)-1],x[-int(n*out_exc)-1]],[ymin,ymax],'k-.')
+    plt.hlines([beta_t],xmin,xmax,'r',linestyles='dashed')
+    plt.xlabel(r'$x$')
     plt.ylabel(r'$\beta$')
-    plt.xlim(x[1],x[-2])
-    plt.ylim(-0.01,0.01)
+    plt.xlim(xmin,xmax)
+    plt.ylim(ymin,ymax)
+    plt.grid()
     saveFileName = "beta_%02d"% iMain
     plt.savefig(saveFigPath + saveFileName + ".pdf",bbox_inches="tight")
     print("save beta figureas %s%s.pdf" % (saveFigPath,saveFileName))
@@ -92,12 +102,14 @@ if __name__ == '__main__':
     x, beta = calc_beta(path2run,casename,U_infty,delta99_in,Nx,Ny,Nz,t)
     
     # save beta
-    save_beta(saveFigPath,iMain,x,beta,delta99_in)
+    save_beta(saveFigPath,iMain,x,beta,delta99_in,inlet_exclude,outlet_exclude,beta_t)
     
     # assess objective func
     print("################### calc objective ####################")
     n = len(beta)
-    obj = np.linalg.norm(beta[int(inlet_exclude*n):-int(outlet_exclude*n)], 2) # L2norm
+    #print("len(beta) =", len(beta[int(inlet_exclude*n):-int(outlet_exclude*n)]))
+    #print(beta[int(inlet_exclude*n):-int(outlet_exclude*n)] - beta_t)
+    obj = np.linalg.norm(beta[int(inlet_exclude*n):-int(outlet_exclude*n)] - beta_t) # L2norm
     
     # output obj
     print("objective = ",obj)

@@ -12,7 +12,7 @@ echo "process id = " $$
 #---------------------------------------------
 #  SETTINGS
 #---------------------------------------------
-iStart=1   # Starting iteration 
+iStart=11   # Starting iteration 
 nRun=10   # number of times the script is run 
 #nProcessors=30 # number of processors for calculation (check decomposeParDict & jobScript)
 tEnd=`cut -f 7 OFinput.dat | sed -n 2p` # read from OFinput.dat

@@ -2,6 +2,7 @@
 #SBATCH -A snic2018-2-4
 #SBATCH --output=log
 #SBATCH --error=err
+#SBATCH --requeue
 # Number of nodes
 # SBATCH -N 3
 # Number of MPI processes per node (the following is actually the default)
