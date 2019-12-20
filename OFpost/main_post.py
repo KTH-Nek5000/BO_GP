@@ -80,7 +80,7 @@ def save_beta(saveFigPath,iMain,x,beta,delta99_in,in_exc,out_exc,beta_t):
 # %% ################## main ###########################
 if __name__ == '__main__':
     # input
-    saveFigPath = "../gpOptim/workDir/figs/"
+    saveFigPath = "../figs/"
     path2run ='..'
     casename = 'OFcase'
     
