@@ -19,15 +19,15 @@ tEnd=`cut -f 7 OFinput.dat | sed -n 2p` # read from OFinput.dat
 target=0   # terget value for beta
 inlet_ignore=0.2   # ignore this region when assess the objective
 outlet_ignore=0.1
-bupAddress="/home/m/morita/OpenFOAM/morita-6/run/"   #directory to which OpenFOAM data at tEnd are backed up
-caseName="test1"  #for saving figures and output data
+#bupAddress="/home/m/morita/OpenFOAM/morita-6/run/"   #directory to which OpenFOAM data at tEnd are backed up
+#caseName="test1"  #for saving figures and output data
 #------------------------
 # MAIN
 #------------------------
-if [ ! -d "$bupAddress$caseName" ]
-then
-   mkdir $bupAddress$caseName
-fi
+#if [ ! -d "$bupAddress$caseName" ]
+#then
+#   mkdir $bupAddress$caseName
+#fi
 here=$PWD
 for ((i=$iStart;i<$iStart+$nRun;i++)); do
     clear;
@@ -62,8 +62,8 @@ for ((i=$iStart;i<$iStart+$nRun;i++)); do
     
     echo "MAIN SIMULATION END"
     reconstructPar -latestTime
-    echo "COPY THE LATEST TIME DATA TO " $bupAddress$caseName/$tEnd-$i
-    cp -r $tEnd $bupAddress$caseName/$tEnd-$i
+    #echo "COPY THE LATEST TIME DATA TO " $bupAddress$caseName/$tEnd-$i
+    #cp -r $tEnd $bupAddress$caseName/$tEnd-$i
     cd ../
     
     #4. Post-process OpenFOAM

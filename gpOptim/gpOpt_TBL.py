@@ -10,7 +10,7 @@ import sys
 import os
 import math as mt
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('PDF')
 import matplotlib.cm as cm
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
@@ -543,7 +543,7 @@ def BO_update_convergence():
     nData=len(yList_)
     if nData>1:
        [xDistList,yBestList]=\
-           my_convergence_plot(xList_,yList_,whichOptim,'./workDir/figs/','bo_convergence')
+           my_convergence_plot(xList_,yList_,whichOptim,'../figs/','bo_convergence')
       #>>>> Converged Optimal Value:
        # if (n>2): # check convergence
        #     err_d=xDistList[-1]
@@ -584,17 +584,17 @@ def gpSurface_plot():
     if nPar>1:
        if 0==0 and nData>0:
           #plot in 2D subspace of the parameters space
-          plotOpts={'figDir':'./workDir/figs/',
+          plotOpts={'figDir':'../figs/',
                     'figName':'gp2D_'+str(nData),
                     'kernelType':kernelType,   #required to construct the final GPR
                     'whichOptim':whichOptim}
           gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts)
     elif nPar==1:
           nTest=100   #no of test points, only for plot
-          plotOpts={'figDir':'./workDir/figs/',
+          plotOpts={'figDir':'../figs/',
                     'figName':'gp1D_%02d' % (nData),
                     'kernelType':kernelType,   #required to construct the final GPR
                     'whichOptim':whichOptim,
                     'arbitSample':'yes',
-                    'ylim':[-10,30]}
+                    'ylim':[-10,30]} # NEED TO BE TUNED
           gpOpt1d_postProc(xGP,yGP,sigma_d,domain,nTest,plotOpts)
