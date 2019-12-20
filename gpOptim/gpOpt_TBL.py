@@ -14,6 +14,10 @@ matplotlib.use('PDF')
 import matplotlib.cm as cm
 import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+from matplotlib import rc
+plt.rcParams["font.size"] = 20
+rc('text', usetex=True)
 import numpy as np
 import GPy
 import GPyOpt
@@ -21,6 +25,7 @@ from GPyOpt.methods import BayesianOptimization
 from GPyOpt import Design_space
 from GPyOpt.experiment_design import initial_design
 from numpy.linalg import norm
+
 
 ##################
 # INT FUNCTIONS
@@ -144,22 +149,25 @@ def my_convergence_plot(xList,yList,whichOptim,figDir,figName):
     plt.subplot(2,1,1)
     plt.semilogy(range(1,nData),xDistList,'-ob',lw=2)
     plt.title("Distance between 2 consecutive parameter samples",fontsize=20)
-    plt.xlabel('\#Samples-1',fontsize=20)
+    plt.xlabel(r'$N$',fontsize=20)
     plt.ylabel(r'$\|x^{(n+1)}-x^{(n)}\|$',fontsize=22)
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
     plt.grid()
+    plt.gca().get_xaxis().set_major_locator(ticker.MaxNLocator(integer=True))
     plt.subplot(2,1,2)
     plt.semilogy(range(1,nData+1),yBestList,'-or',lw=2)
-    plt.title('Best Value So Far')
-    plt.xlabel('\#Samples-1',fontsize=20)
+    plt.title('Best Value So Far',fontsize=20)
+    plt.xlabel(r'$N$',fontsize=20)
     plt.ylabel(r'$f(x^+)$',fontsize=22)
+    plt.gca().get_xaxis().set_major_locator(ticker.MaxNLocator(integer=True))
     plt.tick_params(labelsize=20)
     plt.grid()
     fig = plt.gcf()
     DPI = fig.get_dpi()
     fig.set_size_inches(600/float(DPI),1200/float(DPI))
     plt.savefig(figDir+figName+'.pdf',bbox_inches='tight')
+    print('save: '+figDir+figName+'.pdf')
     #plt.show()
     return xDistList,yBestList
 
@@ -290,7 +298,7 @@ def gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts):
     DPI = fig.get_dpi()
     fig.set_size_inches(figSize/float(DPI),figSize/float(DPI))
     plt.savefig(figSave+'.png',bbox_inches='tight')
-#    plt.show()     
+#    plt.show()
 
 #//////////////////////////////////////////////////////////////////
 def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
@@ -320,9 +328,9 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
     plt.figure(figsize=(20,8));
     ax=plt.gca();
     ax.fill_between(xTest,meanPred+confidPred,meanPred-confidPred,color='powderblue',alpha=0.5)
-    plt.plot(xTest,meanPred+confidPred,'-',color='b',linewidth=1,alpha=0.2)#,label=r'$95\%$ confidence')
-    plt.plot(xTest,meanPred-confidPred,'-',color='b',linewidth=1,alpha=0.2)
-    plt.plot(xGP,yGP,'o r',markersize=7,label='Training Data')
+    plt.semilogy(xTest,meanPred+confidPred,'-',color='b',linewidth=1,alpha=0.2)#,label=r'$95\%$ confidence')
+    plt.semilogy(xTest,meanPred-confidPred,'-',color='b',linewidth=1,alpha=0.2)
+    plt.semilogy(xGP,yGP,'o r',markersize=7,label='Training Data')
     plt.plot(xTest,meanPred,'-b',linewidth=2,label='Predicted Mean')
     if (len(ySample1)>0):
        plt.plot(xTest,ySample1,'--r',linewidth=2,label='Arbitrary Sample',dashes=[3,2])
@@ -333,12 +341,12 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
     plt.ylabel(r'$y$',fontsize=22)
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
-    plt.legend(loc='best',fontsize=20);
+    plt.legend(loc='upper left',fontsize=20);
     plt.xlim(xmin,xmax)
     if 'ylim' in plotOpts.keys():
        ylim=plotOpts['ylim']
        plt.ylim((ylim[0],ylim[1]))
-    plt.title("min(y) = %f" % np.min(yGP))
+    plt.title(r"$N_i = %d, \min(y) = %f$" % (np.size(yGP),np.min(yGP)),fontsize=20)
     plt.grid();
     #save fig
     if 'figDir' in plotOpts.keys():
@@ -472,6 +480,7 @@ def nextGPsample():
     """
     
     if (nData<nGPinit):   #take initial random samples
+       print("take the sample randomly")
        tmp=[];
        for i in range(nPar):
           ##random initial sample
@@ -595,6 +604,6 @@ def gpSurface_plot():
                     'figName':'gp1D_%02d' % (nData),
                     'kernelType':kernelType,   #required to construct the final GPR
                     'whichOptim':whichOptim,
-                    'arbitSample':'yes',
-                    'ylim':[-10,30]} # NEED TO BE TUNED
+                    'arbitSample':'no',
+                    'ylim':[0.05,10]} # NEED TO BE TUNED
           gpOpt1d_postProc(xGP,yGP,sigma_d,domain,nTest,plotOpts)

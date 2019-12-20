@@ -20,6 +20,7 @@ import sys
 import matplotlib
 matplotlib.use('PDF') # AGG for png ?
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 # user defined
 import postProcess_func
