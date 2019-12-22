@@ -330,7 +330,8 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
     ax.fill_between(xTest,meanPred+confidPred,meanPred-confidPred,color='powderblue',alpha=0.5)
     plt.semilogy(xTest,meanPred+confidPred,'-',color='b',linewidth=1,alpha=0.2)#,label=r'$95\%$ confidence')
     plt.semilogy(xTest,meanPred-confidPred,'-',color='b',linewidth=1,alpha=0.2)
-    plt.semilogy(xGP,yGP,'o r',markersize=7,label='Training Data')
+    plt.semilogy(xGP[:-1],yGP[:-1],'o r',markersize=7,label='Training Data')
+    plt.semilogy(xGP[-1],yGP[-1],'o g',markersize=10)#,label='Training Data')
     plt.plot(xTest,meanPred,'-b',linewidth=2,label='Predicted Mean')
     if (len(ySample1)>0):
        plt.plot(xTest,ySample1,'--r',linewidth=2,label='Arbitrary Sample',dashes=[3,2])
@@ -346,7 +347,7 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
     if 'ylim' in plotOpts.keys():
        ylim=plotOpts['ylim']
        plt.ylim((ylim[0],ylim[1]))
-    plt.title(r"$N_i = %d, \min(y) = %f$" % (np.size(yGP),np.min(yGP)),fontsize=20)
+    plt.title(r"$N = %d,~ x = %f,~ \min(y) = %f$" % (np.size(yGP),xGP[-1],np.min(yGP)),fontsize=20)
     plt.grid();
     #save fig
     if 'figDir' in plotOpts.keys():
