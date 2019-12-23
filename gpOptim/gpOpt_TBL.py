@@ -35,6 +35,7 @@ def read_available_GPsamples(gpInputFile,nPar):
     """ 
         Read the most updated list of (x,y) GP samples from gpInputFile
     """
+    print("read available GPsamples from",gpInputFile)
     F1=open(gpInputFile,'r')
     ain=F1.readlines()
     ain_sep=[];

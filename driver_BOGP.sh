@@ -24,6 +24,8 @@ outlet_ignore=0.1
 #------------------------
 # MAIN
 #------------------------
+echo "check the parameter setting"
+python3 -c 'import gpOpt_TBL as X;X.printSetting()'
 #if [ ! -d "$bupAddress$caseName" ]
 #then
 #   mkdir $bupAddress$caseName
