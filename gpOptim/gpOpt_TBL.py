@@ -35,6 +35,7 @@ def read_available_GPsamples(gpInputFile,nPar):
     """ 
         Read the most updated list of (x,y) GP samples from gpInputFile
     """
+    print("read available GPsamples from",gpInputFile)
     F1=open(gpInputFile,'r')
     ain=F1.readlines()
     ain_sep=[];
@@ -473,6 +474,9 @@ yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
 # EXT FUNCTIONS
 ##########################
 #/////////////////////////
+def printSetting():
+    print("nPar =",nPar, "\nsigma_d =",sigma_d, "\nwhichOptim =",whichOptim, "\ntol_abs =",tol_abs, "\nkernel =",kernelType, "\nqBound =",qBound, "\nnGPinit =",nGPinit)
+
 def nextGPsample():
     """
        Take the next sample of the parameters from their admissible space. 
