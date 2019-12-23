@@ -473,6 +473,9 @@ yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
 # EXT FUNCTIONS
 ##########################
 #/////////////////////////
+def printSetting():
+    print("nPar =",nPar, "\nsigma_d =",sigma_d, "\nwhichOptim =",whichOptim, "\ntol_abs =",tol_abs, "\nkernel =",kernelType, "\nqBound =",qBound, "\nnGPinit =",nGPinit)
+
 def nextGPsample():
     """
        Take the next sample of the parameters from their admissible space. 

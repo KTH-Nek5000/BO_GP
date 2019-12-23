@@ -30,7 +30,8 @@ outlet_ignore=0.1
 #fi
 here=$PWD
 for ((i=$iStart;i<$iStart+$nRun;i++)); do
-    clear;
+    #clear;
+    echo "################### START LOOP ########################"
     #1. Generate a sample from the parameters space
     cd ./gpOptim
     python3 -c 'import gpOpt_TBL as X;X.nextGPsample()'
@@ -81,7 +82,6 @@ for ((i=$iStart;i<$iStart+$nRun;i++)); do
     python3 -c 'import gpOpt_TBL as X;X.gpSurface_plot()'
     cd ../
 
-    echo "LOOP END"
     #get back to the current address (where this script is)
     cd $here
     if [ $isConv = 1 ]; then
