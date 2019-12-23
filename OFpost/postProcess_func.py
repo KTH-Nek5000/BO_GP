@@ -177,7 +177,7 @@ def bl_calc(Nx,Ny,Nz,xc,yc,x,y,U_infty,nu,U,V,p,nut,k,omega,tau_w):
                     thre = thre-0.001
                     counter += 1
                     if counter > 1000:
-                        print('too many loop in delta99 1')
+                        print('Error: too many loop in delta99 1')
                         print('i =', i,',j =', j)
                         sys.exit(1)
             try:
@@ -189,7 +189,7 @@ def bl_calc(Nx,Ny,Nz,xc,yc,x,y,U_infty,nu,U,V,p,nut,k,omega,tau_w):
                 thre = thre+0.0003
                 counter += 1
                 if counter > 1000:
-                        print('too many loop in delta99 2')
+                        print('Error: too many loop in delta99 2')
                         print('i =', i,',j =', j)
                         sys.exit(1)
     
@@ -256,9 +256,13 @@ def distance(x,y,a): # line y=f(x) and [a0,a1]
     return distance
 
 def getNu(path2run,casename):
-    with open("%s/%s/constant/transportProperties" % (path2run,casename)) as f:
-        s_line = f.readlines()
-    nu = float(s_line[19][33:-2]) # NEED TO BE TUNED
+    try:
+        with open("%s/%s/constant/transportProperties" % (path2run,casename)) as f:
+            s_line = f.readlines()
+        nu = float(s_line[19][33:-2]) # NEED TO BE TUNED
+    except:
+        print("Error: couldn't read %s/%s/constant/transportProperties" % (path2run,casename))
+        sys.exit(1)
     print("################### nu = %g ##################" % nu)
     return nu
 

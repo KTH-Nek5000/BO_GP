@@ -85,6 +85,7 @@ def write_newGPsample(newSampleFile,xNext):
     """
        Write the new sample in file
     """
+    print("write the new sample to",newSampleFile)
     n=len(xNext)
     F2=open(newSampleFile,'w')
     F2.write('# New samples for parameters which are taken by nextGPsample() \n')
@@ -96,6 +97,7 @@ def write_newGPsample(newSampleFile,xNext):
     for i in range(n):
         tmp=str(xNext[i])+'\t'
         F2.write(tmp)
+    F2.write('\n')
     F2.close()
 
 #//////////////////////////////////////////
@@ -475,7 +477,9 @@ yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
 ##########################
 #/////////////////////////
 def printSetting():
-    print("nPar =",nPar, "\nsigma_d =",sigma_d, "\nwhichOptim =",whichOptim, "\ntol_abs =",tol_abs, "\nkernel =",kernelType, "\nqBound =",qBound, "\nnGPinit =",nGPinit)
+    print("nPar =",nPar, "\nsigma_d =",sigma_d, "\nwhichOptim =",whichOptim, \
+          "\ntol_abs =",tol_abs, "\nkernel =",kernelType, "\nqBound =",qBound, \
+              "\nnGPinit =",nGPinit)
 
 def nextGPsample():
     """
@@ -530,9 +534,9 @@ def nextGPsample():
 
        #Find the next x-sample
        xNext=gprOpt.suggest_next_locations(context=None, pending_X=None, ignored_X=None)
+    print('**** New GP sample is:',xNext[0])
     #write the new sample in file
     write_newGPsample('./workDir/newSampledParam.dat',xNext[0])
-    print('**** New GP sample is taken!')
 
 #///////////////////////////
 def BO_update_convergence():

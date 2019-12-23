@@ -59,7 +59,7 @@ for ((i=$iStart;i<$iStart+$nRun;i++)); do
     decomposePar
     
     echo "MAIN SIMULATION START"
-    #bash OFrun.sh $nProcessors
+    #bash OFrun.sh $nProcessors # for run in workstation (not cluster)
     sbatch jobScript
     wait
     
