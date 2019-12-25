@@ -35,7 +35,6 @@ def read_available_GPsamples(gpInputFile,nPar):
     """ 
         Read the most updated list of (x,y) GP samples from gpInputFile
     """
-    print("read available GPsamples from",gpInputFile)
     F1=open(gpInputFile,'r')
     ain=F1.readlines()
     ain_sep=[];
@@ -50,12 +49,16 @@ def read_available_GPsamples(gpInputFile,nPar):
             xList[i,j]=float(ain_sep[i+iskip][j+1])
         yList[i]=float(ain_sep[i+iskip][nPar+1])
     F1.close()
+    if n < 1:
+        print("No available sample in",gpInputFile)
+    else:
+        print("read available samples from",gpInputFile)
     return xList,yList
 
 #//////////////////////////////////////////////////////////
 def update_GPsamples(gpOutputFile,xList,yList,xNext,yNext):
     """
-        Update the existing list of GP samples with the recent sample
+        Update the existing list of GP samples with the recent sample & response
     """
     F2=open(gpOutputFile,'w')
     F2.write('#List of GP samples." \n')
@@ -79,6 +82,7 @@ def update_GPsamples(gpOutputFile,xList,yList,xNext,yNext):
     tmpList=tmpList+str(yNext)+'\n'
     F2.write(tmpList)
     F2.close()
+    print('**** %s is updated!' % gpOutputFile)
 
 #//////////////////////////////////////////
 def write_newGPsample(newSampleFile,xNext):
@@ -115,6 +119,7 @@ def read_last_GPsample(newSampleFile,nPar):
     for j in range(nPar):
         xList.append(float(ain_sep[iskip][j]))
     F1.close()
+    print("read the new sample from",newSampleFile)
     return xList
 
 #///////////////////////////////////////
@@ -129,7 +134,8 @@ def read_last_response(newResponseFile):
         ain_sep.append(ain[i].split())
     iskip=1;  # no of lines to skip from the beginning of the input file
     resp=float(ain_sep[iskip][0])
-    F1.close()    
+    F1.close()
+    print("read the new response from",newResponseFile)
     return resp
 
 #//////////////////////////////////////////////////////////////
@@ -214,7 +220,8 @@ def gpOpt1d_postProc(xGP,yGP,sigma_d,domain,nTest,plotOpts):
     gprFinal=GPy.models.GPRegression(xGP,yGP,kernel=K,noise_var=sigma_d**2.)
     gprFinal.constrain_positive()  #make all parameters positive
 
-    #if you want to get exactly the same plot as "GPyOpt.plot_acquisition()", you need to let gaussicna_noise.variance to be optimized (unfixed) 
+    #if you want to get exactly the same plot as "GPyOpt.plot_acquisition()", 
+    # you need to let gaussicna_noise.variance to be optimized (unfixed) 
     gprFinal.Gaussian_noise.variance.fix()   #sigma_d = fixed
     gprFinal.optimize('bfgs', max_iters=200)   #optimization of hyperparameters
 
@@ -365,6 +372,7 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
     fig.set_size_inches(1000/float(DPI),500/float(DPI))
     if 'figSave' in locals():
        plt.savefig(figDir+figName+'.pdf',bbox_inches='tight')
+       print("save figure as "+figDir+figName+'.pdf')
     #plt.show()
 
 #///////////////////////////
@@ -477,9 +485,11 @@ yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
 ##########################
 #/////////////////////////
 def printSetting():
+    """
+    print global parameters
+    """
     print("nPar =",nPar, "\nsigma_d =",sigma_d, "\nwhichOptim =",whichOptim, \
-          "\ntol_abs =",tol_abs, "\nkernel =",kernelType, "\nqBound =",qBound, \
-              "\nnGPinit =",nGPinit)
+          "\ntol_abs =",tol_abs, "\nkernel =",kernelType, "\nqBound =",qBound, "\nnGPinit =",nGPinit)
 
 def nextGPsample():
     """
@@ -543,6 +553,8 @@ def BO_update_convergence():
     """
        1. Update gpList.dat by adding the last drawn sample and associated response to it
        2. Check if BO-GP is converged or not
+       
+       Note: exit(1) is taken as the signal of the convergence
     """
     #Read in the last drawn samples of parameters
     xLast=read_last_GPsample('./workDir/newSampledParam.dat',nPar)
@@ -552,7 +564,6 @@ def BO_update_convergence():
 
     #Update gpList.dat
     update_GPsamples('./workDir/gpList.dat',xList,yList,xLast,yLast)
-    print('**** gpList.dat is updated!')
     #read the updated gpList.dat
     [xList_,yList_]=read_available_GPsamples('./workDir/gpList.dat',nPar)
 
@@ -574,14 +585,16 @@ def BO_update_convergence():
        #             print('err_d, err_b=%f %f' %(err_d,err_b))
        #             #send convergence signal
        #             sys.exit(1)
-       if nData>2: # check convergence: only for minimize !!!
-           if yBestList[-1]<tol_abs:
-               nOpt=yList_.argmin()
-               xOpt=xList_[nOpt]
-               fxOpt=yList_[nOpt]
-               print(' ******* Converged Optimal Values x = ', xOpt, ',y = ', fxOpt)
-               #send convergence signal
-               sys.exit(1) # read as "$isConv" in driver
+    # check convergence: only for minimize !!!
+    print("check convergence")
+    if yList_[-1]<tol_abs: # take into acc
+        xOpt=xList_[-1]
+        fxOpt=yList_[-1]
+        print(' ******* Converged Optimal Values x = ', xOpt, ',y = ', fxOpt)
+        #send convergence signal
+        sys.exit(1) # read as "$isConv" in driver
+    else:
+        print("not converged yet, y = %f, tol = %f" %(yList_[-1],tol_abs))
     
 #////////////////////////////////////
 def gpSurface_plot():
@@ -592,7 +605,7 @@ def gpSurface_plot():
     [xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
     nData=len(yList)
 
-    #reshape arrays according to GPy
+    #reshape the arrays according to GPy
     yGP=np.asarray(yList)
     yGP=yGP[:,None]        #required by Gpy library
     xGP=np.asarray(xList)
@@ -616,3 +629,6 @@ def gpSurface_plot():
                     'arbitSample':'no',
                     'ylim':[0.05,10]} # NEED TO BE TUNED
           gpOpt1d_postProc(xGP,yGP,sigma_d,domain,nTest,plotOpts)
+    else:
+        print("Error: nPar should be >= 1")
+        sys.exit(1)

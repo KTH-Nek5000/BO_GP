@@ -16,7 +16,6 @@ import sys
 import matplotlib
 matplotlib.use('PDF') # AGG for png ?
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 
 # user defined
 import postProcess_func
@@ -30,6 +29,20 @@ plt.rcParams["font.size"] = 20
 #plt.rcParams['ytick.direction'] = 'in'
 
 # %% functions
+def read_OFinput(path2file):
+    print("read data from", path2file)
+    U_infty, delta99_in, Nx, Ny, Nz, t \
+        = np.loadtxt(path2file,delimiter=',',skiprows=1,unpack=True)
+    
+    Nx = int(Nx)
+    Ny = int(Ny)
+    Nz = int(Nz)
+    t = int(t)
+    # print
+    print("U_infty =", U_infty, ", delta99_in =", delta99_in, ", Nx =", Nx, \
+            ", Ny =", Ny, ", Nz =", Nz, ", t =", t)
+    return U_infty, delta99_in, Nx, Ny, Nz, t
+    
 def calc_beta(path2run, casename, U_infty, delta99_in, Nx, Ny, Nz, t):
     """
     NEED TO BE UPDATED (including postProcess_func.py)
@@ -83,28 +96,32 @@ def calc_obj(beta, beta_t, inlet_exclude, outlet_exclude):
     ----------
     beta : np.array, Nx-1
         output of calc_beta
-    beta_t : TYPE
+    beta_t : float
         DESCRIPTION.
-    inlet_exclude : TYPE
+    inlet_exclude : float
         DESCRIPTION.
-    outlet_exclude : TYPE
+    outlet_exclude : float
         DESCRIPTION.
 
     Returns
     -------
-    obj : TYPE
-        DESCRIPTION.
-
+    obj : np.array, scalar
+        objective to be minimized
     """
     n = len(beta)
     obj = np.linalg.norm(beta[int(inlet_exclude*n):-int(outlet_exclude*n)] - beta_t) # L2norm
     return obj
 
-def write_newTheta(obj):
-    scf = open('../gpOptim/workDir/newResponse.dat','w')
-    scf.write('# Response from CFD code associated to the last drawn parameter sample\n')
-    scf.write('%g' % obj)
-    scf.close()
+def write_newTheta(obj,path2file):
+    try:
+        scf = open(path2file,'w')
+        scf.write('# Response from CFD code associated to the last drawn parameter sample\n')
+        scf.write('%g\n' % obj)
+        scf.close()
+    except:
+        print("Error: couldn't write obj to",path2file)
+        sys.exit(1)
+    print("write objective to",path2file)
 
 def save_beta(saveFigPath,iMain,x,beta,delta99_in,in_exc,out_exc,beta_t,obj):
     n=len(beta)
@@ -125,7 +142,7 @@ def save_beta(saveFigPath,iMain,x,beta,delta99_in,in_exc,out_exc,beta_t,obj):
     plt.title(r'$N_i = %d, y = %f$' % (iMain,obj))
     saveFileName = "beta_%02d"% iMain
     plt.savefig(saveFigPath + saveFileName + ".pdf",bbox_inches="tight")
-    print("save beta figureas %s%s.pdf" % (saveFigPath,saveFileName))
+    print("save beta figure as %s%s.pdf" % (saveFigPath,saveFileName))
     
 # %% ################## main ###########################
 if __name__ == '__main__':
@@ -139,13 +156,15 @@ if __name__ == '__main__':
     outlet_exclude = float((sys.argv)[3])
     iMain = int((sys.argv)[4])
     # read OFinput data
-    U_infty, delta99_in, Nx, Ny, Nz, t \
-        = np.loadtxt('../OFinput.dat',delimiter=',',skiprows=1,unpack=True)
-    
-    Nx = int(Nx)
-    Ny = int(Ny)
-    Nz = int(Nz)
-    t = int(t)
+    U_infty, delta99_in, Nx, Ny, Nz, t = read_OFinput("../OFinput.dat")
+#    print("read data from ../OFinput.dat")
+#    U_infty, delta99_in, Nx, Ny, Nz, t \
+#        = np.loadtxt('../OFinput.dat',delimiter=',',skiprows=1,unpack=True)
+#    
+#    Nx = int(Nx)
+#    Ny = int(Ny)
+#    Nz = int(Nz)
+#    t = int(t)
     
     #2. calc beta
     print("################### calc beta ####################")
@@ -159,9 +178,6 @@ if __name__ == '__main__':
     save_beta(saveFigPath,iMain,x,beta,delta99_in,inlet_exclude,outlet_exclude,beta_t,obj)
     
     #5. output obj
-    print("objective = ",obj)
-    print("write objective")
-    write_newTheta(obj)
-    
-    
-    
+    print("objective =",obj)
+    write_newTheta(obj,'../gpOptim/workDir/newResponse.dat')
+
