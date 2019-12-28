@@ -8,12 +8,13 @@
 # Yuki Morita, morita@kth.se
 #--------------------------------------------------------------
 set -eu # stop when error occurs
+clear
 echo "process id = " $$
 #---------------------------------------------
 #  SETTINGS
 #---------------------------------------------
-iStart=11   # Starting iteration 
-nRun=5   # number of times the script is run
+iStart=31   # Starting iteration 
+nRun=10   # number of times the script is run
 #nProcessors=30 # number of processors for calculation (check decomposeParDict & jobScript)
 tEnd=`cut -f 7 OFinput.dat | sed -n 2p` # read from OFinput.dat
 target=0   # terget value for beta
@@ -34,7 +35,6 @@ cd ..
 #fi
 here=$PWD
 for ((i=$iStart;i<$iStart+$nRun;i++)); do
-    #clear;
     echo "################### START LOOP ########################"
     #1. Generate a sample from the parameters space
     cd ./gpOptim

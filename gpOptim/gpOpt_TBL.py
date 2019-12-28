@@ -303,11 +303,12 @@ def gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts):
           os.makedirs(figDir)    
     if 'figName' in plotOpts.keys():
        figName=plotOpts['figName']
-       figSave=figDir+figName+'_nSamp'+str(len(yGP))
+       figSave=figDir+figName#+'_nSamp'+str(len(yGP))
     fig = plt.gcf()
     DPI = fig.get_dpi()
     fig.set_size_inches(figSize/float(DPI),figSize/float(DPI))
-    plt.savefig(figSave+'.png',bbox_inches='tight')
+    plt.savefig(figSave+'.pdf',bbox_inches='tight')
+    print("save",figSave+".pdf")
 #    plt.show()
 
 #//////////////////////////////////////////////////////////////////
@@ -417,12 +418,12 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
     plt.clabel(CS, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
     plt.plot(x[:,0],x[:,1],'--ok',markersize=7,label='Training Data')
     plt.plot(x[len(y)-1,0],x[len(y)-1,1],'--sr',markersize=7,label='Training Data')
-    plt.title('Mean GPR Prediction',fontsize=18)
-    plt.xlabel('q'+str(I+1),fontsize=20)
-    plt.ylabel('q'+str(J+1),fontsize=20)
+    plt.title(r'Mean GPR Prediction',fontsize=18)
+    plt.xlabel(r'$q$'+str(I+1),fontsize=20)
+    plt.ylabel(r'$q$'+str(J+1),fontsize=20)
     ##contours of uncertainty 
     ##plot only if nPar==2
-    #plt.subplot(1,2,2)    
+    #plt.subplot(1,2,2)
     #ax=plt.gca()
     #CS=plt.contour(x1TestGrid,x2TestGrid,1.96*np.sqrt(covarPredGrid),40)#,label=r'$95\%$ confidence')
     #plt.clabel(CS, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
@@ -437,7 +438,7 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
 ####################
 #----------------------------------------------------------------------------
 #>>>> SETTINGS & PROBLEM DEFINITION -----------------------------------------
-nPar=1;           #number of parameters= p = dimension of x={x1,x2,...,xp} where y=f(x)
+nPar=2;           #number of parameters= p = dimension of x={x1,x2,...,xp} where y=f(x)
 sigma_d=0.0       #sdev of the white noise in the measured data   
 whichOptim='min'  #find 'max' or 'min' of f(x)?
 # tol_d=0.02        #minimum distace between two consequtive samples x to keep the code running
@@ -446,7 +447,7 @@ whichOptim='min'  #find 'max' or 'min' of f(x)?
 tol_abs=0.01
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-qBound=[[2,2.3]]#, [-0.7,0.7]]
+qBound=[[2,2.3], [2,2.3]]
 nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
             #to avoid random sampling from the parameter space: see nextGPsample()
 #---------------------------------------------------------------------------
@@ -602,12 +603,13 @@ def gpSurface_plot():
        Reconstruct the GPR and plot it in 2D (or 1D) planes of the parameters admissible space
     """
     #read the updated gpList.dat
-    [xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
-    nData=len(yList)
+#    [xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
+#    nData=len(yList)
 
     #reshape the arrays according to GPy
     yGP=np.asarray(yList)
-    yGP=yGP[:,None]        #required by Gpy library
+    if nPar==1:
+        yGP=yGP[:,None]        #required by Gpy library
     xGP=np.asarray(xList)
 
     #>>>> Reconstruct and Plot GP surrogate in parameter space
@@ -616,7 +618,7 @@ def gpSurface_plot():
        if 0==0 and nData>0:
           #plot in 2D subspace of the parameters space
           plotOpts={'figDir':'../figs/',
-                    'figName':'gp2D_'+str(nData),
+                    'figName':'gp2D_%02d'% (nData),
                     'kernelType':kernelType,   #required to construct the final GPR
                     'whichOptim':whichOptim}
           gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts)

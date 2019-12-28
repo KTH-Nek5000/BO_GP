@@ -3,9 +3,8 @@
 """
 ./OFpre/main_pre.py
 
-get parameters from ../gpOptim/workDir/newSampledParam.dat, which is made by 
-    gpOpt_TBL.nextGPsample()
-write new geometry to ../OFcase/system/yTopParams.in
+get new samples from "path2newSample", which is made by gpOpt_TBL.nextGPsample()
+write new geometry to "path2run"/"casename"/system/yTopParams.in
 """
 # %% import libraries
 import numpy as np
@@ -14,6 +13,7 @@ import sys
 # %% inputs
 path2run ='..' # without last "/"
 casename = 'OFcase'
+path2newSample = '../gpOptim/workDir/newSampledParam.dat'
 
 # %% funcs
 def get_params(path2file):
@@ -25,11 +25,11 @@ def get_params(path2file):
 
     Returns
     -------
-    theta : np.array, size=nPar
+    theta : float64, size=(nPar,)
         new sample
     """
     try:
-        theta = np.array([np.loadtxt("%s" % path2file, skiprows=2)])
+        theta = np.loadtxt("%s" % path2file, skiprows=2)
     except:
         print("Error: couldn't read from %s" % path2file)
         sys.exit(1)
@@ -41,10 +41,10 @@ def write_yTopParams(path2run,casename,theta):
     Parameters
     ----------
     path2run : str
-        without last "/", define at # %%inputs
+        without last "/", defined at # %%inputs
     casename : str
-        without "/", define at # %%inputs
-    theta : np.array, size=nPar
+        without "/", defined at # %%inputs
+    theta : float64, size=(nPar,)
         output of get_params()
     
     write theta to path2run/casename/system/yTopParams.in
@@ -61,7 +61,6 @@ def write_yTopParams(path2run,casename,theta):
 
 # %% ################## main ###########################
 if __name__ == '__main__':
-    theta = get_params('../gpOptim/workDir/newSampledParam.dat')
-    # print('new sampled parameter is ', theta)
+    theta = get_params(path2newSample)
     write_yTopParams(path2run, casename, theta)
     

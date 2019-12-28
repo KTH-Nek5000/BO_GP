@@ -41,7 +41,7 @@ def load_grid(path2run,casename,Nx,Ny,Nz):
     yc = yc.reshape([Ny,Nx])
     # grid data structure
     # Nx*Ny*Nz
-        
+    
     # points
     b='sed \'1,20d\' %s/%s/constant/polyMesh/points | ' %(path2run,casename)
     c='head -%s | sed -e \'s/(//g\' | sed -e \'s/)//g\' > ./pointsdata'\
@@ -155,7 +155,7 @@ def bl_calc(Nx,Ny,Nz,xc,yc,x,y,U_infty,nu,U,V,p,nut,k,omega,tau_w):
     # normal unit
     # delta99
     delta99 = np.zeros(Nx)
-    U_max = np.max(U/U_infty,axis=0)
+    U_max = np.max(U[:int(Ny/2),:]/U_infty,axis=0)
     for i in range(Nx):
         U_tmp = U[:,i]/U_max[i]
 #        U_tmp = U[:,i]/U_infty # ONLY FOR DNS inflow !!!! (because of U_max fluc.)
@@ -220,19 +220,6 @@ def bl_calc(Nx,Ny,Nz,xc,yc,x,y,U_infty,nu,U,V,p,nut,k,omega,tau_w):
     
     return u_tau,xc_p,yc_p,yp,Up,kp,delta99,U_max,deltaStar,theta,Re_deltaStar,\
             Re_theta,H12,beta,Cf,Re_tau
-    
-    #  DON'T RUN TWICE!
-#    U=U/U_infty
-#    V=V/U_infty
-#    p=p/U_infty**2
-#    k=k/U_infty**2
-#    nut=nut/nu
-#    
-#    for i in range(Nx):
-#        omega[:,i]=omega[:,i]*delta99[i]/U_infty
-
-#    return u_tau,xc_p,yc_p,yp,Up,kp,delta99,U_max,deltaStar,theta,Re_deltaStar,\
-#            Re_theta,H12,beta,Cf,Re_tau,U,V,p,k,omega,nut
             
 # %% misc
 # ref https://qiita.com/icchi_h/items/fc0df3abb02b51f81657
@@ -256,6 +243,7 @@ def distance(x,y,a): # line y=f(x) and [a0,a1]
     return distance
 
 def getNu(path2run,casename):
+    print("read nu from %s/%s/constant/transportProperties" % (path2run,casename))
     try:
         with open("%s/%s/constant/transportProperties" % (path2run,casename)) as f:
             s_line = f.readlines()

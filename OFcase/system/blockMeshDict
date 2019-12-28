@@ -19,6 +19,7 @@ convertToMeters 1;
 Lx 25;
 Ly 2;
 middle 1; // Ly/2
+middleX 12.5;
 
 Nx 2500;
 
@@ -61,7 +62,6 @@ blocks
       //  % y-dir, % cells, expansion
       (0.0003 10 1) // dy=0.00003
       (0.3997 89 952) //dy 
-
       (0.6 20 1) // dy=0.03
      )
      1
@@ -82,8 +82,12 @@ blocks
 
 edges
 (
- //    arc 4 5 (2 1.5 0)
- //  arc 10 11 (2 1.5 2)
+ spline 4 5 (
+	     ($middleX $theta2 0)
+	     )
+ spline 10 11 (
+	       ($middleX $theta2 1)
+	       )
 );
 
 boundary

@@ -5,10 +5,13 @@
 ***** require postProcess_func.py in the same directory
 ***** take 4 arguments from driver_BOGP.sh (beta_target inlet_ignore outlet_ignore i)
 
-read ../OFinput.dat
-calculate beta & objective
-write it to ../gpOptim/workDir/newResponse.dat
+read path2OFinput
+calculate beta
+calculate objective
+save beta to saveFigPath + "beta_%02d" % iMain + ".pdf"
+write it to path2newTheta
 
+NOTE: change ylim in save_beta() if you need
 """
 # %% import libraries
 import numpy as np
@@ -27,12 +30,21 @@ plt.rcParams["font.size"] = 20
 #plt.rcParams['font.family'] = 'Times New Roman'
 #plt.rcParams['xtick.direction'] = 'in'
 #plt.rcParams['ytick.direction'] = 'in'
+# %% inputs
+saveFigPath = "../figs/"
+path2run ='..'
+casename = 'OFcase'
+path2OFinput = "../OFinput.dat"
+path2newTheta = '../gpOptim/workDir/newResponse.dat'
 
 # %% functions
 def read_OFinput(path2file):
     print("read data from", path2file)
-    U_infty, delta99_in, Nx, Ny, Nz, t \
-        = np.loadtxt(path2file,delimiter=',',skiprows=1,unpack=True)
+    try:
+        U_infty, delta99_in, Nx, Ny, Nz, t \
+            = np.loadtxt(path2file,delimiter=',',skiprows=1,unpack=True)
+    except:
+        print("Error: couldn't read",path2file)
     
     Nx = int(Nx)
     Ny = int(Ny)
@@ -72,6 +84,8 @@ def calc_beta(path2run, casename, U_infty, delta99_in, Nx, Ny, Nz, t):
     beta : TYPE
         DESCRIPTION.
     """
+    
+    print("################### calc beta ####################")
     #  grid load
     nu = postProcess_func.getNu(path2run,casename)
     print("########################### load grid data ############################")
@@ -106,8 +120,10 @@ def calc_obj(beta, beta_t, inlet_exclude, outlet_exclude):
     Returns
     -------
     obj : np.array, scalar
-        objective to be minimized
+        objective (2-norm of [beta-beta_t]), to be minimized
     """
+    
+    print("################### calc objective ####################")
     n = len(beta)
     obj = np.linalg.norm(beta[int(inlet_exclude*n):-int(outlet_exclude*n)] - beta_t) # L2norm
     return obj
@@ -124,13 +140,13 @@ def write_newTheta(obj,path2file):
     print("write objective to",path2file)
 
 def save_beta(saveFigPath,iMain,x,beta,delta99_in,in_exc,out_exc,beta_t,obj):
-    n=len(beta)
+    n = len(beta)
     plt.plot(x[1:-1], beta)
     #plt.xlabel(r'$x/\delta_{99}^{in}$')
-    xmin=x[0]
-    xmax=x[-1]
-    ymin=-0.05 # set depends on your beta_t
-    ymax=0.05
+    xmin = x[0]
+    xmax = x[-1]
+    ymin = -0.05 # set depends on your beta_t
+    ymax = 0.05
     plt.vlines(x[int(n*in_exc)+1],ymin,ymax,'k',linestyles='dashdot')
     plt.vlines(x[-int(n*out_exc)-1],ymin,ymax,'k',linestyles='dashdot')
     plt.hlines(beta_t,xmin,xmax,'r',linestyles='dashed')
@@ -146,32 +162,22 @@ def save_beta(saveFigPath,iMain,x,beta,delta99_in,in_exc,out_exc,beta_t,obj):
     
 # %% ################## main ###########################
 if __name__ == '__main__':
-    #1. input
-    saveFigPath = "../figs/"
-    path2run ='..'
-    casename = 'OFcase'
+    #1. read input
     # input from driver_BOGP.sh
+    if len(sys.argv) != 5:
+        print("Error: worng number of arguments")
+        sys.exit(1)
     beta_t = float((sys.argv)[1])    # terget beta
     inlet_exclude = float((sys.argv)[2]) # don't assess this region for objective
     outlet_exclude = float((sys.argv)[3])
     iMain = int((sys.argv)[4])
     # read OFinput data
-    U_infty, delta99_in, Nx, Ny, Nz, t = read_OFinput("../OFinput.dat")
-#    print("read data from ../OFinput.dat")
-#    U_infty, delta99_in, Nx, Ny, Nz, t \
-#        = np.loadtxt('../OFinput.dat',delimiter=',',skiprows=1,unpack=True)
-#    
-#    Nx = int(Nx)
-#    Ny = int(Ny)
-#    Nz = int(Nz)
-#    t = int(t)
+    U_infty, delta99_in, Nx, Ny, Nz, t = read_OFinput(path2OFinput)
     
     #2. calc beta
-    print("################### calc beta ####################")
     x, beta = calc_beta(path2run,casename,U_infty,delta99_in,Nx,Ny,Nz,t)    
     
     #3. assess objective func
-    print("################### calc objective ####################")
     obj = calc_obj(beta, beta_t, inlet_exclude, outlet_exclude)
     
     #4. save beta figure
@@ -179,5 +185,5 @@ if __name__ == '__main__':
     
     #5. output obj
     print("objective =",obj)
-    write_newTheta(obj,'../gpOptim/workDir/newResponse.dat')
+    write_newTheta(obj,path2newTheta)
 
