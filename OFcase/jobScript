@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -A snic2018-2-4
+#SBATCH -A snic2019/2-5
 #SBATCH --output=log
 #SBATCH --error=err
 #SBATCH --requeue

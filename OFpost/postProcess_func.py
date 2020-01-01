@@ -131,8 +131,6 @@ def bl_calc(Nx,Ny,Nz,xc,yc,x,y,U_infty,nu,U,V,p,nut,k,omega,tau_w):
     u_tau = np.sqrt(tau_w)
     
     xc_p = xc*u_tau/nu
-#    yc_p = np.outer(yc,u_tau)/nu
-#    yp = np.outer(y,u_tau)/nu
     yc_p = np.zeros([Ny,Nx])
     yp = np.zeros([Ny+1,Nx+1])
     for i in range(Nx):
@@ -145,7 +143,6 @@ def bl_calc(Nx,Ny,Nz,xc,yc,x,y,U_infty,nu,U,V,p,nut,k,omega,tau_w):
             yp[:,Nx] = y[:,Nx]*u_tau[Nx-1]/nu
         else:
             yp[:,i] = y[:,i]*0.5*(u_tau[i-1]+u_tau[i])/nu
-#        print(yp[:,i])
     Up = np.zeros_like(U)
     kp = np.zeros_like(k)
     for i in range(Nx):
@@ -168,8 +165,6 @@ def bl_calc(Nx,Ny,Nz,xc,yc,x,y,U_infty,nu,U,V,p,nut,k,omega,tau_w):
                         index = j
                         break
                 try:
-#                    print('counter =',counter,',i =', i,',j =', j)
-#                    print('U_tmp[index-1] =',U_tmp[index-1])
                     f1 = interpolate.interp1d(U_tmp[:index+1].reshape(-1),\
                                               yc[:index+1,i], kind="quadratic")
                     break

@@ -13,8 +13,8 @@ echo "process id = " $$
 #---------------------------------------------
 #  SETTINGS
 #---------------------------------------------
-iStart=0   # Starting iteration 
-nRun=20   # number of times the script is run
+iStart=4   # Starting iteration 
+nRun=17   # number of times the script is run
 #nProcessors=30 # number of processors for calculation (check decomposeParDict & jobScript)
 tEnd=`cut -f 7 OFinput.dat | sed -n 2p` # read from OFinput.dat
 target=0.1   # terget value for beta
@@ -35,7 +35,7 @@ cd ..
 #fi
 here=$PWD
 for ((i=$iStart;i<$iStart+$nRun;i++)); do
-    echo "################### START LOOP ########################"
+    echo "################### START LOOP i = $i ########################"
     #1. Generate a sample from the parameters space
     cd ./gpOptim
     python3 -c 'import gpOpt_TBL as X;X.nextGPsample()'

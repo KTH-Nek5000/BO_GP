@@ -19,6 +19,7 @@ import sys
 import matplotlib
 matplotlib.use('PDF') # AGG for png ?
 import matplotlib.pyplot as plt
+import pickle
 
 # user defined
 import postProcess_func
@@ -30,6 +31,7 @@ plt.rcParams["font.size"] = 20
 #plt.rcParams['font.family'] = 'Times New Roman'
 #plt.rcParams['xtick.direction'] = 'in'
 #plt.rcParams['ytick.direction'] = 'in'
+
 # %% inputs
 saveFigPath = "../figs/"
 path2run ='..'
@@ -145,8 +147,8 @@ def save_beta(saveFigPath,iMain,x,beta,delta99_in,in_exc,out_exc,beta_t,obj):
     #plt.xlabel(r'$x/\delta_{99}^{in}$')
     xmin = x[0]
     xmax = x[-1]
-    ymin = -0.05 # set depends on your beta_t
-    ymax = 0.05
+    ymin = beta_t-0.1 # set depends on your beta_t
+    ymax = beta_t+0.1
     plt.vlines(x[int(n*in_exc)+1],ymin,ymax,'k',linestyles='dashdot')
     plt.vlines(x[-int(n*out_exc)-1],ymin,ymax,'k',linestyles='dashdot')
     plt.hlines(beta_t,xmin,xmax,'r',linestyles='dashed')
@@ -175,13 +177,16 @@ if __name__ == '__main__':
     U_infty, delta99_in, Nx, Ny, Nz, t = read_OFinput(path2OFinput)
     
     #2. calc beta
-    x, beta = calc_beta(path2run,casename,U_infty,delta99_in,Nx,Ny,Nz,t)    
+    x, beta = calc_beta(path2run,casename,U_infty,delta99_in,Nx,Ny,Nz,t)
     
     #3. assess objective func
     obj = calc_obj(beta, beta_t, inlet_exclude, outlet_exclude)
     
-    #4. save beta figure
+    #4. save beta
     save_beta(saveFigPath,iMain,x,beta,delta99_in,inlet_exclude,outlet_exclude,beta_t,obj)
+    f=open("beta.dat","wb")
+    pickle.dump(beta,f)
+    f.close()
     
     #5. output obj
     print("objective =",obj)
