@@ -13,6 +13,7 @@ write it to path2newTheta
 
 NOTE: change ylim in save_beta() if you need
 """
+
 # %% import libraries
 import numpy as np
 import sys
@@ -41,6 +42,29 @@ path2newTheta = '../gpOptim/workDir/newResponse.dat'
 
 # %% functions
 def read_OFinput(path2file):
+    """
+
+    Parameters
+    ----------
+    path2file : str
+        path to OFinput.dat
+
+    Returns
+    -------
+    U_infty : float
+        U_infinity of the case
+    delta99_in : float
+        inlet delta_99
+    Nx : int
+        number of cell in streamwise direction
+    Ny : int
+        number of cell in wall-normal direction
+    Nz : int
+        number of cell in z direction
+    t : int
+        last written time of the OFcase
+
+    """
     print("read data from", path2file)
     try:
         U_infty, delta99_in, Nx, Ny, Nz, t \
