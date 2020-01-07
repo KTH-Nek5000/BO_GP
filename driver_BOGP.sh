@@ -26,6 +26,7 @@ outlet_ignore=0.1
 # MAIN
 #------------------------
 echo "iStart = $iStart, nRun = $nRun, tEnd = $tEnd, target = $target, inlet_ignore = $inlet_ignore, outlet_ignore = $outlet_ignore"
+
 cd gpOptim
 python3 -c 'import gpOpt_TBL as X;X.printSetting()'
 cd ..

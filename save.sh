@@ -18,4 +18,9 @@ cp figs $target -r
 cp OFpost/beta.dat $target
 cp gpOptim/workDir/gpList.dat $target
 cp log $target
-
+targetN="${target}/OFcase"
+mkdir $targetN
+cp OFcase/0 $targetN -r
+cp OFcase/constant $targetN -r
+cp OFcase/120 $targetN -r
+cp OFcase/system $targetN -r

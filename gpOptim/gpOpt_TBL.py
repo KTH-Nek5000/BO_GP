@@ -26,7 +26,19 @@ from GPyOpt import Design_space
 from GPyOpt.experiment_design import initial_design
 from numpy.linalg import norm
 
+# %% logging
+import logging
+# # create logger
+logger = logging.getLogger("gpOptim/gpOpt_TBL.py")
+logger.setLevel(logging.DEBUG)
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
+# %%
 ##################
 # INT FUNCTIONS
 ##################
@@ -50,9 +62,9 @@ def read_available_GPsamples(gpInputFile,nPar):
         yList[i]=float(ain_sep[i+iskip][nPar+1])
     F1.close()
     if n < 1:
-        print("No available sample in",gpInputFile)
+        logger.warning("No available sample in %s" % gpInputFile)
     else:
-        print("read available samples from",gpInputFile)
+        logger.info("read available samples from %s" % gpInputFile)
     return xList,yList
 
 #//////////////////////////////////////////////////////////
@@ -82,14 +94,14 @@ def update_GPsamples(gpOutputFile,xList,yList,xNext,yNext):
     tmpList=tmpList+str(yNext)+'\n'
     F2.write(tmpList)
     F2.close()
-    print('**** %s is updated!' % gpOutputFile)
+    logger.info('**** %s is updated!' % gpOutputFile)
 
 #//////////////////////////////////////////
 def write_newGPsample(newSampleFile,xNext):
     """
        Write the new sample in file
     """
-    print("write the new sample to",newSampleFile)
+    logger.info("write the new sample to %s" % newSampleFile)
     n=len(xNext)
     F2=open(newSampleFile,'w')
     F2.write('# New samples for parameters which are taken by nextGPsample() \n')
@@ -119,7 +131,7 @@ def read_last_GPsample(newSampleFile,nPar):
     for j in range(nPar):
         xList.append(float(ain_sep[iskip][j]))
     F1.close()
-    print("read the new sample from",newSampleFile)
+    logger.info("read the new sample from %s" % newSampleFile)
     return xList
 
 #///////////////////////////////////////
@@ -135,7 +147,7 @@ def read_last_response(newResponseFile):
     iskip=1;  # no of lines to skip from the beginning of the input file
     resp=float(ain_sep[iskip][0])
     F1.close()
-    print("read the new response from",newResponseFile)
+    logger.info("read the new response from %s" % newResponseFile)
     return resp
 
 #//////////////////////////////////////////////////////////////
@@ -176,14 +188,15 @@ def my_convergence_plot(xList,yList,whichOptim,figDir,figName):
     DPI = fig.get_dpi()
     fig.set_size_inches(600/float(DPI),1200/float(DPI))
     plt.savefig(figDir+figName+'.pdf',bbox_inches='tight')
-    print('save: '+figDir+figName+'.pdf')
+    logger.info('save: %s%s.pdf' % (figDir,figName))
     #plt.show()
     return xDistList,yBestList
 
 #////////////////////////////////////////////
 def test_grid(bounds1,bounds2,nTest1,nTest2):
     """
-       Construct a 2D mesh (test data) with uniformly spaced points to illustrate contours of the response
+       Construct a 2D mesh (test data) with uniformly spaced points to 
+       illustrate contours of the response
     """
     nTest=nTest1*nTest2
     x1Test=np.linspace(bounds1[0],bounds1[1],nTest1)
@@ -270,12 +283,13 @@ def gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts):
         xGP_=np.asarray(xGP_)
         gprFinal=GPy.models.GPRegression(xGP_,yGP,kernel=K,noise_var=sigma_d**2.)
         gprFinal.constrain_positive()  #make all parameters positive
-        #if you want to get exactly the same plot as "GPyOpt.plot_acquisition()", you need to let gaussicna_noise.variance to be optimized (unfixed) 
+        # if you want to get exactly the same plot as "GPyOpt.plot_acquisition()",
+        # you need to let gaussicna_noise.variance to be optimized (unfixed) 
         gprFinal.Gaussian_noise.variance.fix()     #sigma_d = fixed
         gprFinal.optimize('bfgs', max_iters=200)   #optimization of hyperparameters
-        print('------------------------------------------')
-        print('Final GPR with optimal hyper-parameters:')
-        print('--------Model paramaters (%d,%d) -----------' %(I+1,J+1))
+        logger.info('------------------------------------------')
+        logger.info('Final GPR with optimal hyper-parameters:')
+        logger.info('--------Model paramaters (%d, %d) -----------' % (I+1, J+1))
         print(gprFinal)
 
         #>>> 2. Generate a mesh of test parameters in a 2d-plane
@@ -308,7 +322,7 @@ def gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts):
     DPI = fig.get_dpi()
     fig.set_size_inches(figSize/float(DPI),figSize/float(DPI))
     plt.savefig(figSave+'.pdf',bbox_inches='tight')
-    print("save",figSave+".pdf")
+    logger.info("save: %s.pdf" % figSave)
 #    plt.show()
 
 #//////////////////////////////////////////////////////////////////
@@ -373,13 +387,14 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
     fig.set_size_inches(1000/float(DPI),500/float(DPI))
     if 'figSave' in locals():
        plt.savefig(figDir+figName+'.pdf',bbox_inches='tight')
-       print("save figure as "+figDir+figName+'.pdf')
+       logger.info("save figure as %s%s.pdf" % (figDir,figName))
     #plt.show()
 
 #///////////////////////////
 def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
     """ 
-    Plot 2D contour lines generated by GPR + the surface of the error between true function and the perdictions by GPR
+    Plot 2D contour lines generated by GPR + the surface of the error between
+            true function and the perdictions by GPR
        (meanPred,covarPred): mean and covariance predicted by GPR at grid test points
        (x,y): GP samples and associated model function values
        (x1TestGrid,x2TestGrid): coordinates of the test grid points
@@ -399,7 +414,8 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
     confidPred=[];
     for i in range(nTest):
         if covarPred[i]<0:
-           print('----- WARNING ---- negative predicted variance=%g at i=%d is replaced by 0.0' %(covarPred[i,i],i))
+           logger.warning('negative predicted variance = %g at i = %d is replaced by 0.0'\
+                          %(covarPred[i,i], i))
            covarPred[i]=0.0
         confidPred.append(1.96*mt.sqrt(covarPred[i]))  #95% confidence interval
 
@@ -432,7 +448,7 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
     #plt.title(r'$95\%$ Uncertainty',fontsize=18)
     return CS
 
-
+# %%
 ####################
 # MAIN
 ####################
@@ -489,8 +505,10 @@ def printSetting():
     """
     print global parameters
     """
-    print("nPar =",nPar, "\nsigma_d =",sigma_d, "\nwhichOptim =",whichOptim, \
-          "\ntol_abs =",tol_abs, "\nkernel =",kernelType, "\nqBound =",qBound, "\nnGPinit =",nGPinit)
+    logger.info("\nnPar = %d\nsigma_d = %f\nwhichOptim = %s\ntol_abs = %f"\
+                "\nkernel = %s\nnGPinit = %d\nqBound = %s" % (nPar, sigma_d, whichOptim,\
+                                                            tol_abs, kernelType, nGPinit,\
+                                                            ', '.join(map(str, qBound))))
 
 def nextGPsample():
     """
@@ -500,7 +518,7 @@ def nextGPsample():
     """
     
     if (nData<nGPinit):   #take initial random samples
-       print("take the sample randomly")
+       logger.info("take the sample randomly")
        tmp=[];
        for i in range(nPar):
           ##random initial sample
@@ -545,9 +563,9 @@ def nextGPsample():
 
        #Find the next x-sample
        xNext=gprOpt.suggest_next_locations(context=None, pending_X=None, ignored_X=None)
-    print('**** New GP sample is:',xNext[0])
+    logger.info('**** New GP sample is: %s' % ', '.join(map(str, xNext[0])))
     #write the new sample in file
-    write_newGPsample('./workDir/newSampledParam.dat',xNext[0])
+    write_newGPsample('./workDir/newSampledParam.dat', xNext[0])
 
 #///////////////////////////
 def BO_update_convergence():
@@ -587,15 +605,15 @@ def BO_update_convergence():
        #             #send convergence signal
        #             sys.exit(1)
     # check convergence: only for minimize !!!
-    print("check convergence")
+    logger.debug("check convergence")
     if yList_[-1]<tol_abs: # take into acc
         xOpt=xList_[-1]
         fxOpt=yList_[-1]
-        print(' ******* Converged Optimal Values x = ', xOpt, ',y = ', fxOpt)
+        logger.info(' ******* Converged Optimal Values x = %f, y = %f' % (xOpt, fxOpt))
         #send convergence signal
         sys.exit(1) # read as "$isConv" in driver
     else:
-        print("not converged yet, y = %f, tol = %f" %(yList_[-1],tol_abs))
+        logger.info("not converged yet, y = %f, tol = %f" % (yList_[-1], tol_abs))
     
 #////////////////////////////////////
 def gpSurface_plot():
@@ -632,5 +650,5 @@ def gpSurface_plot():
                     'ylim':[0.05,10]} # NEED TO BE TUNED
           gpOpt1d_postProc(xGP,yGP,sigma_d,domain,nTest,plotOpts)
     else:
-        print("Error: nPar should be >= 1")
+        logger.error("nPar should be >= 1")
         sys.exit(1)
