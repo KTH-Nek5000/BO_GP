@@ -2,7 +2,10 @@
 .pyc
 .png
 .pdf
-figs/*
+.avi
+figs/png
+figs/*.avi
+figs/*.pdf
 log
 OFcase/constant/polyMesh/*
 OFcase/0/C*
