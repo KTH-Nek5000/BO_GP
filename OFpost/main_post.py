@@ -10,8 +10,10 @@ calculate objective
 save beta to saveFigPath + "beta_%02d" % iMain + ".pdf"
 save raw data to path2saveBeta
 write it to path2newTheta
+save yTop figure to saveFigPath
 
 NOTE: change ylim in save_beta() if you need
+NOTE: UPDATE ylim in save_yTopFig() !!!!!!!!!!!!!!!!!!!!!!
 """
 
 # %% import libraries
@@ -126,7 +128,7 @@ def calc_beta(U_infty, delta99_in, Nx, Ny, Nz, t):
     ###################### CHECK delta99 calc. in bl_calc #######################
     Re_theta, beta = bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w)
     
-    return x,beta
+    return x,y,beta
 
 def getNu():
     """
@@ -445,6 +447,32 @@ def write_newTheta(obj):
         sys.exit(1)
     logger.info("write objective to %s" % path2newTheta)
     
+def save_yTopFig(x,y,iMain,obj):
+    """
+    Parameters
+    ----------
+    x : TYPE
+        DESCRIPTION.
+    y : TYPE
+        DESCRIPTION.
+    iMain : TYPE
+        DESCRIPTION.
+    obj : TYPE
+        DESCRIPTION.
+
+    YLIM NEEDS TO BE UPDATED
+    """
+    plt.plot(x,y[-1,:])
+    plt.xlabel(r'$x$')
+    plt.ylabel(r'$y$')
+    plt.xlim(x[0],x[-1])
+    plt.ylim(2,2,3)
+    plt.grid()
+    plt.title(r'$N_i = %d, y = %f$' % (iMain,obj))
+    saveFileName = "yTop_%02d"% iMain
+    plt.savefig(saveFigPath + saveFileName + ".pdf", bbox_inches="tight")
+    logger.info("save yTop figure as %s%s.pdf" % (saveFigPath, saveFileName))
+    
 # %% ################## main ###########################
 if __name__ == '__main__':
     #1. read input
@@ -460,7 +488,7 @@ if __name__ == '__main__':
     U_infty, delta99_in, Nx, Ny, Nz, t = read_OFinput()
     
     #2. calc beta
-    x, beta = calc_beta(U_infty, delta99_in, Nx, Ny, Nz, t)
+    x, y, beta = calc_beta(U_infty, delta99_in, Nx, Ny, Nz, t)
     
     #3. assess objective func
     obj = calc_obj(beta, beta_t, inlet_exclude, outlet_exclude)
@@ -472,3 +500,6 @@ if __name__ == '__main__':
     #5. output obj
     logger.info("objective = %g" % obj)
     write_newTheta(obj)
+
+    #6. save yTop figure
+    save_yTopFig(x,y,iMain,obj)
