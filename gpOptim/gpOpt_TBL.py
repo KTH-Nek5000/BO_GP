@@ -171,19 +171,19 @@ def my_convergence_plot(xList,yList,whichOptim,figDir,figName):
     plt.semilogy(range(1,nData),xDistList,'-ob',lw=2)
     plt.title("Distance between 2 consecutive parameter samples",fontsize=20)
     plt.xlabel(r'$N$',fontsize=20)
-    plt.ylabel(r'$\|x^{(n+1)}-x^{(n)}\|$',fontsize=22)
+    plt.ylabel(r'$\| \mbox{\boldmath{$q$}}^{(n+1)} - \mbox{\boldmath{$q$}}^{(n)} \|_2$',fontsize=22)
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
-    plt.grid()
+    plt.grid(True)
     plt.gca().get_xaxis().set_major_locator(ticker.MaxNLocator(integer=True))
     plt.subplot(2,1,2)
     plt.semilogy(range(1,nData+1),yBestList,'-or',lw=2)
     plt.title('Best Value So Far',fontsize=20)
     plt.xlabel(r'$N$',fontsize=20)
-    plt.ylabel(r'$f(x^+)$',fontsize=22)
+    plt.ylabel(r'${\rm min}~(\mathcal{R})$',fontsize=22)
     plt.gca().get_xaxis().set_major_locator(ticker.MaxNLocator(integer=True))
     plt.tick_params(labelsize=20)
-    plt.grid()
+    plt.grid(True)
     fig = plt.gcf()
     DPI = fig.get_dpi()
     fig.set_size_inches(600/float(DPI),1200/float(DPI))
@@ -257,15 +257,31 @@ def gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts):
     parID=[]
     if nPar==2:
        parID.append([0,1])
+    elif nPar==3:
+        parID.append([0,1])
+        parID.append([0,2])
+        parID.append([1,2])
+        loc=[0,2,3]
     elif nPar==4:
        parID.append([0,1])
        parID.append([0,2])
-       parID.append([0,3])
        parID.append([1,2])
+       parID.append([0,3])
        parID.append([1,3])
        parID.append([2,3])
-       loc=[7,4,1,5,2,3]  #location in subplot
-
+       loc=[0,3,4,6,7,8]  #location in subplot
+       #
+       # parID.append([1,3])
+       # parID.append([0,2])
+       # parID.append([1,2])
+       # parID.append([3,2])
+       # parID.append([1,0])
+       # parID.append([3,0])
+       # loc=[7,4,1,5,2,3]  #location in subplot
+    else:
+        logger.error("nPar should be 2, 3 or 4: given %d" % nPar)
+    
+    plt.figure()
     for i in range(len(parID)):  #param-pair loop
         I=parID[i][0]   #ID of param 1 in the pair
         J=parID[i][1]   #ID of param 2
@@ -302,22 +318,25 @@ def gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts):
 
         #>>> 4. Plot response surface predicted by GPR at test mesh
         #plot the GPR      
-        if nPar==4:
-           plt.subplot(3,3,loc[i])
-           figSize=1500
-        elif nPar==2:
-           plt.subplot(1,1,1)
-           figSize=500
+        if nPar==2:
+            plt.subplot(1,1,1)
+            figSize=500
+        elif nPar==3:
+            plt.subplot(2,2,loc[i])
+            figSize=1500
+        elif nPar==4:
+            plt.subplot(3,3,loc[i])
+            figSize=1500
         gpyPlotter_2Dc(meanPred,covarPred,xGP_,yGP,x1_grid,x2_grid,I,J,plotOpts)
 
     #save fig
     if 'figDir' in plotOpts.keys():
        figDir=plotOpts['figDir']
        if not os.path.exists(figDir):
-          os.makedirs(figDir)    
+          os.makedirs(figDir)
     if 'figName' in plotOpts.keys():
        figName=plotOpts['figName']
-       figSave=figDir+figName#+'_nSamp'+str(len(yGP))
+       figSave=figDir+figName #+'_nSamp'+str(len(yGP))
     fig = plt.gcf()
     DPI = fig.get_dpi()
     fig.set_size_inches(figSize/float(DPI),figSize/float(DPI))
@@ -373,7 +392,7 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
        ylim=plotOpts['ylim']
        plt.ylim((ylim[0],ylim[1]))
     plt.title(r"$N_i = %d,~ q_1 = %f,~ \min(\mathcal{R}) = %f$" % (np.size(yGP),xGP[-1],np.min(yGP)),fontsize=20)
-    plt.grid();
+    plt.grid(True);
     #save fig
     if 'figDir' in plotOpts.keys():
        figDir=plotOpts['figDir']
@@ -435,8 +454,8 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
     plt.plot(x[:,0],x[:,1],'--ok',markersize=7,label='Training Data')
     plt.plot(x[len(y)-1,0],x[len(y)-1,1],'--sr',markersize=7,label='Training Data')
     plt.title(r'Mean GPR Prediction',fontsize=18)
-    plt.xlabel(r'$%s$' % "q_"+str(I+1),fontsize=20)
-    plt.ylabel(r'$%s$' % "q_"+str(J+1),fontsize=20)
+    plt.xlabel(r'$%s%s$' % ("q_", str(I+1)),fontsize=20)
+    plt.ylabel(r'$%s%s$' % ("q_", str(J+1)),fontsize=20)
     ##contours of uncertainty 
     ##plot only if nPar==2
     #plt.subplot(1,2,2)
