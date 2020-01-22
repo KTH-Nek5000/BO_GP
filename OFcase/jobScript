@@ -1,14 +1,14 @@
 #!/bin/bash
-#SBATCH -A snic2019/2-5
+#SBATCH -A SNIC2019-2-5
 #SBATCH --output=log
 #SBATCH --error=err
 #SBATCH --requeue
 # Number of nodes
-# SBATCH -N 3
+#SBATCH -N 1
 # Number of MPI processes per node (the following is actually the default)
 # SBATCH --ntasks-per-node=24
 # Number of MPI processes.
-#SBATCH -n 30
+#SBATCH -n 28
 # time max. 24h
 #SBATCH --time=1:00:00
 #SBATCH -W
