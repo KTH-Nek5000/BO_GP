@@ -363,8 +363,8 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
 
     xmin=qBound[0][0]
     xmax=qBound[0][1]
-    plt.xlabel(r'$x$',fontsize=22)
-    plt.ylabel(r'$y$',fontsize=22)
+    plt.xlabel(r'$q_1$',fontsize=22)
+    plt.ylabel(r'$\mathcal{R}$',fontsize=22)
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
     plt.legend(loc='upper left',fontsize=20);
@@ -372,7 +372,7 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
     if 'ylim' in plotOpts.keys():
        ylim=plotOpts['ylim']
        plt.ylim((ylim[0],ylim[1]))
-    plt.title(r"$N = %d,~ x = %f,~ \min(y) = %f$" % (np.size(yGP),xGP[-1],np.min(yGP)),fontsize=20)
+    plt.title(r"$N_i = %d,~ q_1 = %f,~ \min(\mathcal{R}) = %f$" % (np.size(yGP),xGP[-1],np.min(yGP)),fontsize=20)
     plt.grid();
     #save fig
     if 'figDir' in plotOpts.keys():
@@ -435,8 +435,8 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
     plt.plot(x[:,0],x[:,1],'--ok',markersize=7,label='Training Data')
     plt.plot(x[len(y)-1,0],x[len(y)-1,1],'--sr',markersize=7,label='Training Data')
     plt.title(r'Mean GPR Prediction',fontsize=18)
-    plt.xlabel(r'$q$'+str(I+1),fontsize=20)
-    plt.ylabel(r'$q$'+str(J+1),fontsize=20)
+    plt.xlabel(r'$%s$' % "q_"+str(I+1),fontsize=20)
+    plt.ylabel(r'$%s$' % "q_"+str(J+1),fontsize=20)
     ##contours of uncertainty 
     ##plot only if nPar==2
     #plt.subplot(1,2,2)
@@ -463,7 +463,7 @@ whichOptim='min'  #find 'max' or 'min' of f(x)?
 tol_abs=0.01
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-qBound=[[2,2.5], [2,2.5]]
+qBound=[[2,3.5], [2,3.5]]
 nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
             #to avoid random sampling from the parameter space: see nextGPsample()
 #---------------------------------------------------------------------------
