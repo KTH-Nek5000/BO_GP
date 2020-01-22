@@ -408,7 +408,7 @@ def save_beta_fig(iMain,x,beta,delta99_in,in_exc,out_exc,beta_t,obj):
     plt.ylabel(r'$\beta$')
     plt.xlim(xmin,xmax)
     plt.ylim(ymin,ymax)
-    plt.grid()
+    plt.grid(True)
     plt.title(r'$N_i = %d, \mathcal{R} = %f$' % (iMain,obj))
     saveFileName = "beta_%02d"% iMain
     plt.savefig(saveFigPath + saveFileName + ".pdf",bbox_inches="tight")
@@ -466,8 +466,8 @@ def save_yTopFig(x,y,iMain,obj):
     plt.xlabel(r'$x$')
     plt.ylabel(r'$y$')
     plt.xlim(x[0],x[-1])
-    plt.ylim(2,2,3)
-    plt.grid()
+    plt.ylim(2, 3.5)
+    plt.grid(True)
     plt.title(r'$N_i = %d, \mathcal{R} = %f$' % (iMain,obj))
     saveFileName = "yTop_%02d"% iMain
     plt.savefig(saveFigPath + saveFileName + ".pdf", bbox_inches="tight")
