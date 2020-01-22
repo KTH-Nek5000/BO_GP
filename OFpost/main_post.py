@@ -128,7 +128,7 @@ def calc_beta(U_infty, delta99_in, Nx, Ny, Nz, t):
     ###################### CHECK delta99 calc. in bl_calc #######################
     Re_theta, beta = bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w)
     
-    return x,y,beta
+    return x, y, beta
 
 def getNu():
     """
@@ -395,16 +395,22 @@ def save_beta_fig(iMain,x,beta,delta99_in,in_exc,out_exc,beta_t,obj):
     Note: ylim can be modified
     """
     n = len(beta)
+    
+    plt.figure()
     plt.plot(x[1:-1], beta)
-    #plt.xlabel(r'$x/\delta_{99}^{in}$')
     xmin = x[0]
     xmax = x[-1]
-    ymin = beta_t - 0.1 # set depends on your beta_t
-    ymax = beta_t + 0.1
+    if beta_t==0:
+        ymin = -0.1
+        ymax = 0.1
+    else:
+        ymin = beta_t - 0.5*beta_t # set depends on your beta_t
+        ymax = beta_t + 0.5*beta_t
     plt.vlines(x[int(n*in_exc)+1],ymin,ymax,'k',linestyles='dashdot')
     plt.vlines(x[-int(n*out_exc)-1],ymin,ymax,'k',linestyles='dashdot')
     plt.hlines(beta_t,xmin,xmax,'r',linestyles='dashed')
     plt.xlabel(r'$x$')
+    #plt.xlabel(r'$x/\delta_{99}^{in}$')
     plt.ylabel(r'$\beta$')
     plt.xlim(xmin,xmax)
     plt.ylim(ymin,ymax)
@@ -447,7 +453,7 @@ def write_newTheta(obj):
         sys.exit(1)
     logger.info("write objective to %s" % path2newTheta)
     
-def save_yTopFig(x,y,iMain,obj):
+def save_yTopFig(x, y, iMain, obj):
     """
     Parameters
     ----------
@@ -462,6 +468,7 @@ def save_yTopFig(x,y,iMain,obj):
 
     YLIM NEEDS TO BE UPDATED
     """
+    plt.figure()
     plt.plot(x,y[-1,:])
     plt.xlabel(r'$x$')
     plt.ylabel(r'$y$')
@@ -502,4 +509,4 @@ if __name__ == '__main__':
     write_newTheta(obj)
 
     #6. save yTop figure
-    save_yTopFig(x,y,iMain,obj)
+    save_yTopFig(x, y, iMain, obj)
