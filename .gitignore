@@ -19,3 +19,7 @@ OFpost/beta.dat
 OFpost/__pycache__
 gpOptim/__pycache__
 *~
+OFcase/system/yTopParams.in
+gpOptim/workDir/gpList.dat
+gpOptim/workDir/newResponse.dat
+gpOptim/workDir/newSampledParam.dat
