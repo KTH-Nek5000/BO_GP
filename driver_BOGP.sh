@@ -14,8 +14,8 @@ here=$PWD
 #---------------------------------------------
 #  SETTINGS
 #---------------------------------------------
-iStart=1   # Starting iteration 
-nRun=10   # number of times the script is run
+iStart=11   # Starting iteration 
+nRun=5   # number of times the script is run
 #nProcessors=30 # number of processors for calculation (check decomposeParDict & jobScript)
 tEnd=`cut -f 7 OFinput.dat | sed -n 2p` # read from OFinput.dat
 target=1   # terget value for beta
@@ -35,6 +35,10 @@ cd ..
 if [ ! -d "$bupAddress$caseName" ]
 then
    mkdir $bupAddress$caseName
+fi
+
+if [ $iStart = 1 ]; then
+rm -f OFpost/beta*.npy
 fi
 
 for ((i=$iStart;i<$iStart+$nRun;i++)); do
@@ -83,6 +87,7 @@ for ((i=$iStart;i<$iStart+$nRun;i++)); do
         mkdir $bupAddress$caseName$i/constant
     fi
     cp -r constant/polyMesh $bupAddress$caseName$i/constant/polyMesh
+    cp constant/transportProperties $bupAddress$caseName$i/constant
     cd ../
     
     #4. Post-process OpenFOAM
