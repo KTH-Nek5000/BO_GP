@@ -552,12 +552,14 @@ def main(beta_t,in_exc,out_exc,iMain,U_infty, delta99_in, Nx, Ny, Nz, t):
 
     #5. output obj
     logger.info("objective = %g" % obj)
-    write_newTheta(obj)
+    # write_newTheta(obj)
 
     #6. save yTop figure
     # save_yTopFig(x, y, iMain, obj, in_exc, out_exc)
     save_Ucontour(x/delta99_in, y/delta99_in,xc/delta99_in, yc/delta99_in, U, iMain, obj, in_exc, out_exc)
     
+    return obj
+
 # %% ################## main ###########################
 # if __name__ == '__main__':
 #     #1. read input

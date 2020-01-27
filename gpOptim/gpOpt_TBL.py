@@ -11,8 +11,8 @@ import os
 import math as mt
 import matplotlib
 matplotlib.use('PDF')
-import matplotlib.cm as cm
-import matplotlib.mlab as mlab
+# import matplotlib.cm as cm
+# import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from matplotlib import rc
@@ -22,8 +22,8 @@ import numpy as np
 import GPy
 import GPyOpt
 from GPyOpt.methods import BayesianOptimization
-from GPyOpt import Design_space
-from GPyOpt.experiment_design import initial_design
+# from GPyOpt import Design_space
+# from GPyOpt.experiment_design import initial_design
 from numpy.linalg import norm
 
 # %% logging
@@ -54,7 +54,7 @@ logger = logging.getLogger("Driver").getChild("gpOptim/gpOpt_TBL.py")
 ##################
 #//////////////////////////////////////////////
 def read_available_GPsamples(gpInputFile,nPar):
-    """ 
+    """
         Read the most updated list of (x,y) GP samples from gpInputFile
     """
     F1=open(gpInputFile,'r')
@@ -107,58 +107,58 @@ def update_GPsamples(gpOutputFile,xList,yList,xNext,yNext):
     logger.info('**** %s is updated!' % gpOutputFile)
 
 #//////////////////////////////////////////
-def write_newGPsample(newSampleFile,xNext):
-    """
-       Write the new sample in file
-    """
-    logger.info("write the new sample to %s" % newSampleFile)
-    n=len(xNext)
-    F2=open(newSampleFile,'w')
-    F2.write('# New samples for parameters which are taken by nextGPsample() \n')
-    F2.write('# ')
-    for i in range(n):
-        tmp='par'+str(i)+'\t'
-        F2.write(tmp)
-    F2.write('\n')
-    for i in range(n):
-        tmp=str(xNext[i])+'\t'
-        F2.write(tmp)
-    F2.write('\n')
-    F2.close()
+# def write_newGPsample(newSampleFile,xNext):
+#     """
+#        Write the new sample in file
+#     """
+#     logger.info("write the new sample to %s" % newSampleFile)
+#     n=len(xNext)
+#     F2=open(newSampleFile,'w')
+#     F2.write('# New samples for parameters which are taken by nextGPsample() \n')
+#     F2.write('# ')
+#     for i in range(n):
+#         tmp='par'+str(i)+'\t'
+#         F2.write(tmp)
+#     F2.write('\n')
+#     for i in range(n):
+#         tmp=str(xNext[i])+'\t'
+#         F2.write(tmp)
+#     F2.write('\n')
+#     F2.close()
 
 #//////////////////////////////////////////
-def read_last_GPsample(newSampleFile,nPar):
-    """ 
-        Read the most recent (last drawn) sample of the parameters
-    """
-    F1=open(newSampleFile,'r')
-    ain=F1.readlines()
-    ain_sep=[];
-    for i in range(len(ain)):
-        ain_sep.append(ain[i].split())
-    iskip=2;  # no of lines to skip from the beginning of the input file
-    xList=[]
-    for j in range(nPar):
-        xList.append(float(ain_sep[iskip][j]))
-    F1.close()
-    logger.info("read the new sample from %s" % newSampleFile)
-    return xList
+# def read_last_GPsample(newSampleFile,nPar):
+#     """ 
+#         Read the most recent (last drawn) sample of the parameters
+#     """
+#     F1=open(newSampleFile,'r')
+#     ain=F1.readlines()
+#     ain_sep=[];
+#     for i in range(len(ain)):
+#         ain_sep.append(ain[i].split())
+#     iskip=2;  # no of lines to skip from the beginning of the input file
+#     xList=[]
+#     for j in range(nPar):
+#         xList.append(float(ain_sep[iskip][j]))
+#     F1.close()
+#     logger.info("read the new sample from %s" % newSampleFile)
+#     return xList
 
 #///////////////////////////////////////
-def read_last_response(newResponseFile):
-    """ 
-       Read the response from the CFD code that is associated to the last drawn parameter sample
-    """
-    F1=open(newResponseFile,'r')
-    ain=F1.readlines()
-    ain_sep=[];
-    for i in range(len(ain)):
-        ain_sep.append(ain[i].split())
-    iskip=1;  # no of lines to skip from the beginning of the input file
-    resp=float(ain_sep[iskip][0])
-    F1.close()
-    logger.info("read the new response from %s" % newResponseFile)
-    return resp
+# def read_last_response(newResponseFile):
+#     """ 
+#        Read the response from the CFD code that is associated to the last drawn parameter sample
+#     """
+#     F1=open(newResponseFile,'r')
+#     ain=F1.readlines()
+#     ain_sep=[];
+#     for i in range(len(ain)):
+#         ain_sep.append(ain[i].split())
+#     iskip=1;  # no of lines to skip from the beginning of the input file
+#     resp=float(ain_sep[iskip][0])
+#     F1.close()
+#     logger.info("read the new response from %s" % newResponseFile)
+#     return resp
 
 #//////////////////////////////////////////////////////////////
 def my_convergence_plot(xList,yList,whichOptim,figDir,figName):
@@ -213,7 +213,7 @@ def test_grid(bounds1,bounds2,nTest1,nTest2):
     x2Test=np.linspace(bounds2[0],bounds2[1],nTest2)
     x1TestGrid=np.zeros((nTest1,nTest2))  
     x2TestGrid=np.zeros((nTest1,nTest2))
-    yTestGrid=np.zeros((nTest1,nTest2))
+    # yTestGrid=np.zeros((nTest1,nTest2))
     xTestArr=np.zeros((nTest,2));
     for i in range(nTest1):
         for j in range(nTest2):
@@ -494,7 +494,7 @@ whichOptim='min'  #find 'max' or 'min' of f(x)?
 tol_abs=0.01
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-qBound=[[2,2.1],[2,2.1]]
+qBound=[[2,2.2],[2,2.1]]
 nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
             #to avoid random sampling from the parameter space: see nextGPsample()
 #---------------------------------------------------------------------------
@@ -607,7 +607,7 @@ def nextGPsample(path2gpList):
     # write_newGPsample('./workDir/newSampledParam.dat', xNext[0])
 
 #///////////////////////////
-def BO_update_convergence(xLast):
+def BO_update_convergence(xLast, yLast):
     """
        1. Update gpList.dat by adding the last drawn sample and associated response to it
        2. Check if BO-GP is converged or not
@@ -623,7 +623,7 @@ def BO_update_convergence(xLast):
     # xLast=read_last_GPsample('./workDir/newSampledParam.dat',nPar)
 
     #Read in the response associated to the last samples (response is given by the CFD code)
-    yLast= read_last_response('./workDir/newResponse.dat')
+    # yLast= read_last_response('./workDir/newResponse.dat')
 
     #Update gpList.dat
     update_GPsamples('./workDir/gpList.dat',xList,yList,xLast,yLast)
