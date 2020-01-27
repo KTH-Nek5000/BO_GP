@@ -88,6 +88,7 @@ for ((i=$iStart;i<$iStart+$nRun;i++)); do
     fi
     cp -r constant/polyMesh $bupAddress$caseName$i/constant/polyMesh
     cp constant/transportProperties $bupAddress$caseName$i/constant
+    cp -r postProcessing $bupAddress$caseName$i/postProcessing
     cd ../
     
     #4. Post-process OpenFOAM
