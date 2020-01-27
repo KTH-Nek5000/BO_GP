@@ -28,23 +28,25 @@ from numpy.linalg import norm
 
 # %% logging
 import logging
-# # create logger
-logger = logging.getLogger("gpOptim/gpOpt_TBL.py") # root logger
-if (logger.hasHandlers()):
-    logger.handlers.clear()
-logger.setLevel(logging.INFO)
+# # # create logger
+# logger = logging.getLogger("gpOptim/gpOpt_TBL.py") # root logger
+# if (logger.hasHandlers()):
+#     logger.handlers.clear()
+# logger.setLevel(logging.INFO)
 
-def add_handler():
-    # create console handler and set level to debug
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(name)s - %(funcName)s - %(levelname)s - %(message)s')
-    ch.setFormatter(formatter)
-    # if not logger.handlers:
-    #     logger.addHandler(ch)
-    logger.addHandler(ch)
+# def add_handler():
+#     # create console handler and set level to debug
+#     ch = logging.StreamHandler()
+#     ch.setLevel(logging.INFO)
+#     formatter = logging.Formatter('%(name)s - %(funcName)s - %(levelname)s - %(message)s')
+#     ch.setFormatter(formatter)
+#     # if not logger.handlers:
+#     #     logger.addHandler(ch)
+#     logger.addHandler(ch)
 
-add_handler()
+# add_handler()
+
+logger = logging.getLogger("Driver").getChild("gpOptim/gpOpt_TBL.py")
 
 # %%
 ##################
@@ -314,7 +316,7 @@ def gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts):
         logger.info('------------------------------------------')
         logger.info('Final GPR with optimal hyper-parameters:')
         logger.info('--------Model paramaters (%d, %d) -----------' % (I+1, J+1))
-        print(gprFinal)
+        logger.info(str(gprFinal))
 
         #>>> 2. Generate a mesh of test parameters in a 2d-plane
         bound1=[bounds[I][0],bounds[I][1]]
@@ -457,7 +459,8 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
             covarPredGrid[i,j]=covarPred[k]
 
     #2D contourplot
-    ax=plt.gca()
+    # ax=plt.gca()
+    plt.figure()
     CS=plt.contour(x1TestGrid,x2TestGrid,meanPredGrid,40)#,label=r'$95\%$ confidence')
     plt.clabel(CS, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
     plt.plot(x[:,0],x[:,1],'--ok',markersize=7,label='Training Data')
@@ -491,7 +494,7 @@ whichOptim='min'  #find 'max' or 'min' of f(x)?
 tol_abs=0.01
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-qBound=[[4,7],[3,5]]
+qBound=[[2,2.1],[2,2.1]]
 nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
             #to avoid random sampling from the parameter space: see nextGPsample()
 #---------------------------------------------------------------------------
@@ -539,14 +542,14 @@ def printSetting():
                                                             tol_abs, kernelType, nGPinit,\
                                                             ', '.join(map(str, qBound))))
 
-def nextGPsample():
+def nextGPsample(path2gpList):
     """
        Take the next sample of the parameters from their admissible space. 
        If the number of the available samples is less than a limit (=nGPinit), 
        take the initial samples randomly. Otherwise, use the BO-GP algorithm to draw the new sample. 
     """
     
-    [xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
+    [xList,yList]=read_available_GPsamples(path2gpList,nPar)
     nData=len(yList)
     #xList=xList.reshape((nData,nPar))   #reshape as required by GPy and GPyOpt
     yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
@@ -598,11 +601,13 @@ def nextGPsample():
        #Find the next x-sample
        xNext=gprOpt.suggest_next_locations(context=None, pending_X=None, ignored_X=None)
     logger.info('**** New GP sample is: %s' % ', '.join(map(str, xNext[0])))
+    
+    return xNext[0]
     #write the new sample in file
-    write_newGPsample('./workDir/newSampledParam.dat', xNext[0])
+    # write_newGPsample('./workDir/newSampledParam.dat', xNext[0])
 
 #///////////////////////////
-def BO_update_convergence():
+def BO_update_convergence(xLast):
     """
        1. Update gpList.dat by adding the last drawn sample and associated response to it
        2. Check if BO-GP is converged or not
@@ -615,7 +620,7 @@ def BO_update_convergence():
     yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
     
     #Read in the last drawn samples of parameters
-    xLast=read_last_GPsample('./workDir/newSampledParam.dat',nPar)
+    # xLast=read_last_GPsample('./workDir/newSampledParam.dat',nPar)
 
     #Read in the response associated to the last samples (response is given by the CFD code)
     yLast= read_last_response('./workDir/newResponse.dat')
@@ -648,11 +653,13 @@ def BO_update_convergence():
     if yList_[-1]<tol_abs: # take into acc
         xOpt=xList_[-1]
         fxOpt=yList_[-1]
-        logger.info(' ******* Converged Optimal Values x = %f, y = %f' % (xOpt, fxOpt))
+        logger.info(' ******* Converged Optimal Values q = %s, y = %f' % (', '.join(map(str, xOpt)), fxOpt))
         #send convergence signal
-        sys.exit(1) # read as "$isConv" in driver
+        # sys.exit(1) # read as "$isConv" in driver
+        return 1
     else:
         logger.info("not converged yet, y = %f, tol = %f" % (yList_[-1], tol_abs))
+        return 0
     
 #////////////////////////////////////
 def gpSurface_plot():
