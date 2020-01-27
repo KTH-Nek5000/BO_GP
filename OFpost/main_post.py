@@ -22,9 +22,10 @@ import sys
 import matplotlib
 matplotlib.use('PDF') # AGG for png ?
 import matplotlib.pyplot as plt
-import pickle
+# import pickle
 from scipy import interpolate, integrate
 import subprocess
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 # default setting for figures
 from matplotlib import rc
@@ -141,7 +142,7 @@ def calc_beta(U_infty, delta99_in, Nx, Ny, Nz, t):
     ###################### CHECK delta99 calc. in bl_calc #######################
     Re_theta, beta = bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w)
     
-    return x, y, beta
+    return xc, yc, x, y, U, beta
 
 def getNu():
     """
@@ -500,7 +501,39 @@ def save_yTopFig(x, y, iMain, obj, in_exc, out_exc):
     saveFileName = "yTop_%02d" % iMain
     plt.savefig(saveFigPath + saveFileName + ".pdf", bbox_inches="tight")
     logger.info("save yTop figure as %s%s.pdf" % (saveFigPath, saveFileName))
+
+def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta,U, iMain, obj, in_exc, out_exc):
+    # plt.rcParams['font.size'] = 15
+    Nx = np.size(x_delta)
+    Ny = np.shape(yc_delta)[0]
+    xmax = x_delta[-1]
+    ymax = np.max(y_delta)
+#    X, Y = np.meshgrid(xc,yc) # NY*NX
+    X = np.outer(np.ones(Ny),xc_delta)
+    Y = yc_delta
     
+    fig = plt.figure(figsize=(12,3))
+    ax = fig.add_subplot(111)
+    im = ax.pcolormesh(X,Y,U, cmap='jet',vmin=0, vmax=1)
+    plt.vlines(x_delta[int(Nx*in_exc)+2],0,ymax,'k',linestyles='dashdot')
+    plt.vlines(x_delta[-int(Nx*out_exc)],0,ymax,'k',linestyles='dashdot')
+#    ax.set_aspect(3)
+    # create an axes on the right side of ax. The width of cax will be 5%
+    # of ax and the padding between cax and ax will be fixed at 0.05 inch.
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="2%", pad=0.1)
+#    cax = divider.new_horizontal(size="2%", pad=0.05)
+#    fig.add_axes(cax)
+    clb = plt.colorbar(im,cax=cax)
+    clb.set_label(r"$U/U_\infty^{\rm in}$")
+    ax.set_xlim(0,xmax)
+    ax.set_ylim(0,ymax)
+    ax.set_xlabel(r"$x/ \delta_{99}^{\rm in}$")
+    ax.set_ylabel(r"$y/ \delta_{99}^{\rm in}$")
+    saveFileName = "U_%02d" % iMain
+    plt.savefig(saveFigPath + saveFileName + ".pdf", bbox_inches="tight")
+    logger.info("save U figure as %s%s.pdf" % (saveFigPath, saveFileName))
+
 # %% ################## main ###########################
 if __name__ == '__main__':
     #1. read input
@@ -516,7 +549,7 @@ if __name__ == '__main__':
     U_infty, delta99_in, Nx, Ny, Nz, t = read_OFinput()
     
     #2. calc beta
-    x, y, beta = calc_beta(U_infty, delta99_in, Nx, Ny, Nz, t)
+    xc, yc, x, y, U, beta = calc_beta(U_infty, delta99_in, Nx, Ny, Nz, t)
     
     #3. assess objective func
     obj = calc_obj(beta, beta_t, inlet_exclude, outlet_exclude)
@@ -530,4 +563,6 @@ if __name__ == '__main__':
     write_newTheta(obj)
 
     #6. save yTop figure
-    save_yTopFig(x, y, iMain, obj, inlet_exclude, outlet_exclude)
+    # save_yTopFig(x, y, iMain, obj, inlet_exclude, outlet_exclude)
+    save_Ucontour(x/delta99_in, y/delta99_in,xc/delta99_in, yc/delta99_in, U, iMain, obj, inlet_exclude, outlet_exclude)
+    
