@@ -10,6 +10,7 @@
 set -eu # stop when error occurs
 clear
 echo "process id = " $$
+here=$PWD
 #---------------------------------------------
 #  SETTINGS
 #---------------------------------------------
@@ -20,8 +21,8 @@ tEnd=`cut -f 7 OFinput.dat | sed -n 2p` # read from OFinput.dat
 target=1   # terget value for beta
 inlet_ignore=0.2   # ignore this region when assess the objective
 outlet_ignore=0.1
-#bupAddress="/home/m/morita/OpenFOAM/morita-6/run/"   #directory to which OpenFOAM data at tEnd are backed up
-#caseName="test1"  #for saving figures and output data
+bupAddress="/home/m/morita/OpenFOAM/morita-6/run/data/"   #directory to which OpenFOAM data at tEnd are backed up
+caseName="2D_1/"  #for saving figures and output data
 #------------------------
 # MAIN
 #------------------------
@@ -30,11 +31,12 @@ echo "iStart = $iStart, nRun = $nRun, tEnd = $tEnd, target = $target, inlet_igno
 cd gpOptim
 python3 -c 'import gpOpt_TBL as X;X.printSetting()'
 cd ..
-#if [ ! -d "$bupAddress$caseName" ]
-#then
-#   mkdir $bupAddress$caseName
-#fi
-here=$PWD
+
+if [ ! -d "$bupAddress$caseName" ]
+then
+   mkdir $bupAddress$caseName
+fi
+
 for ((i=$iStart;i<$iStart+$nRun;i++)); do
     echo "################### START LOOP i = $i ########################"
     #1. Generate a sample from the parameters space
@@ -68,8 +70,19 @@ for ((i=$iStart;i<$iStart+$nRun;i++)); do
     
     echo "MAIN SIMULATION END"
     reconstructPar -latestTime
-    #echo "COPY THE LATEST TIME DATA TO " $bupAddress$caseName/$tEnd-$i
-    #cp -r $tEnd $bupAddress$caseName/$tEnd-$i
+    
+    echo "COPY THE LATEST TIME DATA TO " $bupAddress$caseName$i
+    if [ ! -d "$bupAddress$caseName$i" ]
+    then
+       mkdir $bupAddress$caseName$i
+    fi
+    cp -r $tEnd $bupAddress$caseName$i/$tEnd
+    cp -r 0 $bupAddress$caseName$i
+    if [ ! -d "$bupAddress$caseName$i/constant" ]
+    then
+        mkdir $bupAddress$caseName$i/constant
+    fi
+    cp -r constant/polyMesh $bupAddress$caseName$i/constant/polyMesh
     cd ../
     
     #4. Post-process OpenFOAM
