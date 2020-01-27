@@ -1,4 +1,5 @@
 #!/bin/bash
+
 ###############################################################
 #   Bayesian Optimization based on Gaussian Processes
 # Find the upper boundary shape s.t. a given pressure gradient 
