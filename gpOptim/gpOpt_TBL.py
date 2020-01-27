@@ -29,14 +29,22 @@ from numpy.linalg import norm
 # %% logging
 import logging
 # # create logger
-logger = logging.getLogger("gpOptim/gpOpt_TBL.py")
-logger.setLevel(logging.DEBUG)
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+logger = logging.getLogger("gpOptim/gpOpt_TBL.py") # root logger
+if (logger.hasHandlers()):
+    logger.handlers.clear()
+logger.setLevel(logging.INFO)
+
+def add_handler():
+    # create console handler and set level to debug
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(name)s - %(funcName)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    # if not logger.handlers:
+    #     logger.addHandler(ch)
+    logger.addHandler(ch)
+
+add_handler()
 
 # %%
 ##################
@@ -256,7 +264,7 @@ def gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts):
     #>>> 0. Assign the ID od mutual parameters
     parID=[]
     if nPar==2:
-       parID.append([0,1])
+        parID.append([0,1])
     elif nPar==3:
         parID.append([0,1])
         parID.append([0,2])
@@ -281,7 +289,7 @@ def gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts):
     else:
         logger.error("nPar should be 2, 3 or 4: given %d" % nPar)
     
-    plt.figure()
+    # plt.figure()
     for i in range(len(parID)):  #param-pair loop
         I=parID[i][0]   #ID of param 1 in the pair
         J=parID[i][1]   #ID of param 2
@@ -351,12 +359,12 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
     """
     xTest=xTest_[:,0]
     #Assigning
-    ifac=1.0
+    # ifac=1.0
     if 'whichOptim' in plotOpts.keys():
        if plotOpts['whichOptim']=='max':   #for plotting the GPR after computing max
           meanPred=-meanPred;
           yTrain=-yGP
-          ifac=-1.0
+          # ifac=-1.0
     n=len(meanPred);
     #confidence interval
     confidPred=[];
@@ -421,11 +429,12 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
        yTestGrid: GPR prediction for the function value at (x1TestGrid,x2TestGrid)
     """
     #Assigning
-    ifac=1.0
+    # ifac=1.0
     if 'whichOptim' in plotOpts.keys():
        if plotOpts['whichOptim']=='max':   #for plotting the GPR after computing max
           #meanPred=-meanPred;
-          ifac=-1.0
+          # ifac=-1.0
+           pass
     nTest1=x1TestGrid.shape[0]
     nTest2=x1TestGrid.shape[1]
     nTest=nTest1*nTest2
@@ -482,7 +491,7 @@ whichOptim='min'  #find 'max' or 'min' of f(x)?
 tol_abs=0.01
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-qBound=[[2,3.5], [2,3.5]]
+qBound=[[4,7],[3,5]]
 nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
             #to avoid random sampling from the parameter space: see nextGPsample()
 #---------------------------------------------------------------------------
@@ -495,8 +504,12 @@ for i in range(nPar):
     domain_={'name':'q'+str(i+1),'type':'continuous','domain':(qBound[i][0],qBound[i][1])}
     domain.append(domain_)
 
-maxFlag=False
-if whichOptim=='max': maxFlag=True
+if whichOptim=='max':
+    maxFlag=True
+    ifac=-1.0
+else:
+    maxFlag=False
+    ifac=1.0
 fevalFlag=False   #evaluating the true function? (no noise)
 if sigma_d==0.:
    fevalFlag=True
@@ -508,13 +521,10 @@ for i in range(nPar):
 
 #>>>> Initialize the optimization
 # Read the list of (x,y) samples available so far
-[xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
-nData=len(yList)
-
-ifac=1.0;
-if whichOptim=='max':ifac=-1.0
-#xList=xList.reshape((nData,nPar))   #reshape as required by GPy and GPyOpt
-yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
+# [xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
+# nData=len(yList)
+# #xList=xList.reshape((nData,nPar))   #reshape as required by GPy and GPyOpt
+# yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
 
 ##########################
 # EXT FUNCTIONS
@@ -535,6 +545,11 @@ def nextGPsample():
        If the number of the available samples is less than a limit (=nGPinit), 
        take the initial samples randomly. Otherwise, use the BO-GP algorithm to draw the new sample. 
     """
+    
+    [xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
+    nData=len(yList)
+    #xList=xList.reshape((nData,nPar))   #reshape as required by GPy and GPyOpt
+    yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
     
     if (nData<nGPinit):   #take initial random samples
        logger.info("take the sample randomly")
@@ -594,6 +609,11 @@ def BO_update_convergence():
        
        Note: exit(1) is taken as the signal of the convergence
     """
+    [xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
+    nData=len(yList) # overwritten later
+    #xList=xList.reshape((nData,nPar))   #reshape as required by GPy and GPyOpt
+    yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
+    
     #Read in the last drawn samples of parameters
     xLast=read_last_GPsample('./workDir/newSampledParam.dat',nPar)
 
@@ -640,8 +660,10 @@ def gpSurface_plot():
        Reconstruct the GPR and plot it in 2D (or 1D) planes of the parameters admissible space
     """
     #read the updated gpList.dat
-#    [xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
-#    nData=len(yList)
+    [xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
+    nData=len(yList)
+    #xList=xList.reshape((nData,nPar))   #reshape as required by GPy and GPyOpt
+    yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
 
     #reshape the arrays according to GPy
     yGP=np.asarray(yList)
