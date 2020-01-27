@@ -14,14 +14,21 @@ import sys
 import logging
 # # create logger
 logger = logging.getLogger("OFpre/main_pre.py")
-logger.setLevel(logging.DEBUG)
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-if not logger.handlers:
+if (logger.hasHandlers()):
+    logger.handlers.clear()
+logger.setLevel(logging.INFO)
+
+def add_handler():
+    # create console handler and set level to debug
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(name)s - %(funcName)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    # if not logger.handlers:
+    #     logger.addHandler(ch)
     logger.addHandler(ch)
+
+add_handler()
 
 # %% global variables
 path2run ='..' # without last "/"
