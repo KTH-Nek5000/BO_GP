@@ -34,18 +34,30 @@ rc('text', usetex=True)
 #plt.rcParams['xtick.direction'] = 'in'
 #plt.rcParams['ytick.direction'] = 'in'
 
+import pathlib
+current_dir = pathlib.Path(__file__).resolve().parent
+sys.path.append( str(current_dir) + '/../gpOptim' )
+import gpOpt_TBL
+
 # %% logging
 import logging
 # # create logger
 logger = logging.getLogger("OFpost/main_post.py")
-logger.setLevel(logging.DEBUG)
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-if not logger.handlers:
+if (logger.hasHandlers()):
+    logger.handlers.clear()
+logger.setLevel(logging.INFO)
+
+def add_handler():
+    # create console handler and set level to debug
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(name)s - %(funcName)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    # if not logger.handlers:
+    #     logger.addHandler(ch)
     logger.addHandler(ch)
+
+add_handler()
 
 # %% global variables
 saveFigPath = "../figs/" # save beta_%02d.pdf
@@ -53,10 +65,10 @@ path2run ='..' # path to run directory (where OFcase directory is)
 casename = 'OFcase'
 path2OFinput = "../OFinput.dat" # path to OFinput.dat file
 path2newTheta = '../gpOptim/workDir/newResponse.dat'
-path2saveBeta = "./beta.dat"
+path2saveBeta = "./"
 
 # %% functions
-def read_OFinput():
+def read_OFinput(path=path2OFinput):
     """
     Parameters
     ----------
@@ -78,12 +90,12 @@ def read_OFinput():
     t : int
         last written time of the OFcase
     """
-    logger.debug("read data from %s" % path2OFinput)
+    logger.debug("read data from %s" % path)
     try:
         U_infty, delta99_in, Nx, Ny, Nz, t \
-            = np.loadtxt(path2OFinput, delimiter=',', skiprows=1, unpack=True)
+            = np.loadtxt(path, delimiter=',', skiprows=1, unpack=True)
     except:
-        logger.error("couldn't read %s" % path2OFinput)
+        logger.error("couldn't read %s" % path)
     
     Nx = int(Nx)
     Ny = int(Ny)
@@ -92,6 +104,7 @@ def read_OFinput():
     # print
     logger.info("U_infty = %f, delta99_in = %f, Nx = %d, Ny = %d, Nz = %d, t = %d"\
                 % (U_infty, delta99_in, Nx, Ny, Nz, t))
+        
     return U_infty, delta99_in, Nx, Ny, Nz, t
     
 def calc_beta(U_infty, delta99_in, Nx, Ny, Nz, t):
@@ -416,25 +429,28 @@ def save_beta_fig(iMain,x,beta,delta99_in,in_exc,out_exc,beta_t,obj):
     plt.ylim(ymin,ymax)
     plt.grid(True)
     plt.title(r'$N_i = %d, \mathcal{R} = %f$' % (iMain,obj))
-    saveFileName = "beta_%02d"% iMain
+    saveFileName = "beta_%02d" % iMain
     plt.savefig(saveFigPath + saveFileName + ".pdf",bbox_inches="tight")
     logger.info("save beta figure as %s%s.pdf" % (saveFigPath, saveFileName))
     
-def save_beta_dat(beta):
+def save_beta_dat(beta,iMain):
     """
     Parameters
     ----------
     global
     path2saveBeta
     """
-    try:
-        f = open(path2saveBeta, "wb")
-        pickle.dump(beta, f)
-        f.close()
-    except:
-        logger.error("couldn't write beta to %s" % path2saveBeta)
-        sys.exit(1)
-    logger.info("save beta raw data to %s" % path2saveBeta)
+    # fileName = path2saveBeta + "beta%02d.pickle" % iMain
+    # try:
+    #     f = open(fileName, "wb")
+    #     pickle.dump(beta, f)
+    #     f.close()
+    # except:
+    #     logger.error("couldn't write beta to %s" % fileName)
+    #     sys.exit(1)
+    # logger.info("pickle beta as %s" % fileName)
+    fileName = path2saveBeta + "beta%02d.npy" % iMain
+    np.save(fileName, beta)
     
 def write_newTheta(obj):
     """
@@ -453,7 +469,7 @@ def write_newTheta(obj):
         sys.exit(1)
     logger.info("write objective to %s" % path2newTheta)
     
-def save_yTopFig(x, y, iMain, obj):
+def save_yTopFig(x, y, iMain, obj, in_exc, out_exc):
     """
     Parameters
     ----------
@@ -468,15 +484,20 @@ def save_yTopFig(x, y, iMain, obj):
 
     YLIM NEEDS TO BE UPDATED
     """
+    n = np.size(x)
+    ymin = 2
+    ymax = np.max(gpOpt_TBL.qBound)
     plt.figure()
     plt.plot(x,y[-1,:])
+    plt.vlines(x[int(n*in_exc)+1],ymin,ymax,'k',linestyles='dashdot')
+    plt.vlines(x[-int(n*out_exc)-1],ymin,ymax,'k',linestyles='dashdot')
     plt.xlabel(r'$x$')
     plt.ylabel(r'$y$')
     plt.xlim(x[0],x[-1])
-    plt.ylim(2, 3.5)
+    plt.ylim(ymin, ymax)
     plt.grid(True)
     plt.title(r'$N_i = %d, \mathcal{R} = %f$' % (iMain,obj))
-    saveFileName = "yTop_%02d"% iMain
+    saveFileName = "yTop_%02d" % iMain
     plt.savefig(saveFigPath + saveFileName + ".pdf", bbox_inches="tight")
     logger.info("save yTop figure as %s%s.pdf" % (saveFigPath, saveFileName))
     
@@ -502,11 +523,11 @@ if __name__ == '__main__':
     
     #4. save beta
     save_beta_fig(iMain, x, beta, delta99_in, inlet_exclude, outlet_exclude, beta_t, obj)
-    save_beta_dat(beta)
+    save_beta_dat(beta,iMain)
 
     #5. output obj
     logger.info("objective = %g" % obj)
     write_newTheta(obj)
 
     #6. save yTop figure
-    save_yTopFig(x, y, iMain, obj)
+    save_yTopFig(x, y, iMain, obj, inlet_exclude, outlet_exclude)
