@@ -14,6 +14,7 @@ FoamFile
     object      controlDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+#include "yTopParams.in"
 // probe locations
 x1 0;
 x2 25;
@@ -30,13 +31,13 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         120;//198;
+endTime         $tEnd;//198;
 
-deltaT          0.0075; // Co~0.75
+deltaT          $dt; // Co~0.75
 
-writeControl    timeStep;
+writeControl    runTime;
 
-writeInterval   4000; // MAKE SURE THE LAST TIME STEP FILE BECOMES INTEGER
+writeInterval   $endTime; // MAKE SURE THE LAST TIME STEP FILE BECOMES INTEGER
 
 purgeWrite      2;
 

@@ -16,12 +16,10 @@ FoamFile
 #include "yTopParams.in"
 
 convertToMeters 1;
-Lx 25;
-Ly 2;
-middle 1; // Ly/2
-middleX 12.5;
+//middle 1; // Ly/2
+//middleX 12.5;
 
-Nx 2500;
+//Nx 2500;
 
 vertices
 (
@@ -30,9 +28,9 @@ vertices
     //1
     ($Lx 0 0)
     //2
-    (0 $middle 0)
+    (0 $LyHalf 0)
     //3
-    ($Lx $middle 0)
+    ($Lx $LyHalf 0)
     //4
     (0 $Ly 0)
     //5
@@ -43,9 +41,9 @@ vertices
     //7
     ($Lx 0 1)
     //8
-    (0 $middle 1)
+    (0 $LyHalf 1)
     //9
-    ($Lx $middle 1)
+    ($Lx $LyHalf 1)
     //10
     (0 $Ly 1)
     //11
@@ -83,10 +81,10 @@ blocks
 edges
 (
  spline 4 5 (
-	     ($middleX $theta2 0)
+	     ($LxHalf $theta2 0)
 	     )
  spline 10 11 (
-	       ($middleX $theta2 1)
+	       ($LxHalf $theta2 1)
 	       )
 );
 
