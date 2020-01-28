@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-./OFpre/main_pre.py
+OFpre/main_pre.py
+called from driver_BOGP.py
 
-get new samples from "path2newSample", which is made by gpOpt_TBL.nextGPsample()
-write new geometry to "path2run"/"caseName"/system/yTopParams.in
+write new geometry to "path2case"/system/yTopParams.in
 """
 # %% import libraries
 # import numpy as np
@@ -30,43 +30,15 @@ def add_handler():
 
 add_handler()
 
-# %% global variables
-# path2run ='..' # without last "/"
-# caseName = 'OFcase'
-# path2newSample = '../gpOptim/workDir/newSampledParam.dat'
-
 # %% funcs
-# def get_params(path2file):
-#     """
-#     Parameters
-#     ----------
-#     path2file : str
-#         including file name
-
-#     Returns
-#     -------
-#     theta : float64, size=(nPar,)
-#         new sample
-#     """
-#     try:
-#         theta = np.loadtxt("%s" % path2file, skiprows=2)
-#     except:
-#         logger.error("couldn't read from %s" % path2file)
-#         sys.exit(1)
-#     logger.info("read new sample from: %s" % path2file)
-#     return theta
-
 def write_yTopParams(Nx,Ny,Lx,Ly,theta,U_infty,t,path2case):
     """
     Parameters
     ----------
-    global
-    path2run, caseName
-    
     theta : float64, size=(nPar,)
-        output of get_params()
     
-    write theta to "path2run"/"caseName"/system/yTopParams.in
+    write theta, Nx, NxHalf, Ny, NyHalf, Lx, LxHalf, Ly, LyHalf, dt, tEnd
+        to "path2case"/system/yTopParams.in
     """
     try:
         scf = open('%s/system/yTopParams.in' % path2case,'w')

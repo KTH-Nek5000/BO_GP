@@ -35,10 +35,10 @@ rc('text', usetex=True)
 #plt.rcParams['xtick.direction'] = 'in'
 #plt.rcParams['ytick.direction'] = 'in'
 
-import pathlib
-current_dir = pathlib.Path(__file__).resolve().parent
-sys.path.append( str(current_dir) + '/../gpOptim' )
-import gpOpt_TBL
+# import pathlib
+# current_dir = pathlib.Path(__file__).resolve().parent
+# sys.path.append( str(current_dir) + '/../gpOptim' )
+# import gpOpt_TBL
 
 # %% logging
 import logging
@@ -470,37 +470,37 @@ def write_newTheta(obj):
         sys.exit(1)
     logger.info("write objective to %s" % path2newTheta)
     
-def save_yTopFig(x, y, iMain, obj, in_exc, out_exc):
-    """
-    Parameters
-    ----------
-    x : TYPE
-        DESCRIPTION.
-    y : TYPE
-        DESCRIPTION.
-    iMain : TYPE
-        DESCRIPTION.
-    obj : TYPE
-        DESCRIPTION.
+# def save_yTopFig(x, y, iMain, obj, in_exc, out_exc):
+#     """
+#     Parameters
+#     ----------
+#     x : TYPE
+#         DESCRIPTION.
+#     y : TYPE
+#         DESCRIPTION.
+#     iMain : TYPE
+#         DESCRIPTION.
+#     obj : TYPE
+#         DESCRIPTION.
 
-    YLIM NEEDS TO BE UPDATED
-    """
-    n = np.size(x)
-    ymin = 2
-    ymax = np.max(gpOpt_TBL.qBound)
-    plt.figure()
-    plt.plot(x,y[-1,:])
-    plt.vlines(x[int(n*in_exc)+1],ymin,ymax,'k',linestyles='dashdot')
-    plt.vlines(x[-int(n*out_exc)-1],ymin,ymax,'k',linestyles='dashdot')
-    plt.xlabel(r'$x$')
-    plt.ylabel(r'$y$')
-    plt.xlim(x[0],x[-1])
-    plt.ylim(ymin, ymax)
-    plt.grid(True)
-    plt.title(r'$N_i = %d, \mathcal{R} = %f$' % (iMain,obj))
-    saveFileName = "yTop_%02d" % iMain
-    plt.savefig(saveFigPath + saveFileName + ".pdf", bbox_inches="tight")
-    logger.info("save yTop figure as %s%s.pdf" % (saveFigPath, saveFileName))
+#     YLIM NEEDS TO BE UPDATED
+#     """
+#     n = np.size(x)
+#     ymin = 2
+#     ymax = np.max(gpOpt_TBL.qBound)
+#     plt.figure()
+#     plt.plot(x,y[-1,:])
+#     plt.vlines(x[int(n*in_exc)+1],ymin,ymax,'k',linestyles='dashdot')
+#     plt.vlines(x[-int(n*out_exc)-1],ymin,ymax,'k',linestyles='dashdot')
+#     plt.xlabel(r'$x$')
+#     plt.ylabel(r'$y$')
+#     plt.xlim(x[0],x[-1])
+#     plt.ylim(ymin, ymax)
+#     plt.grid(True)
+#     plt.title(r'$N_i = %d, \mathcal{R} = %f$' % (iMain,obj))
+#     saveFileName = "yTop_%02d" % iMain
+#     plt.savefig(saveFigPath + saveFileName + ".pdf", bbox_inches="tight")
+#     logger.info("save yTop figure as %s%s.pdf" % (saveFigPath, saveFileName))
 
 def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta,U, iMain, obj, in_exc, out_exc):
     # plt.rcParams['font.size'] = 15

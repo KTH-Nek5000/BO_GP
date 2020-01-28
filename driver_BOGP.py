@@ -13,7 +13,8 @@ import os
 
 from OFpost import main_post
 from OFpre import main_pre
-import gpOpt_TBL as X
+# import gpOpt_TBL as X
+from gpOptim import gpOpt_TBL as X
 
 # %% logging
 import logging
@@ -37,7 +38,7 @@ add_handler()
 
 # %% SETTINGS
 iStart = 1   # Starting iteration 
-iEnd = 10
+iEnd = 1
 beta_t = 0   # terget value for beta
 in_exc = 0.2   # ignore this region when assess the objective
 out_exc = 0.1
@@ -51,6 +52,7 @@ bupAddress = "/home/m/morita/OpenFOAM/morita-6/run/data/test"
 if __name__ == '__main__':
     # initialiization
     subprocess.call('clear')
+    logger.info("CHECK KERBEROS VALIDITY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     pid=os.getpid()
     logger.info("process id = %d" % pid)
     here=os.getcwd()
@@ -79,13 +81,14 @@ if __name__ == '__main__':
     for i in range(iStart,iEnd+1):
         logger.info("############### START LOOP i = %d #################" % i)
         #1. Generate a sample from the parameters space
-        newSamp = X.nextGPsample("gpOptim/workDir/gpList.dat") # path2gpList
+        newQ = X.nextGPsample("gpOptim/workDir/gpList.dat") # path2gpList
         
-        #2. Grab sampled parameter and write yTopParams.in for blockMesh
-        main_pre.write_yTopParams(Nx, Ny, Lx, Ly, newSamp, U_infty, tEnd, "OFcase")
-    
+        #2. Write new q to path2case/system/yTopParams.in for blockMesh and controlDict
+        main_pre.write_yTopParams(Nx, Ny, Lx, Ly, newQ, U_infty, tEnd, "OFcase")
+        
         #3. Run OpenFOAM
         os.chdir("./OFcase")
+        
         logger.info("clean OFcase files")
         subprocess.call("rm -rf processor*",shell=True)
         subprocess.call("rm -rf postProcessing",shell=True)
@@ -102,10 +105,10 @@ if __name__ == '__main__':
         #bash OFrun.sh $nProcessors # for run in workstation (not cluster)
         subprocess.call("sbatch jobScript",shell=True)
         subprocess.call("wait",shell=True)
-        
         logger.info("MAIN SIMULATION END")
-        subprocess.call("reconstructPar -latestTime",shell=True)
         
+        subprocess.call("reconstructPar -latestTime",shell=True)
+        # backup
         logger.info("COPY THE LATEST TIME DATA TO %s/%s" % (bupAddress,i))
         if not os.path.isdir(bupAddress + "/" + str(i)):
             os.mkdir(bupAddress + "/" + str(i))
@@ -119,15 +122,14 @@ if __name__ == '__main__':
         
         #4. Post-process OpenFOAM
         os.chdir("./OFpost")
-        # subprocess.call("python3 main_post.py %s %s %s %d" % \
-        #                 (beta_t,in_exc,out_exc,i),shell=True)
-        obj = main_post.main(beta_t, in_exc, out_exc, i, U_infty, delta99_in, Nx, Ny, Nz, tEnd)
+        obj = main_post.main(beta_t, in_exc, out_exc, i, U_infty, delta99_in, \
+                             Nx, Ny, Nz, tEnd)
         os.chdir("../")
         
         #5. Post-process optimization
         os.chdir("./gpOptim")
-        isConv = X.BO_update_convergence(newSamp,obj)
-        X.gpSurface_plot()
+        isConv = X.BO_update_convergence(newQ,obj) # 0: unconverged, 1: converged
+        # X.gpSurface_plot()
         os.chdir("../")
         
         # check convergence

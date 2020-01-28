@@ -648,6 +648,7 @@ def BO_update_convergence(xLast, yLast):
        #             print('err_d, err_b=%f %f' %(err_d,err_b))
        #             #send convergence signal
        #             sys.exit(1)
+    gpSurface_plot(xList_,yList_,nData)
     # check convergence: only for minimize !!!
     logger.debug("check convergence")
     if yList_[-1]<tol_abs: # take into acc
@@ -662,13 +663,13 @@ def BO_update_convergence(xLast, yLast):
         return 0
     
 #////////////////////////////////////
-def gpSurface_plot():
+def gpSurface_plot(xList,yList,nData):
     """ 
        Reconstruct the GPR and plot it in 2D (or 1D) planes of the parameters admissible space
     """
     #read the updated gpList.dat
-    [xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
-    nData=len(yList)
+    # [xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
+    # nData=len(yList)
     #xList=xList.reshape((nData,nPar))   #reshape as required by GPy and GPyOpt
     yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
 
@@ -681,22 +682,21 @@ def gpSurface_plot():
     #>>>> Reconstruct and Plot GP surrogate in parameter space
 #   if (nData%10)==0:
     if nPar>1:
-       if 0==0 and nData>0:
-          #plot in 2D subspace of the parameters space
-          plotOpts={'figDir':'../figs/',
-                    'figName':'gp2D_%02d'% (nData),
-                    'kernelType':kernelType,   #required to construct the final GPR
-                    'whichOptim':whichOptim}
-          gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts)
+        #plot in 2D subspace of the parameters space
+        plotOpts={'figDir':'../figs/',
+                  'figName':'gp2D_%02d'% (nData),
+                  'kernelType':kernelType,   #required to construct the final GPR
+                  'whichOptim':whichOptim}
+        gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts)
     elif nPar==1:
-          nTest=100   #no of test points, only for plot
-          plotOpts={'figDir':'../figs/',
-                    'figName':'gp1D_%02d' % (nData),
-                    'kernelType':kernelType,   #required to construct the final GPR
-                    'whichOptim':whichOptim,
-                    'arbitSample':'no',
-                    'ylim':[0.05,10]} # NEED TO BE TUNED
-          gpOpt1d_postProc(xGP,yGP,sigma_d,domain,nTest,plotOpts)
+        nTest=100   #no of test points, only for plot
+        plotOpts={'figDir':'../figs/',
+                  'figName':'gp1D_%02d' % (nData),
+                  'kernelType':kernelType,   #required to construct the final GPR
+                  'whichOptim':whichOptim,
+                  'arbitSample':'no',
+                  'ylim':[0.05,10]} # NEED TO BE TUNED
+        gpOpt1d_postProc(xGP,yGP,sigma_d,domain,nTest,plotOpts)
     else:
         logger.error("nPar should be >= 1")
         sys.exit(1)
