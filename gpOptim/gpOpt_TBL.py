@@ -485,7 +485,7 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
 ####################
 #----------------------------------------------------------------------------
 #>>>> SETTINGS & PROBLEM DEFINITION -----------------------------------------
-nPar=2;           #number of parameters= p = dimension of x={x1,x2,...,xp} where y=f(x)
+# nPar=2;           #number of parameters= p = dimension of x={x1,x2,...,xp} where y=f(x)
 sigma_d=0.0       #sdev of the white noise in the measured data   
 whichOptim='min'  #find 'max' or 'min' of f(x)?
 # tol_d=0.02        #minimum distace between two consequtive samples x to keep the code running
@@ -494,7 +494,8 @@ whichOptim='min'  #find 'max' or 'min' of f(x)?
 tol_abs=0.01
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-qBound=[[2,2.3],[2,2.2]]
+qBound=[[40,46], [40,44]] # /delta99^in
+nPar = np.shape(qBound)[0]
 nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
             #to avoid random sampling from the parameter space: see nextGPsample()
 #---------------------------------------------------------------------------
@@ -513,26 +514,19 @@ if whichOptim=='max':
 else:
     maxFlag=False
     ifac=1.0
-fevalFlag=False   #evaluating the true function? (no noise)
+    
+#evaluating the true function? (no noise)
 if sigma_d==0.:
-   fevalFlag=True
+    fevalFlag=True
+else:
+    fevalFlag=False
+    
 #domain bounds
 bounds=[]
 for i in range(nPar):
     bounds.append(domain[i]['domain'])
-#-------------------------------------------------------------------------
 
-#>>>> Initialize the optimization
-# Read the list of (x,y) samples available so far
-# [xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
-# nData=len(yList)
-# #xList=xList.reshape((nData,nPar))   #reshape as required by GPy and GPyOpt
-# yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
-
-##########################
-# EXT FUNCTIONS
-##########################
-#/////////////////////////
+# %% EXECUTABLE FUNCTIONS
 def printSetting():
     """
     print global parameters
@@ -602,7 +596,7 @@ def nextGPsample(path2gpList):
        xNext=gprOpt.suggest_next_locations(context=None, pending_X=None, ignored_X=None)
     logger.info('**** New GP sample is: %s' % ', '.join(map(str, xNext[0])))
     
-    return xNext[0]
+    return np.array(xNext[0])
     #write the new sample in file
     # write_newGPsample('./workDir/newSampledParam.dat', xNext[0])
 
@@ -654,16 +648,15 @@ def BO_update_convergence(xLast, yLast):
     if yList_[-1]<tol_abs: # take into acc
         xOpt=xList_[-1]
         fxOpt=yList_[-1]
-        logger.info(' ******* Converged Optimal Values q = %s, y = %f' % (', '.join(map(str, xOpt)), fxOpt))
-        #send convergence signal
-        # sys.exit(1) # read as "$isConv" in driver
+        logger.info(' ******* Converged Optimal Values q = %s, y = %f'\
+                    % (', '.join(map(str, xOpt)), fxOpt))
         return 1
     else:
         logger.info("not converged yet, y = %f, tol = %f" % (yList_[-1], tol_abs))
         return 0
     
 #////////////////////////////////////
-def gpSurface_plot(xList,yList,nData):
+def gpSurface_plot(xList, yList, nData):
     """ 
        Reconstruct the GPR and plot it in 2D (or 1D) planes of the parameters admissible space
     """

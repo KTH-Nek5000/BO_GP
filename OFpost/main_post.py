@@ -20,7 +20,6 @@ import sys
 import matplotlib
 matplotlib.use('PDF') # AGG for png ?
 import matplotlib.pyplot as plt
-# import pickle
 from scipy import interpolate, integrate
 import subprocess
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -32,6 +31,11 @@ rc('text', usetex=True)
 #plt.rcParams['font.family'] = 'Times New Roman'
 #plt.rcParams['xtick.direction'] = 'in'
 #plt.rcParams['ytick.direction'] = 'in'
+
+import pathlib
+current_dir = pathlib.Path(__file__).resolve().parent
+sys.path.append( str(current_dir) + '/../gpOptim' )
+import gpOpt_TBL
 
 # %% logging
 import logging
@@ -57,7 +61,6 @@ add_handler()
 saveFigPath = "../figs/" # save beta_%02d.pdf
 path2run ='..' # path to run directory (where OFcase directory is)
 casename = 'OFcase'
-# path2newTheta = '../gpOptim/workDir/newResponse.dat'
 path2saveBeta = "./"
 
 # %% functions
@@ -397,23 +400,6 @@ def save_beta_dat(beta,iMain):
     np.save(fileName, beta)
     logger.info("save beta as %s" % fileName)
     
-# def write_newTheta(obj):
-#     """
-#     Parameters
-#     ----------
-#     global
-#     path2newTheta
-#     """
-#     try:
-#         scf = open(path2newTheta, 'w')
-#         scf.write('# Response from CFD code associated to the last drawn parameter sample\n')
-#         scf.write('%g\n' % obj)
-#         scf.close()
-#     except:
-#         logger.error("couldn't write obj to %s" % path2newTheta)
-#         sys.exit(1)
-#     logger.info("write objective to %s" % path2newTheta)
-    
 # def save_yTopFig(x, y, iMain, obj, in_exc, out_exc):
 #     """
 #     Parameters
@@ -451,7 +437,7 @@ def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta,U, iMain, obj, in_exc, ou
     Nx = np.size(x_delta)
     Ny = np.shape(yc_delta)[0]
     xmax = x_delta[-1]
-    ymax = np.max(y_delta)
+    ymax = np.max(gpOpt_TBL.qBound)
 #    X, Y = np.meshgrid(xc,yc) # NY*NX
     X = np.outer(np.ones(Ny),xc_delta)
     Y = yc_delta
@@ -479,11 +465,7 @@ def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta,U, iMain, obj, in_exc, ou
     plt.savefig(saveFigPath + saveFileName + ".pdf", bbox_inches="tight")
     logger.info("save U figure as %s%s.pdf" % (saveFigPath, saveFileName))
 
-def main(beta_t,in_exc,out_exc,iMain,U_infty, delta99_in, Nx, Ny, Nz, t):
-    #1. read input
-    # read OFinput data
-    # U_infty, delta99_in, Nx, Ny, Nz, t, Lx, Ly = read_OFinput()
-    
+def main(beta_t, in_exc, out_exc, iMain, U_infty, delta99_in, Nx, Ny, Nz, t):
     #2. calc beta
     xc, yc, x, y, U, beta = calc_beta(U_infty, delta99_in, Nx, Ny, Nz, t)
     
@@ -492,14 +474,13 @@ def main(beta_t,in_exc,out_exc,iMain,U_infty, delta99_in, Nx, Ny, Nz, t):
     
     #4. save beta
     save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj)
-    save_beta_dat(beta,iMain)
+    save_beta_dat(beta, iMain)
 
     #5. output obj
     logger.info("objective = %g" % obj)
     # write_newTheta(obj)
 
-    #6. save yTop figure
-    # save_yTopFig(x, y, iMain, obj, in_exc, out_exc)
+    #6. save U contour
     save_Ucontour(x/delta99_in, y/delta99_in,xc/delta99_in, yc/delta99_in, U, iMain, obj, in_exc, out_exc)
     
     return obj
