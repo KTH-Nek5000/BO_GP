@@ -312,7 +312,8 @@ def calc_obj(beta, beta_t, in_exc, out_exc):
     obj = np.linalg.norm(beta[int(in_exc*Nx)-1:-int(out_exc*Nx)+1] - beta_t) # L2norm
     return obj
 
-def save_beta_fig(iMain,x,beta,delta99_in,in_exc,out_exc,beta_t,obj):
+def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj, \
+                  betaMin=np.inf, betaMax=np.inf):
     """
     Parameters
     ----------
@@ -327,12 +328,17 @@ def save_beta_fig(iMain,x,beta,delta99_in,in_exc,out_exc,beta_t,obj):
     plt.plot(x[1:-1]/delta99_in, beta)
     xmin = x[0]/delta99_in
     xmax = x[-1]/delta99_in
-    if beta_t==0:
-        ymin = -0.1
-        ymax = 0.1
+    if betaMin==np.inf and betaMax==np.inf:
+        if beta_t==0:
+            ymin = -0.1
+            ymax = 0.1
+        else:
+            ymin = beta_t - 0.5*beta_t # set depends on your beta_t
+            ymax = beta_t + 0.5*beta_t
     else:
-        ymin = beta_t - 0.5*beta_t # set depends on your beta_t
-        ymax = beta_t + 0.5*beta_t
+        ymin = betaMin
+        ymax = betaMax
+        
     plt.vlines(x[int(Nx*in_exc)]/delta99_in,ymin,ymax,'k',linestyles='dashdot')
     plt.vlines(x[-int(Nx*out_exc)-1]/delta99_in,ymin,ymax,'k',linestyles='dashdot')
     plt.hlines(beta_t,xmin,xmax,'r',linestyles='dashed')
