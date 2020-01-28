@@ -494,7 +494,7 @@ whichOptim='min'  #find 'max' or 'min' of f(x)?
 tol_abs=0.01
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-qBound=[[2,2.2],[2,2.1]]
+qBound=[[2,2.3],[2,2.2]]
 nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
             #to avoid random sampling from the parameter space: see nextGPsample()
 #---------------------------------------------------------------------------
@@ -538,9 +538,9 @@ def printSetting():
     print global parameters
     """
     logger.info("\nnPar = %d\nsigma_d = %f\nwhichOptim = %s\ntol_abs = %f"\
-                "\nkernel = %s\nnGPinit = %d\nqBound = %s" % (nPar, sigma_d, whichOptim,\
-                                                            tol_abs, kernelType, nGPinit,\
-                                                            ', '.join(map(str, qBound))))
+                "\nkernel = %s\nnGPinit = %d\nqBound = %s" % \
+                    (nPar, sigma_d, whichOptim, tol_abs, kernelType, nGPinit,\
+                     ', '.join(map(str, qBound))))
 
 def nextGPsample(path2gpList):
     """
@@ -680,7 +680,6 @@ def gpSurface_plot(xList,yList,nData):
     xGP=np.asarray(xList)
 
     #>>>> Reconstruct and Plot GP surrogate in parameter space
-#   if (nData%10)==0:
     if nPar>1:
         #plot in 2D subspace of the parameters space
         plotOpts={'figDir':'../figs/',

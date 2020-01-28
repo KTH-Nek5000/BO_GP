@@ -13,7 +13,6 @@ import os
 
 from OFpost import main_post
 from OFpre import main_pre
-# import gpOpt_TBL as X
 from gpOptim import gpOpt_TBL as X
 
 # %% logging
@@ -38,13 +37,13 @@ add_handler()
 
 # %% SETTINGS
 iStart = 1   # Starting iteration 
-iEnd = 1
+iEnd = 10
 beta_t = 0   # terget value for beta
 in_exc = 0.2   # ignore this region when assess the objective
 out_exc = 0.1
 # setting for OFcase
 U_infty, delta99_in, Nx, Ny, Nz, tEnd, Lx, Ly = \
-    1,0.05,int(500),int(238),int(1),int(60),50,2
+    1, 0.05, int(500), int(218), int(1), int(100), 50, 2
 # directory to which OpenFOAM data at tEnd are backed up
 bupAddress = "/home/m/morita/OpenFOAM/morita-6/run/data/test"
 
@@ -53,9 +52,8 @@ if __name__ == '__main__':
     # initialiization
     subprocess.call('clear')
     logger.info("CHECK KERBEROS VALIDITY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    pid=os.getpid()
-    logger.info("process id = %d" % pid)
-    here=os.getcwd()
+    logger.info("process id = %d" % os.getpid())
+    here = os.getcwd()
     logger.info("pwd = %s" % here)
     logger.info("iStart = %d, iEnd = %d, beta_t = %f, in_exc = %f, out_exc = %f" \
                     % (iStart,iEnd,beta_t,in_exc,out_exc))
@@ -70,7 +68,7 @@ if __name__ == '__main__':
     
     # clean remaining data
     if iStart == 1:
-        logger.info("reset figs, gpList, beta.npy, backup")
+        logger.info("RESET figs, gpList, beta.npy, backup !!!!!!!!!!!!!!!")
         subprocess.call("rm -f OFpost/beta*.npy",shell=True)
         subprocess.call("sed -i '3,$d' gpOptim/workDir/gpList.dat",shell=True)
         subprocess.call("rm -f figs/*.pdf",shell=True)
@@ -78,7 +76,7 @@ if __name__ == '__main__':
         subprocess.call("rm -rf %s/*" % bupAddress, shell=True)
         
     # MAIN LOOP
-    for i in range(iStart,iEnd+1):
+    for i in range(iStart, iEnd+1):
         logger.info("############### START LOOP i = %d #################" % i)
         #1. Generate a sample from the parameters space
         newQ = X.nextGPsample("gpOptim/workDir/gpList.dat") # path2gpList
@@ -128,7 +126,7 @@ if __name__ == '__main__':
         
         #5. Post-process optimization
         os.chdir("./gpOptim")
-        isConv = X.BO_update_convergence(newQ,obj) # 0: unconverged, 1: converged
+        isConv = X.BO_update_convergence(newQ, obj) # 0: unconverged, 1: converged
         # X.gpSurface_plot()
         os.chdir("../")
         

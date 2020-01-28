@@ -16,10 +16,6 @@ FoamFile
 #include "yTopParams.in"
 
 convertToMeters 1;
-//middle 1; // Ly/2
-//middleX 12.5;
-
-//Nx 2500;
 
 vertices
 (
@@ -52,27 +48,27 @@ vertices
 
 blocks
 (
-    hex (0 1 3 2 6 7 9 8) ($Nx 119 1)
+    hex (0 1 3 2 6 7 9 8) ($Nx 109 1)
     simpleGrading
     (
      1
      (
       //  % y-dir, % cells, expansion
-      (0.0003 10 1) // dy=0.00003
-      (0.3997 89 952) //dy 
+      (0.003 20 1) // dy=0.00015
+      (0.397 69 199) //dy 
       (0.6 20 1) // dy=0.03
      )
      1
     )
     
-    hex (2 3 5 4 8 9 11 10) ($Nx 119 1)
+    hex (2 3 5 4 8 9 11 10) ($Nx 109 1)
     simpleGrading
     (
      1
      (
-      (0.6 20 1)   
-      (0.3997 89 0.0010504201680672268)
-      (0.0003 10 1)
+      (0.6 20 1)
+      (0.397 69 0.005025125628140704)
+      (0.003 20 1)
      )
      1
     )

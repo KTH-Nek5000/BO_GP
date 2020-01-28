@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-./OFpost/main_post.py
-***** take 4 arguments from driver_BOGP.sh (beta_target inlet_ignore outlet_ignore i)
+OFpost/main_post.py
+called from driver_BOGP.py
 
-read path2OFinput
 calculate beta
 calculate objective
 save beta to saveFigPath + "beta_%02d" % iMain + ".pdf"
 save raw data to path2saveBeta
-write it to path2newTheta
-save yTop figure to saveFigPath
+save U contour to saveFigPath
 
 NOTE: change ylim in save_beta() if you need
-NOTE: UPDATE ylim in save_yTopFig() !!!!!!!!!!!!!!!!!!!!!!
+
 """
 
 # %% import libraries
@@ -34,11 +32,6 @@ rc('text', usetex=True)
 #plt.rcParams['font.family'] = 'Times New Roman'
 #plt.rcParams['xtick.direction'] = 'in'
 #plt.rcParams['ytick.direction'] = 'in'
-
-# import pathlib
-# current_dir = pathlib.Path(__file__).resolve().parent
-# sys.path.append( str(current_dir) + '/../gpOptim' )
-# import gpOpt_TBL
 
 # %% logging
 import logging
@@ -64,50 +57,10 @@ add_handler()
 saveFigPath = "../figs/" # save beta_%02d.pdf
 path2run ='..' # path to run directory (where OFcase directory is)
 casename = 'OFcase'
-path2OFinput = "../OFinput.dat" # path to OFinput.dat file
-path2newTheta = '../gpOptim/workDir/newResponse.dat'
+# path2newTheta = '../gpOptim/workDir/newResponse.dat'
 path2saveBeta = "./"
 
 # %% functions
-# def read_OFinput(path=path2OFinput):
-#     """
-#     Parameters
-#     ----------
-#     global
-#     path2OFinput : str
-    
-#     Returns
-#     -------
-#     U_infty : float
-#         U_infinity of the case
-#     delta99_in : float
-#         inlet delta_99
-#     Nx : int
-#         number of cell in streamwise direction
-#     Ny : int
-#         number of cell in wall-normal direction
-#     Nz : int
-#         number of cell in z direction
-#     t : int
-#         last written time of the OFcase
-#     """
-#     logger.debug("read data from %s" % path)
-#     try:
-#         U_infty, delta99_in, Nx, Ny, Nz, t ,Lx, Ly\
-#             = np.loadtxt(path, delimiter=',', skiprows=1, unpack=True)
-#     except:
-#         logger.error("couldn't read %s" % path)
-    
-#     Nx = int(Nx)
-#     Ny = int(Ny)
-#     Nz = int(Nz)
-#     t = int(t)
-#     # print
-#     logger.info("U_infty = %f, delta99_in = %f, Nx = %d, Ny = %d, Nz = %d, t = %d"\
-#                 "Lx=%f, Ly=%f" % (U_infty, delta99_in, Nx, Ny, Nz, t,Lx,Ly))
-        
-#     return U_infty, delta99_in, Nx, Ny, Nz, t, Lx, Ly
-    
 def calc_beta(U_infty, delta99_in, Nx, Ny, Nz, t):
     """
     Parameters
@@ -395,8 +348,8 @@ def calc_obj(beta, beta_t, in_exc, out_exc):
     """
     
     logger.debug("################### calc objective ####################")
-    n = len(beta)
-    obj = np.linalg.norm(beta[int(in_exc*n):-int(out_exc*n)] - beta_t) # L2norm
+    Nx = len(beta)+1
+    obj = np.linalg.norm(beta[int(in_exc*Nx)-1:-int(out_exc*Nx)+1] - beta_t) # L2norm
     return obj
 
 def save_beta_fig(iMain,x,beta,delta99_in,in_exc,out_exc,beta_t,obj):
@@ -408,7 +361,7 @@ def save_beta_fig(iMain,x,beta,delta99_in,in_exc,out_exc,beta_t,obj):
     
     Note: ylim can be modified
     """
-    n = len(beta)
+    Nx = len(x)-1
     
     plt.figure()
     plt.plot(x[1:-1]/delta99_in, beta)
@@ -420,11 +373,10 @@ def save_beta_fig(iMain,x,beta,delta99_in,in_exc,out_exc,beta_t,obj):
     else:
         ymin = beta_t - 0.5*beta_t # set depends on your beta_t
         ymax = beta_t + 0.5*beta_t
-    plt.vlines(x[int(n*in_exc)+1]/delta99_in,ymin,ymax,'k',linestyles='dashdot')
-    plt.vlines(x[-int(n*out_exc)-1]/delta99_in,ymin,ymax,'k',linestyles='dashdot')
+    plt.vlines(x[int(Nx*in_exc)]/delta99_in,ymin,ymax,'k',linestyles='dashdot')
+    plt.vlines(x[-int(Nx*out_exc)-1]/delta99_in,ymin,ymax,'k',linestyles='dashdot')
     plt.hlines(beta_t,xmin,xmax,'r',linestyles='dashed')
     plt.xlabel(r'$x/\delta_{99}^{\rm in}$')
-    #plt.xlabel(r'$x/\delta_{99}^{in}$')
     plt.ylabel(r'$\beta$')
     plt.xlim(xmin,xmax)
     plt.ylim(ymin,ymax)
@@ -441,34 +393,26 @@ def save_beta_dat(beta,iMain):
     global
     path2saveBeta
     """
-    # fileName = path2saveBeta + "beta%02d.pickle" % iMain
-    # try:
-    #     f = open(fileName, "wb")
-    #     pickle.dump(beta, f)
-    #     f.close()
-    # except:
-    #     logger.error("couldn't write beta to %s" % fileName)
-    #     sys.exit(1)
-    # logger.info("pickle beta as %s" % fileName)
     fileName = path2saveBeta + "beta%02d.npy" % iMain
     np.save(fileName, beta)
+    logger.info("save beta as %s" % fileName)
     
-def write_newTheta(obj):
-    """
-    Parameters
-    ----------
-    global
-    path2newTheta
-    """
-    try:
-        scf = open(path2newTheta, 'w')
-        scf.write('# Response from CFD code associated to the last drawn parameter sample\n')
-        scf.write('%g\n' % obj)
-        scf.close()
-    except:
-        logger.error("couldn't write obj to %s" % path2newTheta)
-        sys.exit(1)
-    logger.info("write objective to %s" % path2newTheta)
+# def write_newTheta(obj):
+#     """
+#     Parameters
+#     ----------
+#     global
+#     path2newTheta
+#     """
+#     try:
+#         scf = open(path2newTheta, 'w')
+#         scf.write('# Response from CFD code associated to the last drawn parameter sample\n')
+#         scf.write('%g\n' % obj)
+#         scf.close()
+#     except:
+#         logger.error("couldn't write obj to %s" % path2newTheta)
+#         sys.exit(1)
+#     logger.info("write objective to %s" % path2newTheta)
     
 # def save_yTopFig(x, y, iMain, obj, in_exc, out_exc):
 #     """
@@ -516,8 +460,8 @@ def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta,U, iMain, obj, in_exc, ou
     ax = fig.add_subplot(111)
     im = ax.pcolormesh(X,Y,U, cmap='jet',vmin=0, vmax=1)
     plt.plot(x_delta,y_delta[-1,:],"k")
-    plt.vlines(x_delta[int(Nx*in_exc)+2],0,ymax,'k',linestyles='dashdot')
-    plt.vlines(x_delta[-int(Nx*out_exc)],0,ymax,'k',linestyles='dashdot')
+    plt.vlines(x_delta[int(Nx*in_exc)],0,ymax,'k',linestyles='dashdot')
+    plt.vlines(x_delta[-int(Nx*out_exc)-1],0,ymax,'k',linestyles='dashdot')
 #    ax.set_aspect(3)
     # create an axes on the right side of ax. The width of cax will be 5%
     # of ax and the padding between cax and ax will be fixed at 0.05 inch.
@@ -562,33 +506,3 @@ def main(beta_t,in_exc,out_exc,iMain,U_infty, delta99_in, Nx, Ny, Nz, t):
 
 # %% ################## main ###########################
 # if __name__ == '__main__':
-#     #1. read input
-#     # input from driver_BOGP.sh
-#     if len(sys.argv) != 5:
-#         logger.error("usage: beta_target inlet_ignore outlet_ignore i")
-#         sys.exit(1)
-#     beta_t = float((sys.argv)[1])    # terget beta
-#     in_exc = float((sys.argv)[2]) # don't assess this region for objective
-#     out_exc = float((sys.argv)[3])
-#     iMain = int((sys.argv)[4])
-#     # read OFinput data
-#     U_infty, delta99_in, Nx, Ny, Nz, t, Lx, Ly = read_OFinput()
-    
-#     #2. calc beta
-#     xc, yc, x, y, U, beta = calc_beta(U_infty, delta99_in, Nx, Ny, Nz, t)
-    
-#     #3. assess objective func
-#     obj = calc_obj(beta, beta_t, in_exc, out_exc)
-    
-#     #4. save beta
-#     save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj)
-#     save_beta_dat(beta,iMain)
-
-#     #5. output obj
-#     logger.info("objective = %g" % obj)
-#     write_newTheta(obj)
-
-#     #6. save yTop figure
-#     # save_yTopFig(x, y, iMain, obj, in_exc, out_exc)
-#     save_Ucontour(x/delta99_in, y/delta99_in,xc/delta99_in, yc/delta99_in, U, iMain, obj, in_exc, out_exc)
-    
