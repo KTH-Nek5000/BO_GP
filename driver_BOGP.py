@@ -62,7 +62,7 @@ if __name__ == '__main__':
                     (U_infty, delta99_in, Nx, Ny, Nz, tEnd, Lx, Ly))
     X.printSetting()
     
-    # make buckup directory
+    # make backup directory
     if not os.path.isdir(bupAddress):
        os.mkdir(bupAddress)
     
