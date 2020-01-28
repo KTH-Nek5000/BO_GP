@@ -37,13 +37,14 @@ add_handler()
 
 # %% SETTINGS
 iStart = 1   # Starting iteration 
-iEnd = 1
+iEnd = 15
 beta_t = 0   # terget value for beta
 in_exc = 0.2   # ignore this region when assess the objective
 out_exc = 0.1
 # setting for OFcase
 U_infty, delta99_in, Nx, Ny, Nz, tEnd, Lx, Ly = \
     1, 0.05, int(500), int(218), int(1), int(200), 50, 2
+
 # %% path
 import pathlib
 current_dir = str(pathlib.Path(__file__).resolve().parent)
