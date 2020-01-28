@@ -7,7 +7,7 @@
 ###############################################################
 # Saleh Rezaeiravesh, salehr@kth.se
 # Yuki Morita, morita@kth.se
-# %% import
+# %% libralies
 import subprocess
 import os
 
@@ -44,8 +44,13 @@ out_exc = 0.1
 # setting for OFcase
 U_infty, delta99_in, Nx, Ny, Nz, tEnd, Lx, Ly = \
     1, 0.05, int(500), int(218), int(1), int(200), 50, 2
-# directory to which OpenFOAM data at tEnd are backed up
+# %% path
+import pathlib
+current_dir = str(pathlib.Path(__file__).resolve().parent)
 bupAddress = "/home/m/morita/OpenFOAM/morita-6/run/data/test"
+PATH2DATA = current_dir + "/data"
+PATH2FIGS = current_dir + "/figs"
+PATH2OFCASE = current_dir + "/OFcase"
 
 # %% MAIN
 if __name__ == '__main__':
@@ -53,8 +58,7 @@ if __name__ == '__main__':
     subprocess.call('clear')
     logger.info("CHECK KERBEROS VALIDITY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     logger.info("process id = %d" % os.getpid())
-    here = os.getcwd()
-    logger.info("pwd = %s" % here)
+    logger.info("pwd = %s" % current_dir)
     logger.info("iStart = %d, iEnd = %d, beta_t = %f, in_exc = %f, out_exc = %f" \
                     % (iStart, iEnd, beta_t, in_exc, out_exc))
     logger.info("U_infty = %f, delta99_in = %f, Nx = %d, Ny = %d, Nz = %d, "\
@@ -68,8 +72,8 @@ if __name__ == '__main__':
     
     # clean remaining data
     if iStart == 1:
-        logger.info("RESET figs, gpList, beta.npy, backup !!!!!!!!!!!!!!!")
-        subprocess.call("rm -f OFpost/beta*.npy", shell=True)
+        logger.info("RESET figs/, gpList, data/, backup !!!!!!!!!!!!!!!")
+        subprocess.call("rm -f data/*.npy", shell=True)
         subprocess.call("sed -i '3,$d' gpOptim/workDir/gpList.dat", shell=True)
         subprocess.call("rm -f figs/*.pdf", shell=True)
         subprocess.call("rm -f figs/png/*", shell=True)
@@ -83,7 +87,7 @@ if __name__ == '__main__':
         
         #2. Write new q to path2case/system/yTopParams.in for blockMesh and controlDict
         main_pre.write_yTopParams\
-            (Nx, Ny, Lx, Ly, newQ*delta99_in, U_infty, tEnd, "OFcase")
+            (Nx, Ny, Lx, Ly, newQ*delta99_in, U_infty, tEnd, PATH2OFCASE)
         
         #3. Run OpenFOAM
         os.chdir("./OFcase")
@@ -121,10 +125,10 @@ if __name__ == '__main__':
         os.chdir("../")
         
         #4. Post-process OpenFOAM
-        os.chdir("./OFpost")
+        # os.chdir("./OFpost")
         obj = main_post.main(beta_t, in_exc, out_exc, i, U_infty, delta99_in, \
                              Nx, Ny, Nz, tEnd)
-        os.chdir("../")
+        # os.chdir("../")
         
         #5. Post-process optimization
         os.chdir("./gpOptim")

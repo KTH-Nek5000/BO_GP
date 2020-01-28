@@ -7,7 +7,7 @@ called from driver_BOGP.py
 calculate beta
 calculate objective
 save beta to saveFigPath + "beta_%02d" % iMain + ".pdf"
-save raw data to path2saveBeta
+save raw data to D.PATH2DATA
 save U contour to saveFigPath
 
 NOTE: change ylim in save_beta() if you need
@@ -35,7 +35,9 @@ rc('text', usetex=True)
 import pathlib
 current_dir = pathlib.Path(__file__).resolve().parent
 sys.path.append( str(current_dir) + '/../gpOptim' )
+sys.path.append( str(current_dir) + '/..' )
 import gpOpt_TBL
+import driver_BOGP as D
 
 # %% logging
 import logging
@@ -57,82 +59,41 @@ def add_handler():
 
 add_handler()
 
-# %% global variables
-saveFigPath = "../figs/" # save beta_%02d.pdf
-path2run ='..' # path to run directory (where OFcase directory is)
-casename = 'OFcase'
-path2saveBeta = "./"
+# %% global variables (NEED TO BE UPDATED, FROM DRIVER)
+# saveFigPath = "../figs/"
+# path2run ='..' # path to run directory (where OFcase directory is)
+# casename = 'OFcase'
 
 # %% functions
-def calc_beta(U_infty, delta99_in, Nx, Ny, Nz, t):
+def getNu(path2case):
     """
     Parameters
     ----------
-    global
-    path2run : str
-    casename : str
-    
-    arguments
-    give the read_OFinput() results.
-
-    Returns
-    -------
-    x : np.array, Nx+1
-        streamwise coordinate, [0,Lx]
-    beta : np.array, Nx-1
-        beta distribution
-    """
-    
-    logger.debug("################### calc beta ####################")
-    # grid load
-    nu = getNu()
-    logger.debug("########################### load grid data ############################")
-    xc, yc, x, y = load_grid(Nx, Ny, Nz)
-    
-    # main data load
-    logger.debug("########################### load profile ############################")
-    U, V, p, tau_w = load_data(Nx, Ny, Nz, t)
-    
-    # calc. beta
-    logger.debug('start bl_calc')
-    ###################### CHECK delta99 calc. in bl_calc #######################
-    Re_theta, beta = bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w)
-    
-    return xc, yc, x, y, U, beta
-
-def getNu():
-    """
-    Parameters
-    ----------
-    global
-    path2run, casename
 
     Returns
     -------
     nu : float
     """
-    logger.debug("read nu from %s/%s/constant/transportProperties" % (path2run,casename))
+    logger.debug("read nu from %s/constant/transportProperties" % path2case)
     try:
-        with open("%s/%s/constant/transportProperties" % (path2run,casename)) as f:
+        with open("%s/constant/transportProperties" % path2case) as f:
             s_line = f.readlines()
         nu = float(s_line[19][33:-2]) # NEED TO BE TUNED
     except:
-        logger.error("couldn't read %s/%s/constant/transportProperties" % (path2run,casename))
+        logger.error("couldn't read %s/constant/transportProperties" % path2case)
         sys.exit(1)
     logger.info("################### nu = %g ##################" % nu)
     return nu
 
-def load_grid(Nx, Ny, Nz):
+def load_grid(Nx, Ny, Nz, path2case):
     """
     Parameters
     ----------
-    global
-    path2run, casename
-    
     arguments
     Nx : int
     Ny : int
     Nz : int
+    path2case
 
     Returns
     -------
@@ -145,14 +106,14 @@ def load_grid(Nx, Ny, Nz):
     ndata = Nx*Ny*Nz
     
     # cell centres
-    b = 'sed \'1,22d\' %s/%s/0/C | '  % (path2run,casename)
+    b = 'sed \'1,22d\' %s/0/C | '  % path2case
     c = 'head -%s | sed -e \'s/(//g\' | sed -e \'s/)//g\' > ./Cdata' % (ndata)
     a = b+c
     try:
         logger.debug(a)
         subprocess.check_call(a, shell=True)
     except:
-        logger.error("coundn't load %s/%s/0/C" % (path2run,casename))
+        logger.error("coundn't load %s/0/C" % path2case)
         sys.exit(1)
     
     grid = np.loadtxt('./Cdata')
@@ -164,7 +125,7 @@ def load_grid(Nx, Ny, Nz):
     # Nx*Ny*Nz
     
     # points
-    b='sed \'1,20d\' %s/%s/constant/polyMesh/points | '  % (path2run,casename)
+    b='sed \'1,20d\' %s/constant/polyMesh/points | '  % path2case
     c='head -%s | sed -e \'s/(//g\' | sed -e \'s/)//g\' > ./pointsdata'\
         % (int((Nx+1)*(Ny+1)*(Nz+1)))
     a= b+c
@@ -172,7 +133,7 @@ def load_grid(Nx, Ny, Nz):
         logger.debug(a)
         subprocess.check_call(a, shell=True)
     except:
-        logger.error("coundn't load %s/%s/constant/polyMesh/points" % (path2run,casename))
+        logger.error("coundn't load %s/constant/polyMesh/points" % path2case)
         sys.exit(1)
     
     grid=np.loadtxt('./pointsdata')
@@ -187,13 +148,10 @@ def load_grid(Nx, Ny, Nz):
     
     return xc, yc, x, y
 
-def load_data(Nx, Ny, Nz, t):
+def load_data(Nx, Ny, Nz, t, path2case):
     """
     Parameters
-    ----------
-    global
-    path2run, casename
-    
+    ----------    
     arguments
     Nx : int
     Ny : int
@@ -217,7 +175,7 @@ def load_data(Nx, Ny, Nz, t):
     tail = np.array(["data%d" % t ]*nList)
     tmp1 = np.core.defchararray.add(datalist,tail)
     for i in range(nList):
-        b = 'sed \'1,22d\' %s/%s/%d/%s | ' % (path2run,casename,t,datalist[i]) # delete 1-22 rows
+        b = 'sed \'1,22d\' %s/%d/%s | ' % (path2case,t,datalist[i]) # delete 1-22 rows
         c = 'head -%d > ./%s' % (ndata, tmp1[i])
         a = b+c
         try:
@@ -247,7 +205,7 @@ def load_data(Nx, Ny, Nz, t):
     datalist = 'wallShearStress'
     
     tmp1 = '%sdata%d' % (datalist,t)
-    b = 'sed \'1,29d\' %s/%s/%d/%s | ' % (path2run,casename,t,datalist) # delete 1-29 rows
+    b = 'sed \'1,29d\' %s/%d/%s | ' % (path2case,t,datalist) # delete 1-29 rows
     c = 'head -%d | sed -e \'s/(//g\' | sed -e \'s/)//g\' > ./%s' % (Nx, tmp1)
     a = b+c
     try:
@@ -256,8 +214,7 @@ def load_data(Nx, Ny, Nz, t):
         wallShearStress = np.loadtxt('./%s' % tmp1)
         subprocess.check_call('rm ./%s' % tmp1, shell=True)
     except:
-        logger.error("coundn't load %s/%s/%d/%s" % \
-                     (path2run,casename,t,datalist))
+        logger.error("coundn't load %s/%d/%s" % (path2case,t,datalist))
         sys.exit(1)
     
     tau_w = np.abs(wallShearStress[:,0]) # T_12
@@ -332,7 +289,7 @@ def bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w):
     # Cf = tau_w/(1/2*U_infty**2) # incompressible
     # Re_tau = u_tau*delta99/nu
     
-    return Re_theta,beta
+    return Re_theta, beta, deltaStar, dpdx
 
 def calc_obj(beta, beta_t, in_exc, out_exc):
     """
@@ -385,36 +342,34 @@ def save_beta_fig(iMain,x,beta,delta99_in,in_exc,out_exc,beta_t,obj):
     plt.ylim(ymin,ymax)
     plt.grid(True)
     plt.title(r'$N_i = %d, \mathcal{R} = %f$' % (iMain,obj))
-    saveFileName = "beta_%02d" % iMain
-    plt.savefig(saveFigPath + saveFileName + ".pdf",bbox_inches="tight")
-    logger.info("save beta figure as %s%s.pdf" % (saveFigPath, saveFileName))
+    saveFileName = "/beta_%02d" % iMain
+    plt.savefig(D.PATH2FIGS + saveFileName + ".pdf",bbox_inches="tight")
+    logger.info("save beta figure as %s%s.pdf" % (D.PATH2FIGS, saveFileName))
     
-def save_beta_dat(beta,iMain):
+def save_data(Re_theta, beta, deltaStar, dpdx, iMain):
     """
     Parameters
     ----------
     global
-    path2saveBeta
+    D.PATH2DATA
     """
-    fileName = path2saveBeta + "beta%02d.npy" % iMain
+    fileName = D.PATH2DATA + "/Re_theta%02d.npy" % iMain
+    np.save(fileName, Re_theta)
+    logger.info("save Re_theta as %s" % fileName)
+    
+    fileName = D.PATH2DATA + "/beta%02d.npy" % iMain
     np.save(fileName, beta)
     logger.info("save beta as %s" % fileName)
     
+    fileName = D.PATH2DATA + "/deltaStar%02d.npy" % iMain
+    np.save(fileName, deltaStar)
+    logger.info("save deltaStar as %s" % fileName)
+    
+    fileName = D.PATH2DATA + "/dpdx%02d.npy" % iMain
+    np.save(fileName, dpdx)
+    logger.info("save dpdx as %s" % fileName)
+    
 # def save_yTopFig(x, y, iMain, obj, in_exc, out_exc):
-#     """
-#     Parameters
-#     ----------
-#     x : TYPE
-#         DESCRIPTION.
-#     y : TYPE
-#         DESCRIPTION.
-#     iMain : TYPE
-#         DESCRIPTION.
-#     obj : TYPE
-#         DESCRIPTION.
-
-#     YLIM NEEDS TO BE UPDATED
-#     """
 #     n = np.size(x)
 #     ymin = 2
 #     ymax = np.max(gpOpt_TBL.qBound)
@@ -461,29 +416,27 @@ def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta,U, iMain, obj, in_exc, ou
     ax.set_ylim(0,ymax)
     ax.set_xlabel(r"$x/ \delta_{99}^{\rm in}$")
     ax.set_ylabel(r"$y/ \delta_{99}^{\rm in}$")
-    saveFileName = "U_%02d" % iMain
-    plt.savefig(saveFigPath + saveFileName + ".pdf", bbox_inches="tight")
-    logger.info("save U figure as %s%s.pdf" % (saveFigPath, saveFileName))
+    saveFileName = "/U_%02d" % iMain
+    plt.savefig(D.PATH2FIGS + saveFileName + ".pdf", bbox_inches="tight")
+    logger.info("save U figure as %s%s.pdf" % (D.PATH2FIGS, saveFileName))
 
 def main(beta_t, in_exc, out_exc, iMain, U_infty, delta99_in, Nx, Ny, Nz, t):
     #2. calc beta
-    xc, yc, x, y, U, beta = calc_beta(U_infty, delta99_in, Nx, Ny, Nz, t)
+    nu = getNu(D.PATH2OFCASE)
+    xc, yc, x, y = load_grid(Nx, Ny, Nz, D.PATH2OFCASE)
+    U, V, p, tau_w = load_data(Nx, Ny, Nz, t, D.PATH2OFCASE)
+    Re_theta, beta, deltaStar, dpdx = \
+        bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w)
     
     #3. assess objective func
     obj = calc_obj(beta, beta_t, in_exc, out_exc)
+    logger.info("objective = %g" % obj)
     
     #4. save beta
     save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj)
-    save_beta_dat(beta, iMain)
-
-    #5. output obj
-    logger.info("objective = %g" % obj)
-    # write_newTheta(obj)
+    save_data(Re_theta, beta, deltaStar, dpdx, iMain)
 
     #6. save U contour
     save_Ucontour(x/delta99_in, y/delta99_in,xc/delta99_in, yc/delta99_in, U, iMain, obj, in_exc, out_exc)
     
     return obj
-
-# %% ################## main ###########################
-# if __name__ == '__main__':

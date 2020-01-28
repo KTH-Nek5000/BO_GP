@@ -20,7 +20,7 @@ import database
 import pathlib
 current_dir = pathlib.Path(__file__).resolve().parent
 sys.path.append( str(current_dir) + '/..' )
-import driver_BOGP as X
+import driver_BOGP as D
 
 # font setting
 # from matplotlib import rc
@@ -186,7 +186,7 @@ if __name__ == '__main__':
     # delta99_in = cls_.dict["delta99_in"]
     
     Uinf, delta99_in, Nx, Ny, Nz = \
-        X.U_infty, X.delta99_in, X.Nx, X.Ny, X.Nz
+        D.U_infty, D.delta99_in, D.Nx, D.Ny, D.Nz
         
     xc, yc, x, y = postProcess_func.load_grid(path2run,caseName,Nx,Ny,Nz)
     yc = yc[:,0] # inlet
