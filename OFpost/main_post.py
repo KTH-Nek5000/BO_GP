@@ -352,7 +352,7 @@ def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj, \
     plt.savefig(D.PATH2FIGS + saveFileName + ".pdf",bbox_inches="tight")
     logger.info("save beta figure as %s%s.pdf" % (D.PATH2FIGS, saveFileName))
     
-def save_data(Re_theta, beta, deltaStar, dpdx, iMain):
+def save_data(Re_theta, beta, deltaStar, dpdx, tau_w, iMain):
     """
     Parameters
     ----------
@@ -374,6 +374,10 @@ def save_data(Re_theta, beta, deltaStar, dpdx, iMain):
     fileName = D.PATH2DATA + "/dpdx%02d.npy" % iMain
     np.save(fileName, dpdx)
     logger.info("save dpdx as %s" % fileName)
+    
+    fileName = D.PATH2DATA + "/tau_w%02d.npy" % iMain
+    np.save(fileName, tau_w)
+    logger.info("save tau_w as %s" % fileName)
     
 # def save_yTopFig(x, y, iMain, obj, in_exc, out_exc):
 #     n = np.size(x)
@@ -403,7 +407,8 @@ def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta,U, iMain, obj, in_exc, ou
     X = np.outer(np.ones(Ny),xc_delta)
     Y = yc_delta
     
-    fig = plt.figure(figsize=(12,3))
+    # fig = plt.figure(figsize=(12,3))
+    fig = plt.figure()
     ax = fig.add_subplot(111)
     im = ax.pcolormesh(X,Y,U, cmap='jet',vmin=0, vmax=1)
     plt.plot(x_delta,y_delta[-1,:],"k")
@@ -440,7 +445,7 @@ def main(beta_t, in_exc, out_exc, iMain, U_infty, delta99_in, Nx, Ny, Nz, t):
     
     #4. save beta
     save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj)
-    save_data(Re_theta, beta, deltaStar, dpdx, iMain)
+    save_data(Re_theta, beta, deltaStar, dpdx, tau_w, iMain)
 
     #6. save U contour
     save_Ucontour(x/delta99_in, y/delta99_in,xc/delta99_in, yc/delta99_in, U, iMain, obj, in_exc, out_exc)
