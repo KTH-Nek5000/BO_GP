@@ -4,11 +4,11 @@
 #SBATCH --error=err
 #SBATCH --requeue
 # Number of nodes
-#SBATCH -N 1
+# SBATCH -N 1
 # Number of MPI processes per node (the following is actually the default)
 # SBATCH --ntasks-per-node=24
 # Number of MPI processes.
-#SBATCH -n 28
+#SBATCH -n 24
 # time max. 24h
 #SBATCH --time=0:10:00
 #SBATCH -W
