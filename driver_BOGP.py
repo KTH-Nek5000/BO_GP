@@ -37,7 +37,7 @@ add_handler()
 
 # %% SETTINGS
 iStart = 1   # Starting iteration 
-iEnd = 15
+iEnd = 2
 beta_t = 0   # terget value for beta
 in_exc = 0.2   # ignore this region when assess the objective
 out_exc = 0.1
@@ -52,6 +52,7 @@ bupAddress = "/home/m/morita/OpenFOAM/morita-6/run/data/test"
 PATH2DATA = current_dir + "/data"
 PATH2FIGS = current_dir + "/figs"
 PATH2OFCASE = current_dir + "/OFcase"
+PATH2GPLIST = current_dir + "/gpOptim/workDir/gpList.dat"
 
 # %% MAIN
 if __name__ == '__main__':
@@ -139,5 +140,11 @@ if __name__ == '__main__':
         #6. check convergence
         if isConv:
             break
+    logger.info("################### MAIN LOOP END ####################")
+    logger.info("make backup")
+    subprocess.call("cp -r %s %s/" % (PATH2FIGS,bupAddress), shell=True)
+    subprocess.call("cp -r %s %s/" % (PATH2DATA,bupAddress), shell=True)
+    subprocess.call("cp %s %s/" % (PATH2GPLIST,bupAddress), shell=True)
+    subprocess.call("cp log %s/" % (bupAddress), shell=True)
     
     logger.info("FINISHED")
