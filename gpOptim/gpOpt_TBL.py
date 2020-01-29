@@ -25,6 +25,7 @@ from GPyOpt.methods import BayesianOptimization
 # from GPyOpt import Design_space
 # from GPyOpt.experiment_design import initial_design
 from numpy.linalg import norm
+from matplotlib.colors import Normalize
 
 # %% logging
 import logging
@@ -48,11 +49,7 @@ import logging
 
 logger = logging.getLogger("Driver").getChild("gpOptim/gpOpt_TBL.py")
 
-# %%
-##################
-# INT FUNCTIONS
-##################
-#//////////////////////////////////////////////
+# %% INT FUNCTIONS
 def read_available_GPsamples(gpInputFile,nPar):
     """
         Read the most updated list of (x,y) GP samples from gpInputFile
@@ -346,13 +343,12 @@ def gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts):
           os.makedirs(figDir)
     if 'figName' in plotOpts.keys():
        figName=plotOpts['figName']
-       figSave=figDir+figName #+'_nSamp'+str(len(yGP))
+       figSave=figDir+figName
     fig = plt.gcf()
     DPI = fig.get_dpi()
     fig.set_size_inches(figSize/float(DPI),figSize/float(DPI))
     plt.savefig(figSave+'.pdf',bbox_inches='tight')
     logger.info("save: %s.pdf" % figSave)
-#    plt.show()
 
 #//////////////////////////////////////////////////////////////////
 def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
@@ -392,7 +388,7 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
 
     xmin=qBound[0][0]
     xmax=qBound[0][1]
-    plt.xlabel(r'$q_1$',fontsize=22)
+    plt.xlabel(r'$q$',fontsize=22)
     plt.ylabel(r'$\mathcal{R}$',fontsize=22)
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
@@ -401,7 +397,7 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
     if 'ylim' in plotOpts.keys():
        ylim=plotOpts['ylim']
        plt.ylim((ylim[0],ylim[1]))
-    plt.title(r"$N_i = %d,~ q_1 = %f,~ \min(\mathcal{R}) = %f$" % (np.size(yGP),xGP[-1],np.min(yGP)),fontsize=20)
+    plt.title(r"$N_i = %d,~ \min(\mathcal{R}) = %f$" % (np.size(yGP),xGP[-1],np.min(yGP)),fontsize=20)
     plt.grid(True);
     #save fig
     if 'figDir' in plotOpts.keys():
@@ -460,10 +456,21 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
 
     #2D contourplot
     # ax=plt.gca()
-    plt.figure()
-    CS=plt.contourf(x1TestGrid,x2TestGrid,meanPredGrid,40,cmap="jet")#,label=r'$95\%$ confidence')
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    if "Rmin" in plotOpts.keys():
+        # CS=plt.contourf(x1TestGrid,x2TestGrid,meanPredGrid,40,cmap="jet",vmin=plotOpts["Rmin"],vmax=plotOpts["Rmax"])#,label=r'$95\%$ confidence')
+        CS=ax.contourf(x1TestGrid,x2TestGrid,meanPredGrid, \
+                       levels=np.linspace(plotOpts["Rmin"],plotOpts["Rmax"],41), \
+                           cmap="jet",norm=Normalize(vmin=plotOpts["Rmin"], vmax=plotOpts["Rmax"]),extend='both')
+        # CS.set_clim(vmin=plotOpts["Rmin"], vmax=plotOpts["Rmax"])
+        clb = fig.colorbar(CS)
+        # print(plotOpts["Rmax"])
+        
+    else:
+        CS=plt.contourf(x1TestGrid,x2TestGrid,meanPredGrid,40,cmap="jet")#,label=r'$95\%$ confidence')
+        clb = plt.colorbar(CS)
     # plt.clabel(CS, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
-    clb = plt.colorbar(CS)
     clb.set_label(r"$\mathcal{R}$")
     plt.plot(x[:,0],x[:,1],'--ok',markersize=7,label='Training Data')
     plt.plot(x[len(y)-1,0],x[len(y)-1,1],'--sr',markersize=7,label='Training Data')
@@ -479,12 +486,10 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
     #plt.xlabel('q'+str(I+1),fontsize=20)
     #plt.ylabel('q'+str(J+1),fontsize=20)
     #plt.title(r'$95\%$ Uncertainty',fontsize=18)
-    return CS
+    # fig.tight_layout()
+    return fig
 
-# %%
-####################
-# MAIN
-####################
+# %% global variables
 #----------------------------------------------------------------------------
 #>>>> SETTINGS & PROBLEM DEFINITION -----------------------------------------
 # nPar=2;           #number of parameters= p = dimension of x={x1,x2,...,xp} where y=f(x)
@@ -658,7 +663,7 @@ def BO_update_convergence(xLast, yLast):
         return 0
     
 #////////////////////////////////////
-def gpSurface_plot(xList, yList, nData):
+def gpSurface_plot(xList, yList, nData, path2figs="../figs/",Rmin=0,Rmax=0):
     """ 
        Reconstruct the GPR and plot it in 2D (or 1D) planes of the parameters admissible space
     """
@@ -677,19 +682,25 @@ def gpSurface_plot(xList, yList, nData):
     #>>>> Reconstruct and Plot GP surrogate in parameter space
     if nPar>1:
         #plot in 2D subspace of the parameters space
-        plotOpts={'figDir':'../figs/',
+        plotOpts={'figDir':path2figs,
                   'figName':'gp2D_%02d'% (nData),
                   'kernelType':kernelType,   #required to construct the final GPR
                   'whichOptim':whichOptim}
+        if not (Rmin==0 and Rmax==0):
+            plotOpts["Rmin"]=Rmin
+            plotOpts["Rmax"]=Rmax
         gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts)
     elif nPar==1:
+        if Rmin==0 and Rmax==0:
+            Rmin=0.05
+            Rmax=10
         nTest=100   #no of test points, only for plot
-        plotOpts={'figDir':'../figs/',
+        plotOpts={'figDir':path2figs,
                   'figName':'gp1D_%02d' % (nData),
                   'kernelType':kernelType,   #required to construct the final GPR
                   'whichOptim':whichOptim,
                   'arbitSample':'no',
-                  'ylim':[0.05,10]} # NEED TO BE TUNED
+                  'ylim':[Rmin,Rmax]} # NEED TO BE TUNED
         gpOpt1d_postProc(xGP,yGP,sigma_d,domain,nTest,plotOpts)
     else:
         logger.error("nPar should be >= 1")

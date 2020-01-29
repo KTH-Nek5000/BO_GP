@@ -19,6 +19,7 @@ rc('text', usetex=True)
 
 from OFpost import main_post
 import driver_BOGP as D
+from gpOptim import gpOpt_TBL
 
 # %% global
 
@@ -31,7 +32,7 @@ def read_npy(path2data, dataName, n): # Re_theta, beta, deltaStar, dpdx
     data = data.reshape([n,-1])
     return data
 
-def beta_components(xc, x, delta99_in, deltaStar, dpdx, tau_w, in_exc, out_exc, \
+def beta_components_fig(xc, x, delta99_in, deltaStar, dpdx, tau_w, in_exc, out_exc, \
                     iMain, deltaStarBound, dpdxBound, tau_wBound):
     Nx = np.size(xc)
     xc_delta = xc/delta99_in
@@ -67,7 +68,7 @@ def beta_components(xc, x, delta99_in, deltaStar, dpdx, tau_w, in_exc, out_exc, 
     saveFileName = "/comp_%02d" % iMain
     fig.savefig(D.PATH2FIGS + saveFileName + ".pdf",bbox_inches="tight")
     # logger.info("save beta figure as %s%s.pdf" % (D.PATH2FIGS, saveFileName))
-    print("save beta figure as %s%s.pdf" % (D.PATH2FIGS, saveFileName))
+    print("save comp figure as %s%s.pdf" % (D.PATH2FIGS, saveFileName))
     
 # %% ################## main ###########################
 if __name__ == '__main__':
@@ -76,7 +77,8 @@ if __name__ == '__main__':
     U_infty, delta99_in, Nx, Ny, Nz, tEnd, Lx, Ly = \
         D.U_infty, D.delta99_in, D.Nx, D.Ny, D.Nz, D.tEnd, D.Lx, D.Ly
     
-    nData = 15
+    nData = 2
+    xc, yc, x, y = main_post.load_grid(Nx, Ny, Nz, D.PATH2OFCASE)
     
     # load *.npy
     Re_thetaList = read_npy(D.PATH2DATA, "Re_theta", nData)
@@ -91,13 +93,23 @@ if __name__ == '__main__':
     dpdxBound = [np.min(dpdxList), np.max(dpdxList)]
     tau_wBound = [np.min(tau_wList), np.max(tau_wList)]
     
-    xc, yc, x, y = main_post.load_grid(Nx, Ny, Nz, D.PATH2OFCASE)
+    # gp fig
+    [xList,yList]=gpOpt_TBL.read_available_GPsamples(D.PATH2GPLIST, gpOpt_TBL.nPar)
+    # print(xList)
+    # print(yList)
+    Rmin=0
+    Rmax=np.max(yList)
     
     for i in range(nData):
-        beta_components(xc, x, delta99_in, deltaStarList[i], dpdxList[i], \
+        # comp*.pdf
+        beta_components_fig(xc, x, delta99_in, deltaStarList[i], dpdxList[i], \
                         tau_wList[i], in_exc, out_exc, \
                             i+1, deltaStarBound, dpdxBound, tau_wBound)
         # update beta figs
         obj = main_post.calc_obj(betaList[i], beta_t, in_exc, out_exc)
         main_post.save_beta_fig(i+1, x, betaList[i], delta99_in, in_exc, \
                       out_exc, beta_t, obj, betaBound[0], betaBound[1])
+        # update gp figs
+        gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, D.PATH2FIGS+"/", \
+                                 Rmin, Rmax)
+            
