@@ -461,11 +461,13 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
     #2D contourplot
     # ax=plt.gca()
     plt.figure()
-    CS=plt.contour(x1TestGrid,x2TestGrid,meanPredGrid,40)#,label=r'$95\%$ confidence')
-    plt.clabel(CS, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
+    CS=plt.contourf(x1TestGrid,x2TestGrid,meanPredGrid,40,cmap="jet")#,label=r'$95\%$ confidence')
+    # plt.clabel(CS, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
+    clb = plt.colorbar(CS)
+    clb.set_label(r"$\mathcal{R}$")
     plt.plot(x[:,0],x[:,1],'--ok',markersize=7,label='Training Data')
     plt.plot(x[len(y)-1,0],x[len(y)-1,1],'--sr',markersize=7,label='Training Data')
-    plt.title(r'Mean GPR Prediction',fontsize=18)
+    # plt.title(r'Mean GPR Prediction',fontsize=18)
     plt.xlabel(r'$%s%s$' % ("q_", str(I+1)),fontsize=20)
     plt.ylabel(r'$%s%s$' % ("q_", str(J+1)),fontsize=20)
     ##contours of uncertainty 
