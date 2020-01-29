@@ -5,32 +5,31 @@
 Bayesian optimization based on Gaussian processes for TBL with non-zero pressure gradient. 
 Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
 
-#list of included files and folders:
+# list of included files and folders:
 
  - OFcase/   : OpenFOAM case
    - system/
-     - yTopParams.in (from main_pre.py)
+     - yTopParams.in (from main_pre.py, used in blockMeshDict & controlDict)
      - blockMeshDict
      - controlDict
      - decomposeParDict
      - etc.
    - 0/
-     - *_IC files
+     - *_IC files (use inflow.py to make these files)
    - constant/
+     - polyMesh/
+     - transportProperties
    - jobscript
 
- - OFpost/   : Post-processing the results (latestTime) of OpenFOAM to extract the response
+ - OFpost/   : Post-processing the results of OpenFOAM
    - main_post.py
-   - postProcess_func.py (included to main_post.py at run time)
 
  - OFpre/    : Creating yTopParams.in using the latest parameter sample
    - main_pre.py
    
  - gpOptim/  : Bayesian optimization based on Gaussian processes
    - workDir/
-     - gpList.sat
-     - newResponse.dat
-     - newSampledParam.dat
+     - gpList.dat
    - gpOpt_TBL.py
 
  - figs/
@@ -38,17 +37,17 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
    - beta*.pdf
    - bo_convergence.pdf
    - gp*.pdf
+   - U*.pdf
+   - comp*.pdf
    - make_movie.sh: make movie in png/ from pdf files
-      
- - OFinput.dat
- - driver_BOGP.sh: main driver
+
+ - driver_BOGP.py: main driver
  - reset_gpList.sh: reset gpOptim/workDir/gpList.dat
  - reset_fig.sh: delete all the pdf files in figs/
 
 # setting & input:
- - driver: about optimization loop
+ - driver: U_infty, delta99_in, Nx, Ny, Nz, t, loop params, path, beta_t etc.
  - /gpOptim/gpOpt_TBL.py: number of parameters, range, tolerance, kernel, xi, number of randam generate parameters, etc.
- - OFinput.dat: U_infty, delta99_in, Nx, Ny, Nz, t
 
 # Requirements:
 1. python3 (+numpy, matplotlib)
@@ -65,9 +64,12 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
 
 # Note:
   - When you change the structure of geometry
-    - create new inflow from precursor using bl_inflow.py (precursor results required)
+<!-- 
+    - create the new inflow from precursor using bl_inflow.py (precursor results required)
+-->
+    - create the new inflow using inflow/inflow.py
     - check blockMeshDict
-    - update OFinput.dat
+    - update driver
     
   - When you change the nProcessor
     - update decomposeParDict
@@ -79,6 +81,5 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
 
   - When you change beta_t
     - driver: change beta_t
-    - main_post.save_beta(): change ylim for figure
 
   - Use reset_gpList.sh & reset_fig.sh before running new case
