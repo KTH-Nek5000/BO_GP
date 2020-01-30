@@ -77,7 +77,12 @@ if __name__ == '__main__':
     U_infty, delta99_in, Nx, Ny, Nz, tEnd, Lx, Ly = \
         D.U_infty, D.delta99_in, D.Nx, D.Ny, D.Nz, D.tEnd, D.Lx, D.Ly
     
-    nData = 2
+    # gp fig
+    [xList,yList]=gpOpt_TBL.read_available_GPsamples(D.PATH2GPLIST, gpOpt_TBL.nPar)
+    Rmin=0
+    Rmax=np.max(yList)
+    
+    nData = np.size(yList)
     xc, yc, x, y = main_post.load_grid(Nx, Ny, Nz, D.PATH2OFCASE)
     
     # load *.npy
@@ -86,19 +91,13 @@ if __name__ == '__main__':
     deltaStarList = read_npy(D.PATH2DATA, "deltaStar", nData)
     dpdxList = read_npy(D.PATH2DATA, "dpdx", nData)
     tau_wList = read_npy(D.PATH2DATA, "tau_w", nData)
+    UList = read_npy(D.PATH2DATA, "U", nData)
     
     Re_thetaBound = [np.min(Re_thetaList), np.max(Re_thetaList)]
     betaBound = [np.min(betaList), np.max(betaList)]
     deltaStarBound = [np.min(deltaStarList), np.max(deltaStarList)]
     dpdxBound = [np.min(dpdxList), np.max(dpdxList)]
     tau_wBound = [np.min(tau_wList), np.max(tau_wList)]
-    
-    # gp fig
-    [xList,yList]=gpOpt_TBL.read_available_GPsamples(D.PATH2GPLIST, gpOpt_TBL.nPar)
-    # print(xList)
-    # print(yList)
-    Rmin=0
-    Rmax=np.max(yList)
     
     for i in range(nData):
         # comp*.pdf
@@ -112,4 +111,3 @@ if __name__ == '__main__':
         # update gp figs
         gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, D.PATH2FIGS+"/", \
                                  Rmin, Rmax)
-            

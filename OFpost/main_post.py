@@ -352,7 +352,7 @@ def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj, \
     plt.savefig(D.PATH2FIGS + saveFileName + ".pdf",bbox_inches="tight")
     logger.info("save beta figure as %s%s.pdf" % (D.PATH2FIGS, saveFileName))
     
-def save_data(Re_theta, beta, deltaStar, dpdx, tau_w, iMain):
+def save_data(Re_theta, beta, deltaStar, dpdx, tau_w, U, iMain):
     """
     Parameters
     ----------
@@ -378,6 +378,10 @@ def save_data(Re_theta, beta, deltaStar, dpdx, tau_w, iMain):
     fileName = D.PATH2DATA + "/tau_w%02d.npy" % iMain
     np.save(fileName, tau_w)
     logger.info("save tau_w as %s" % fileName)
+    
+    fileName = D.PATH2DATA + "/U%02d.npy" % iMain
+    np.save(fileName, U)
+    logger.info("save U as %s" % fileName)
     
 # def save_yTopFig(x, y, iMain, obj, in_exc, out_exc):
 #     n = np.size(x)
@@ -445,7 +449,7 @@ def main(beta_t, in_exc, out_exc, iMain, U_infty, delta99_in, Nx, Ny, Nz, t):
     
     #4. save beta
     save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj)
-    save_data(Re_theta, beta, deltaStar, dpdx, tau_w, iMain)
+    save_data(Re_theta, beta, deltaStar, dpdx, tau_w, U, iMain)
 
     #6. save U contour
     save_Ucontour(x/delta99_in, y/delta99_in,xc/delta99_in, yc/delta99_in, U, iMain, obj, in_exc, out_exc)
