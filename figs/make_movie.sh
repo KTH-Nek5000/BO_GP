@@ -36,10 +36,10 @@ done
 #ffmpeg -y -i png/${figs[0]}.avi -i png/${figs[1]}.avi -filter_complex "hstack" png/$outputFileName.avi
 # 3 figures
 echo "################### png/${figs[0]}.avi + png/${figs[1]}.avi + png/${figs[2]}.avi -> png/$outputFileName.avi ####################"
-ffmpeg -y -i png/${figs[0]}.avi -i png/${figs[1]}.avi -i png/${figs[2]}.avi -filter_complex "[0:v][1:v][2:v]hstack=inputs=3[v]" -map "[v]" png/$outputFileName.avi
+#ffmpeg -y -i png/${figs[1]}.avi -i png/${figs[0]}.avi -i png/${figs[2]}.avi -filter_complex "[0:v][1:v][2:v]hstack=inputs=3[v]" -map "[v]" png/$outputFileName.avi
 # obsolete
 #ffmpeg -y -i png/${figs[0]}.avi -i png/${figs[1]}.avi -filter_complex "nullsrc=size=1600x600 [base]; [0:v] setpts=PTS-STARTPTS, scale=800x600 [left]; [1:v] setpts=PTS-STARTPTS, scale=800x600 [right]; [base][left] overlay=shortest=1 [tmp1]; [tmp1][right] overlay=shortest=1:x=800" -c:v libx264 -r 1 png/$outputFileName.mkv
 # 4 figures
 #ffmpeg -y -i png/${figs[0]}.avi -i png/${figs[1]}.avi -i png/${figs[2]}.avi -i png/${figs[3]}.avi -filter_complex "[0:v][1:v][2:v][3:v]xstack=inputs=4:layout=0_0|w0_0|0_h0|w0_h0[v]" -map "[v]" png/$outputFileName.avi
 
-ffmpeg -y -i png/${figs[0]}.avi -i png/${figs[1]}.avi -i png/${figs[2]}.avi -i png/${figs[3]}.avi -filter_complex "[0:v][1:v]hstack=inputs=2[top];[2:v][3:v]hstack=inputs=2[bottom];[top][bottom]vstack=inputs=2[v]"  -map "[v]" png/$outputFileName.avi
+ffmpeg -y -i png/${figs[1]}.avi -i png/${figs[0]}.avi -i png/${figs[2]}.avi -i png/${figs[3]}.avi -filter_complex "[0:v][1:v]hstack=inputs=2[top];[2:v][3:v]hstack=inputs=2[bottom];[top][bottom]vstack=inputs=2[v]"  -map "[v]" png/$outputFileName.avi
