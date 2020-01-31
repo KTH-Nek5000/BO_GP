@@ -44,8 +44,10 @@ def beta_components_fig(xc, x, delta99_in, U_infty, deltaStar, dpdx, tau_w, in_e
     xc_delta = xc/delta99_in
     x_delta = x/delta99_in
     
-    ymin = min(deltaStarBound[0]/delta99_in, dpdxBound[0]*2*delta99_in/U_infty**2, tau_wBound[0]*2/U_infty**2)
-    ymax = max(deltaStarBound[1]/delta99_in, dpdxBound[1]*2*delta99_in/U_infty**2, tau_wBound[1]*2/U_infty**2)
+    ymin = min(deltaStarBound[0]/delta99_in, dpdxBound[0]*2*delta99_in/U_infty**2, \
+               tau_wBound[0]*2/U_infty**2)
+    ymax = max(deltaStarBound[1]/delta99_in, dpdxBound[1]*2*delta99_in/U_infty**2, \
+               tau_wBound[1]*2/U_infty**2)
     ymin2 = deltaStarBound[0]/delta99_in
     ymax2 = deltaStarBound[1]/delta99_in
     ymin1 = dpdxBound[0]*2*delta99_in/U_infty**2
@@ -65,7 +67,8 @@ def beta_components_fig(xc, x, delta99_in, U_infty, deltaStar, dpdx, tau_w, in_e
     ax3.spines["right"].set_visible(True)
     # plot
     ln2, = ax2.plot(xc_delta, deltaStar/delta99_in, "C2", label=r"$\delta^* / \delta_{99}^{\rm in}$")
-    ln1, = ax1.plot(x_delta[1:-1], dpdx*2*delta99_in/U_infty**2, "C1", label=r"$\frac{dp}{dx} \left( \frac{\delta_{99}^{\rm in}}{\frac{1}{2}\rho U_{\infty}^{{\rm in}^2}} \right)$")
+    ln1, = ax1.plot(x_delta[1:-1], dpdx*2*delta99_in/U_infty**2, "C1", \
+                    label=r"$\frac{dp}{dx} \left( \frac{\delta_{99}^{\rm in}} {\frac{1}{2}\rho U_{\infty}^{{\rm in}^2}} \right)$")
     ln3, = ax3.plot(xc_delta, 2*tau_w/U_infty**2, "C3", label=r"$c_f$")
     
     ax1.vlines([x[int(Nx*in_exc)]/delta99_in,x[-int(Nx*out_exc)-1]/delta99_in], \
@@ -80,7 +83,7 @@ def beta_components_fig(xc, x, delta99_in, U_infty, deltaStar, dpdx, tau_w, in_e
     
     ax1.set_xlabel(r'$x/\delta_{99}^{\rm in}$')
     ax2.set_ylabel(r'$\delta^*/\delta_{99}^{\rm in}$')
-    ax1.set_ylabel(r'$\frac{dp}{dx} \left( \frac{\delta_{99}^{\rm in}}{\frac{1}{2}\rho U_{\infty}^{{\rm in}^2}} \right)$')
+    ax1.set_ylabel(r'$\frac{dp}{dx} \left( \frac{\delta_{99}^{\rm in}} {\frac{1}{2}\rho U_{\infty}^{{\rm in}^2}} \right)$')
     ax3.set_ylabel(r"$c_f$")
     
     ax1.set_xlim(x_delta[0],x_delta[-1])
@@ -107,7 +110,7 @@ def beta_components_fig(xc, x, delta99_in, U_infty, deltaStar, dpdx, tau_w, in_e
 # %% ################## main ###########################
 if __name__ == '__main__':
     # setting from driver
-    beta_t = 0.5#D.beta_t
+    beta_t = D.beta_t
     in_exc = D.in_exc
     out_exc = D.out_exc
     U_infty, delta99_in, Nx, Ny, Nz = \
@@ -144,6 +147,7 @@ if __name__ == '__main__':
     deltaStarList = read_npy("deltaStar", nData, path2data)
     dpdxList = read_npy("dpdx", nData, path2data)
     tau_wList = read_npy("tau_w", nData, path2data)
+    delta99List = read_npy("delta99", nData, path2data)
     UList = read_npy("U", nData, path2data)
     UList = UList.reshape([nData, Ny, Nx])
     
@@ -154,8 +158,8 @@ if __name__ == '__main__':
     tau_wBound = [np.min(tau_wList), np.max(tau_wList)]
     
     # overwrite
-    betaBound[0] = beta_t - 1.5*beta_t
-    betaBound[1] = beta_t + 1.5*beta_t
+    betaBound[0] = beta_t - 0.1#1.5*beta_t
+    betaBound[1] = beta_t + 0.1#1.5*beta_t
     
     for i in range(nData):
         # comp*.pdf
@@ -171,5 +175,5 @@ if __name__ == '__main__':
                                  Rmin, Rmax,gpBounds)
         # update U figs
         main_post.save_Ucontour(x/delta99_in, y/delta99_in, xc/delta99_in, \
-                                yc/delta99_in, UList[i], i+1, in_exc, out_exc,\
-                                    np.max(gpBounds), path2figs)
+                                yc/delta99_in, UList[i], delta99List[i]/delta99_in, \
+                                    i+1, in_exc, out_exc, np.max(gpBounds), path2figs)

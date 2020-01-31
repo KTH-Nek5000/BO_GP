@@ -227,8 +227,10 @@ def bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w):
     """
     
     delta99 = np.zeros(Nx)
-    U_max = np.max(U[:int(Ny/2),:]/U_infty,axis=0)
+    U_max = np.zeros(Nx)
+    # U_max = np.max(U[np.where(yc),:]/U_infty,axis=0)
     for i in range(Nx):
+        U_max[i] = np.max(U[np.where(yc[:,i] < yc[-1,i]/2),i]/U_infty)
         U_tmp = U[:,i]/U_max[i]
         thre = 0.99 # initial threshhold, can be modified
         counter = 0 # avoid infinity loop
@@ -284,7 +286,7 @@ def bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w):
     # Cf = tau_w/(1/2*U_infty**2) # incompressible
     # Re_tau = u_tau*delta99/nu
     
-    return Re_theta, beta, deltaStar, dpdx
+    return Re_theta, beta, deltaStar, dpdx, delta99
 
 def calc_obj(beta, beta_t, in_exc, out_exc):
     """
@@ -347,7 +349,7 @@ def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj, \
     plt.savefig(path2figs + saveFileName + ".pdf",bbox_inches="tight")
     logger.info("save beta figure as %s%s.pdf" % (path2figs, saveFileName))
     
-def save_data(Re_theta, beta, deltaStar, dpdx, tau_w, U, iMain):
+def save_data(Re_theta, beta, deltaStar, dpdx, tau_w, U, delta99, iMain):
     """
     Parameters
     ----------
@@ -378,25 +380,11 @@ def save_data(Re_theta, beta, deltaStar, dpdx, tau_w, U, iMain):
     np.save(fileName, U)
     logger.info("save U as %s" % fileName)
     
-# def save_yTopFig(x, y, iMain, obj, in_exc, out_exc):
-#     n = np.size(x)
-#     ymin = 2
-#     ymax = np.max(gpOpt_TBL.qBound)
-#     plt.figure()
-#     plt.plot(x,y[-1,:])
-#     plt.vlines(x[int(n*in_exc)+1],ymin,ymax,'k',linestyles='dashdot')
-#     plt.vlines(x[-int(n*out_exc)-1],ymin,ymax,'k',linestyles='dashdot')
-#     plt.xlabel(r'$x$')
-#     plt.ylabel(r'$y$')
-#     plt.xlim(x[0],x[-1])
-#     plt.ylim(ymin, ymax)
-#     plt.grid(True)
-#     plt.title(r'$N_i = %d, \mathcal{R} = %f$' % (iMain,obj))
-#     saveFileName = "yTop_%02d" % iMain
-#     plt.savefig(saveFigPath + saveFileName + ".pdf", bbox_inches="tight")
-#     logger.info("save yTop figure as %s%s.pdf" % (saveFigPath, saveFileName))
-
-def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta, U, iMain, in_exc, \
+    fileName = D.PATH2DATA + "/delta99_%02d.npy" % iMain
+    np.save(fileName, delta99)
+    logger.info("save delta99 as %s" % fileName)
+    
+def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta, U, delta99_delta, iMain, in_exc, \
                   out_exc, ymax=np.max(gpOpt_TBL.qBound), path2figs=D.PATH2FIGS):
     # plt.rcParams['font.size'] = 15
     Nx = np.size(x_delta)
@@ -410,6 +398,7 @@ def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta, U, iMain, in_exc, \
     fig = plt.figure()
     ax = fig.add_subplot(111)
     im = ax.pcolormesh(X,Y,U, cmap='jet',vmin=0, vmax=1)
+    plt.plot(xc_delta,delta99_delta, "k")
     plt.plot(x_delta,y_delta[-1,:],"k") # the top wall
     plt.vlines([x_delta[int(Nx*in_exc)], x_delta[-int(Nx*out_exc)-1]], 0, ymax, \
                'k',linestyles='dashdot')
@@ -438,7 +427,7 @@ def main(beta_t, in_exc, out_exc, iMain, U_infty, delta99_in, Nx, Ny, Nz, t):
     U, V, p, tau_w = load_data(Nx, Ny, Nz, t, D.PATH2OFCASE)
     
     #2. calc
-    Re_theta, beta, deltaStar, dpdx = \
+    Re_theta, beta, deltaStar, dpdx, delta99 = \
         bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w)
     
     #3. assess objective R
@@ -446,10 +435,11 @@ def main(beta_t, in_exc, out_exc, iMain, U_infty, delta99_in, Nx, Ny, Nz, t):
     logger.info("objective = %g" % obj)
     
     #4. save data as .npy
-    save_data(Re_theta, beta, deltaStar, dpdx, tau_w, U, iMain)
+    save_data(Re_theta, beta, deltaStar, dpdx, tau_w, U, delta99, iMain)
 
     #6. save beta & U contour
     save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj)
-    save_Ucontour(x/delta99_in, y/delta99_in,xc/delta99_in, yc/delta99_in, U, iMain, in_exc, out_exc)
+    save_Ucontour(x/delta99_in, y/delta99_in,xc/delta99_in, yc/delta99_in, U, delta99/delta99_in, \
+                  iMain, in_exc, out_exc)
     
     return obj
