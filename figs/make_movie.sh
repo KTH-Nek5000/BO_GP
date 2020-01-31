@@ -42,4 +42,4 @@ echo "################### png/${figs[0]}.avi + png/${figs[1]}.avi + png/${figs[2
 # 4 figures
 #ffmpeg -y -i png/${figs[0]}.avi -i png/${figs[1]}.avi -i png/${figs[2]}.avi -i png/${figs[3]}.avi -filter_complex "[0:v][1:v][2:v][3:v]xstack=inputs=4:layout=0_0|w0_0|0_h0|w0_h0[v]" -map "[v]" png/$outputFileName.avi
 
-ffmpeg -y -i png/${figs[1]}.avi -i png/${figs[0]}.avi -i png/${figs[2]}.avi -i png/${figs[3]}.avi -filter_complex "[0:v][1:v]hstack=inputs=2[top];[2:v][3:v]hstack=inputs=2[bottom];[top][bottom]vstack=inputs=2[v]"  -map "[v]" png/$outputFileName.avi
+ffmpeg -y -i png/${figs[2]}.avi -i png/${figs[1]}.avi -i png/${figs[0]}.avi -i png/${figs[3]}.avi -filter_complex "[0:v][1:v]hstack=inputs=2[top];[2:v][3:v]hstack=inputs=2[bottom];[top][bottom]vstack=inputs=2[v]"  -map "[v]" png/$outputFileName.avi
