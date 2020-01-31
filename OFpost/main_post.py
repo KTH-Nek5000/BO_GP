@@ -6,12 +6,10 @@ called from driver_BOGP.py
 
 calculate beta
 calculate objective
-save beta to saveFigPath + "beta_%02d" % iMain + ".pdf"
-save raw data to D.PATH2DATA
-save U contour to saveFigPath
+save data to D.PATH2DATA
+save beta & U contour to D.PATH2FIGS
 
 NOTE: change ylim in save_beta() if you need
-
 """
 
 # %% import libraries
@@ -59,10 +57,7 @@ def add_handler():
 
 add_handler()
 
-# %% global variables (NEED TO BE UPDATED, FROM DRIVER)
-# saveFigPath = "../figs/"
-# path2run ='..' # path to run directory (where OFcase directory is)
-# casename = 'OFcase'
+# %% global variables
 
 # %% functions
 def getNu(path2case):
@@ -313,7 +308,7 @@ def calc_obj(beta, beta_t, in_exc, out_exc):
     return obj
 
 def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj, \
-                  betaMin=np.inf, betaMax=np.inf):
+                  betaMin=np.inf, betaMax=np.inf, path2figs=D.PATH2FIGS):
     """
     Parameters
     ----------
@@ -333,8 +328,8 @@ def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj, \
             ymin = -0.1
             ymax = 0.1
         else:
-            ymin = beta_t - 0.5*beta_t # set depends on your beta_t
-            ymax = beta_t + 0.5*beta_t
+            ymin = beta_t - 1.5*beta_t # set depends on your beta_t
+            ymax = beta_t + 1.5*beta_t
     else:
         ymin = betaMin
         ymax = betaMax
@@ -349,8 +344,8 @@ def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj, \
     plt.grid(True)
     plt.title(r'$N_i = %d, \mathcal{R} = %f$' % (iMain,obj))
     saveFileName = "/beta_%02d" % iMain
-    plt.savefig(D.PATH2FIGS + saveFileName + ".pdf",bbox_inches="tight")
-    logger.info("save beta figure as %s%s.pdf" % (D.PATH2FIGS, saveFileName))
+    plt.savefig(path2figs + saveFileName + ".pdf",bbox_inches="tight")
+    logger.info("save beta figure as %s%s.pdf" % (path2figs, saveFileName))
     
 def save_data(Re_theta, beta, deltaStar, dpdx, tau_w, U, iMain):
     """
@@ -401,12 +396,12 @@ def save_data(Re_theta, beta, deltaStar, dpdx, tau_w, U, iMain):
 #     plt.savefig(saveFigPath + saveFileName + ".pdf", bbox_inches="tight")
 #     logger.info("save yTop figure as %s%s.pdf" % (saveFigPath, saveFileName))
 
-def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta,U, iMain, obj, in_exc, out_exc):
+def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta, U, iMain, in_exc, \
+                  out_exc, ymax=np.max(gpOpt_TBL.qBound), path2figs=D.PATH2FIGS):
     # plt.rcParams['font.size'] = 15
     Nx = np.size(x_delta)
     Ny = np.shape(yc_delta)[0]
     xmax = x_delta[-1]
-    ymax = np.max(gpOpt_TBL.qBound)
 #    X, Y = np.meshgrid(xc,yc) # NY*NX
     X = np.outer(np.ones(Ny),xc_delta)
     Y = yc_delta
@@ -415,9 +410,10 @@ def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta,U, iMain, obj, in_exc, ou
     fig = plt.figure()
     ax = fig.add_subplot(111)
     im = ax.pcolormesh(X,Y,U, cmap='jet',vmin=0, vmax=1)
-    plt.plot(x_delta,y_delta[-1,:],"k")
-    plt.vlines(x_delta[int(Nx*in_exc)],0,ymax,'k',linestyles='dashdot')
-    plt.vlines(x_delta[-int(Nx*out_exc)-1],0,ymax,'k',linestyles='dashdot')
+    plt.plot(x_delta,y_delta[-1,:],"k") # the top wall
+    plt.vlines([x_delta[int(Nx*in_exc)], x_delta[-int(Nx*out_exc)-1]], 0, ymax, \
+               'k',linestyles='dashdot')
+    # plt.plot(x_delta, y_delta[Ny//2], "k--") #middle line
 #    ax.set_aspect(3)
     # create an axes on the right side of ax. The width of cax will be 5%
     # of ax and the padding between cax and ax will be fixed at 0.05 inch.
@@ -432,26 +428,28 @@ def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta,U, iMain, obj, in_exc, ou
     ax.set_xlabel(r"$x/ \delta_{99}^{\rm in}$")
     ax.set_ylabel(r"$y/ \delta_{99}^{\rm in}$")
     saveFileName = "/U_%02d" % iMain
-    plt.savefig(D.PATH2FIGS + saveFileName + ".pdf", bbox_inches="tight")
-    logger.info("save U figure as %s%s.pdf" % (D.PATH2FIGS, saveFileName))
+    plt.savefig(path2figs + saveFileName + ".pdf", bbox_inches="tight")
+    logger.info("save U figure as %s%s.pdf" % (path2figs, saveFileName))
 
 def main(beta_t, in_exc, out_exc, iMain, U_infty, delta99_in, Nx, Ny, Nz, t):
-    #2. calc beta
+    #1. load data
     nu = getNu(D.PATH2OFCASE)
     xc, yc, x, y = load_grid(Nx, Ny, Nz, D.PATH2OFCASE)
     U, V, p, tau_w = load_data(Nx, Ny, Nz, t, D.PATH2OFCASE)
+    
+    #2. calc
     Re_theta, beta, deltaStar, dpdx = \
         bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w)
     
-    #3. assess objective func
+    #3. assess objective R
     obj = calc_obj(beta, beta_t, in_exc, out_exc)
     logger.info("objective = %g" % obj)
     
-    #4. save beta
-    save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj)
+    #4. save data as .npy
     save_data(Re_theta, beta, deltaStar, dpdx, tau_w, U, iMain)
 
-    #6. save U contour
-    save_Ucontour(x/delta99_in, y/delta99_in,xc/delta99_in, yc/delta99_in, U, iMain, obj, in_exc, out_exc)
+    #6. save beta & U contour
+    save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj)
+    save_Ucontour(x/delta99_in, y/delta99_in,xc/delta99_in, yc/delta99_in, U, iMain, in_exc, out_exc)
     
     return obj
