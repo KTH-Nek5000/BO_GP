@@ -49,6 +49,50 @@ import logging
 
 logger = logging.getLogger("Driver").getChild("gpOptim/gpOpt_TBL.py")
 
+# %% global variables
+#----------------------------------------------------------------------------
+#>>>> SETTINGS & PROBLEM DEFINITION -----------------------------------------
+# nPar=2;           #number of parameters= p = dimension of x={x1,x2,...,xp} where y=f(x)
+sigma_d=0.0       #sdev of the white noise in the measured data   
+whichOptim='min'  #find 'max' or 'min' of f(x)?
+# tol_d=0.02        #minimum distace between two consequtive samples x to keep the code running
+# tol_b=0.1        #deviation between best f(x+) in two consequtive iterations (relative error)
+                  #note if err_d<tol_d and err_b<tol_b => convergence in (x_opt , f(x_opt))
+tol_abs=0.1
+kernelType='Matern52'  #'RBF', 'Matern52'
+#admissible range of parameters
+qBound=[[40,46], [40,44]] # /delta99^in
+nPar = np.shape(qBound)[0]
+nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
+            #to avoid random sampling from the parameter space: see nextGPsample()
+#---------------------------------------------------------------------------
+#---------------------------------------------------------------------------
+
+#>>>>Assignments (don't touch these!)
+#admissible domain in GPy format
+domain=[];
+for i in range(nPar):
+    domain_={'name':'q'+str(i+1),'type':'continuous','domain':(qBound[i][0],qBound[i][1])}
+    domain.append(domain_)
+
+if whichOptim=='max':
+    maxFlag=True
+    ifac=-1.0
+else:
+    maxFlag=False
+    ifac=1.0
+    
+#evaluating the true function? (no noise)
+if sigma_d==0.:
+    fevalFlag=True
+else:
+    fevalFlag=False
+    
+#domain bounds
+BOUNDS=[]
+for i in range(nPar):
+    BOUNDS.append(domain[i]['domain'])
+
 # %% INT FUNCTIONS
 def read_available_GPsamples(gpInputFile,nPar):
     """
@@ -102,60 +146,6 @@ def update_GPsamples(gpOutputFile,xList,yList,xNext,yNext):
     F2.write(tmpList)
     F2.close()
     logger.info('**** %s is updated!' % gpOutputFile)
-
-#//////////////////////////////////////////
-# def write_newGPsample(newSampleFile,xNext):
-#     """
-#        Write the new sample in file
-#     """
-#     logger.info("write the new sample to %s" % newSampleFile)
-#     n=len(xNext)
-#     F2=open(newSampleFile,'w')
-#     F2.write('# New samples for parameters which are taken by nextGPsample() \n')
-#     F2.write('# ')
-#     for i in range(n):
-#         tmp='par'+str(i)+'\t'
-#         F2.write(tmp)
-#     F2.write('\n')
-#     for i in range(n):
-#         tmp=str(xNext[i])+'\t'
-#         F2.write(tmp)
-#     F2.write('\n')
-#     F2.close()
-
-#//////////////////////////////////////////
-# def read_last_GPsample(newSampleFile,nPar):
-#     """ 
-#         Read the most recent (last drawn) sample of the parameters
-#     """
-#     F1=open(newSampleFile,'r')
-#     ain=F1.readlines()
-#     ain_sep=[];
-#     for i in range(len(ain)):
-#         ain_sep.append(ain[i].split())
-#     iskip=2;  # no of lines to skip from the beginning of the input file
-#     xList=[]
-#     for j in range(nPar):
-#         xList.append(float(ain_sep[iskip][j]))
-#     F1.close()
-#     logger.info("read the new sample from %s" % newSampleFile)
-#     return xList
-
-#///////////////////////////////////////
-# def read_last_response(newResponseFile):
-#     """ 
-#        Read the response from the CFD code that is associated to the last drawn parameter sample
-#     """
-#     F1=open(newResponseFile,'r')
-#     ain=F1.readlines()
-#     ain_sep=[];
-#     for i in range(len(ain)):
-#         ain_sep.append(ain[i].split())
-#     iskip=1;  # no of lines to skip from the beginning of the input file
-#     resp=float(ain_sep[iskip][0])
-#     F1.close()
-#     logger.info("read the new response from %s" % newResponseFile)
-#     return resp
 
 #//////////////////////////////////////////////////////////////
 def my_convergence_plot(xList,yList,whichOptim,figDir,figName):
@@ -489,50 +479,6 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
     # fig.tight_layout()
     return fig
 
-# %% global variables
-#----------------------------------------------------------------------------
-#>>>> SETTINGS & PROBLEM DEFINITION -----------------------------------------
-# nPar=2;           #number of parameters= p = dimension of x={x1,x2,...,xp} where y=f(x)
-sigma_d=0.0       #sdev of the white noise in the measured data   
-whichOptim='min'  #find 'max' or 'min' of f(x)?
-# tol_d=0.02        #minimum distace between two consequtive samples x to keep the code running
-# tol_b=0.1        #deviation between best f(x+) in two consequtive iterations (relative error)
-                  #note if err_d<tol_d and err_b<tol_b => convergence in (x_opt , f(x_opt))
-tol_abs=0.1
-kernelType='Matern52'  #'RBF', 'Matern52'
-#admissible range of parameters
-qBound=[[40,46], [40,44]] # /delta99^in
-nPar = np.shape(qBound)[0]
-nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
-            #to avoid random sampling from the parameter space: see nextGPsample()
-#---------------------------------------------------------------------------
-#---------------------------------------------------------------------------
-
-#>>>>Assignments (don't touch these!)
-#admissible domain in GPy format
-domain=[];
-for i in range(nPar):
-    domain_={'name':'q'+str(i+1),'type':'continuous','domain':(qBound[i][0],qBound[i][1])}
-    domain.append(domain_)
-
-if whichOptim=='max':
-    maxFlag=True
-    ifac=-1.0
-else:
-    maxFlag=False
-    ifac=1.0
-    
-#evaluating the true function? (no noise)
-if sigma_d==0.:
-    fevalFlag=True
-else:
-    fevalFlag=False
-    
-#domain bounds
-bounds=[]
-for i in range(nPar):
-    bounds.append(domain[i]['domain'])
-
 # %% EXECUTABLE FUNCTIONS
 def printSetting():
     """
@@ -655,15 +601,16 @@ def BO_update_convergence(xLast, yLast):
     if yList_[-1]<tol_abs: # take into acc
         xOpt=xList_[-1]
         fxOpt=yList_[-1]
-        logger.info(' ******* Converged Optimal Values q = %s, y = %f'\
-                    % (', '.join(map(str, xOpt)), fxOpt))
+        logger.info(' ******* Converged Optimal Values q = %s, y = %f < %f'\
+                    % (', '.join(map(str, xOpt)), fxOpt, tol_abs))
         return 1
     else:
         logger.info("not converged yet, y = %f, tol = %f" % (yList_[-1], tol_abs))
         return 0
     
 #////////////////////////////////////
-def gpSurface_plot(xList, yList, nData, path2figs="../figs/",Rmin=0,Rmax=0):
+def gpSurface_plot(xList, yList, nData, path2figs="../figs/", Rmin=0, Rmax=0, \
+                   bounds=BOUNDS):
     """ 
        Reconstruct the GPR and plot it in 2D (or 1D) planes of the parameters admissible space
     """
