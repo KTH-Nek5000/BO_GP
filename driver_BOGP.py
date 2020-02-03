@@ -7,6 +7,7 @@
 ###############################################################
 # Saleh Rezaeiravesh, salehr@kth.se
 # Yuki Morita, morita@kth.se
+
 # %% libralies
 import subprocess
 import os
@@ -37,7 +38,7 @@ add_handler()
 
 # %% SETTINGS
 iStart = 1   # Starting iteration 
-iEnd = 2
+iEnd = 20
 beta_t = 0   # terget value for beta
 in_exc = 0.2   # ignore this region when assess the objective
 out_exc = 0.1
@@ -85,7 +86,7 @@ if __name__ == '__main__':
     for i in range(iStart, iEnd+1):
         logger.info("############### START LOOP i = %d #################" % i)
         #1. Generate a sample from the parameters space
-        newQ = X.nextGPsample("gpOptim/workDir/gpList.dat") # path2gpList
+        newQ = X.nextGPsample(PATH2GPLIST)#"gpOptim/workDir/gpList.dat") # path2gpList
         
         #2. Write new q to path2case/system/yTopParams.in for blockMesh and controlDict
         main_pre.write_yTopParams\
@@ -127,10 +128,8 @@ if __name__ == '__main__':
         os.chdir("../")
         
         #4. Post-process OpenFOAM
-        # os.chdir("./OFpost")
         obj = main_post.main(beta_t, in_exc, out_exc, i, U_infty, delta99_in, \
                              Nx, Ny, Nz, tEnd)
-        # os.chdir("../")
         
         #5. Post-process optimization
         os.chdir("./gpOptim")
@@ -140,8 +139,9 @@ if __name__ == '__main__':
         #6. check convergence
         if isConv:
             break
+        
     logger.info("################### MAIN LOOP END ####################")
-    logger.info("make backup")
+    logger.info("make backup: figs/, data/, gpList.dat, log")
     subprocess.call("cp -r %s %s/" % (PATH2FIGS,bupAddress), shell=True)
     subprocess.call("cp -r %s %s/" % (PATH2DATA,bupAddress), shell=True)
     subprocess.call("cp %s %s/" % (PATH2GPLIST,bupAddress), shell=True)

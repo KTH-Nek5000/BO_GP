@@ -52,7 +52,6 @@ logger = logging.getLogger("Driver").getChild("gpOptim/gpOpt_TBL.py")
 # %% global variables
 #----------------------------------------------------------------------------
 #>>>> SETTINGS & PROBLEM DEFINITION -----------------------------------------
-# nPar=2;           #number of parameters= p = dimension of x={x1,x2,...,xp} where y=f(x)
 sigma_d=0.0       #sdev of the white noise in the measured data   
 whichOptim='min'  #find 'max' or 'min' of f(x)?
 # tol_d=0.02        #minimum distace between two consequtive samples x to keep the code running
@@ -62,7 +61,7 @@ tol_abs=0.1
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
 qBound=[[40,46], [40,44]] # /delta99^in
-nPar = np.shape(qBound)[0]
+nPar = np.shape(qBound)[0] #number of parameters, p  dimension of x={x1,x2,...,xp} where y=f(x)
 nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
             #to avoid random sampling from the parameter space: see nextGPsample()
 #---------------------------------------------------------------------------
@@ -550,39 +549,32 @@ def nextGPsample(path2gpList):
     logger.info('**** New GP sample is: %s' % ', '.join(map(str, xNext[0])))
     
     return np.array(xNext[0])
-    #write the new sample in file
-    # write_newGPsample('./workDir/newSampledParam.dat', xNext[0])
 
 #///////////////////////////
-def BO_update_convergence(xLast, yLast):
+def BO_update_convergence(xLast, yLast, path2gpList='./workDir/gpList.dat', \
+                          path2figs='../figs/'):
     """
        1. Update gpList.dat by adding the last drawn sample and associated response to it
        2. Check if BO-GP is converged or not
        
        Note: exit(1) is taken as the signal of the convergence
     """
-    [xList,yList]=read_available_GPsamples('./workDir/gpList.dat',nPar)
+    [xList,yList]=read_available_GPsamples(path2gpList,nPar)
     nData=len(yList) # overwritten later
     #xList=xList.reshape((nData,nPar))   #reshape as required by GPy and GPyOpt
     yList=yList.reshape((nData,1))       #reshape as required by GPy and GPyOpt
-    
-    #Read in the last drawn samples of parameters
-    # xLast=read_last_GPsample('./workDir/newSampledParam.dat',nPar)
-
-    #Read in the response associated to the last samples (response is given by the CFD code)
-    # yLast= read_last_response('./workDir/newResponse.dat')
 
     #Update gpList.dat
-    update_GPsamples('./workDir/gpList.dat',xList,yList,xLast,yLast)
+    update_GPsamples(path2gpList,xList,yList,xLast,yLast)
     #read the updated gpList.dat
-    [xList_,yList_]=read_available_GPsamples('./workDir/gpList.dat',nPar)
-
+    [xList_,yList_]=read_available_GPsamples(path2gpList,nPar)
+    
     #Check convergence of BO
     #>>>>> plot convergence
     nData=len(yList_)
     if nData>1:
        [xDistList,yBestList]=\
-           my_convergence_plot(xList_,yList_,whichOptim,'../figs/','bo_convergence')
+           my_convergence_plot(xList_,yList_,whichOptim,path2figs,'bo_convergence')
       #>>>> Converged Optimal Value:
        # if (n>2): # check convergence
        #     err_d=xDistList[-1]
@@ -598,14 +590,14 @@ def BO_update_convergence(xLast, yLast):
     gpSurface_plot(xList_,yList_,nData)
     # check convergence: only for minimize !!!
     logger.debug("check convergence")
-    if yList_[-1]<tol_abs: # take into acc
+    if yList_[-1]<=tol_abs: # take into acc
         xOpt=xList_[-1]
         fxOpt=yList_[-1]
-        logger.info(' ******* Converged Optimal Values q = %s, y = %f < %f'\
+        logger.info(' ******* Converged Optimal Values q = %s, y = %f <= %f'\
                     % (', '.join(map(str, xOpt)), fxOpt, tol_abs))
         return 1
     else:
-        logger.info("not converged yet, y = %f, tol = %f" % (yList_[-1], tol_abs))
+        logger.info("not converged yet, y = %f > %f" % (yList_[-1], tol_abs))
         return 0
     
 #////////////////////////////////////
