@@ -14,7 +14,7 @@ OFcase/err
 OFpre/__pycache__
 OFpost/__pycache__
 gpOptim/__pycache__
-OFcase/system/yTopParams.in
-gpOptim/workDir/gpList.dat
+#OFcase/system/yTopParams.in
+#gpOptim/workDir/gpList.dat
 inflow/__pycache__
 inflow/bl_data

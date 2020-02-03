@@ -69,9 +69,13 @@ if __name__ == '__main__':
                     (U_infty, delta99_in, Nx, Ny, Nz, tEnd, Lx, Ly))
     X.printSetting()
     
-    # make backup directory
+    # make directories
     if not os.path.isdir(bupAddress):
        os.mkdir(bupAddress)
+    if not os.path.isdir(PATH2DATA):
+       os.mkdir(PATH2DATA)
+    if not os.path.isdir(PATH2FIGS):
+       os.mkdir(PATH2FIGS)
     
     # clean remaining data
     if iStart == 1:

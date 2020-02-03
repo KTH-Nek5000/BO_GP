@@ -129,7 +129,7 @@ def update_GPsamples(gpOutputFile,xList,yList,xNext,yNext):
         tmp=tmp+'p'+str(i+1)+'\t'
     tmp=tmp+'response\n'
     F2.write(tmp)
-    nData=xList.shape[0]    
+    nData=xList.shape[0]
     #write the datalist before observing the new sample
     for i in range(nData):
         tmpList=str(i+1)+'\t'

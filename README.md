@@ -62,6 +62,8 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
 
 4. OpenFOAM 7 (or 6)
 
+5. bl_data/ in inflow/ (DNS data from https://www.mech.kth.se/~pschlatt/DATA/)
+
 # Note:
   - When you change the structure of geometry
 <!-- 

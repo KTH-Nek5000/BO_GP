@@ -1,2 +1,12 @@
-theta1 2.28463;
-theta2 2.17323;
+theta1 2.18227;
+theta2 2.09329;
+Nx 500;
+NxHalf 250;
+Ny 218;
+NyHalf 109;
+Lx 50.000000;
+LxHalf 25.000000;
+Ly 2.000000;
+LyHalf 1.000000;
+dt 0.100000;
+tEnd 200;
