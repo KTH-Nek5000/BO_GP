@@ -61,10 +61,12 @@ def beta_components_fig(xc, x, delta99_in, U_infty, deltaStar, dpdx, tau_w, in_e
     ax1 = fig.add_subplot(111)
     ax2 = ax1.twinx()
     ax3 = ax1.twinx()
+    
     # only right axis visible
     ax3.spines["right"].set_position(("axes", 1.2))
     make_patch_spines_invisible(ax3)
     ax3.spines["right"].set_visible(True)
+    
     # plot
     ln2, = ax2.plot(xc_delta, deltaStar/delta99_in, "C2", label=r"$\delta^* / \delta_{99}^{\rm in}$")
     ln1, = ax1.plot(x_delta[1:-1], dpdx*2*delta99_in/U_infty**2, "C1", \
@@ -100,8 +102,7 @@ def beta_components_fig(xc, x, delta99_in, U_infty, deltaStar, dpdx, tau_w, in_e
     ax3.tick_params(axis='y', colors=ln3.get_color())
     
     ax1.grid(True)
-    # plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
-    # plt.title(r'$N_i = %d, \mathcal{R} = %f$' % (iMain,obj))
+    
     saveFileName = "/comp_%02d" % iMain
     fig.savefig(path2figs + saveFileName + ".pdf",bbox_inches="tight")
     # logger.info("save beta figure as %s%s.pdf" % (D.PATH2FIGS, saveFileName))
@@ -113,8 +114,7 @@ if __name__ == '__main__':
     beta_t = D.beta_t
     in_exc = D.in_exc
     out_exc = D.out_exc
-    U_infty, delta99_in, Nx, Ny, Nz = \
-        D.U_infty, D.delta99_in, D.Nx, D.Ny, D.Nz
+    U_infty, delta99_in, Nx, Ny, Nz = D.U_infty, D.delta99_in, D.Nx, D.Ny, D.Nz
     
     # paths
     #############################
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     deltaStarList = read_npy("deltaStar", nData, path2data)
     dpdxList = read_npy("dpdx", nData, path2data)
     tau_wList = read_npy("tau_w", nData, path2data)
-    delta99List = read_npy("delta99", nData, path2data)
+    delta99List = read_npy("delta99_", nData, path2data)
     UList = read_npy("U", nData, path2data)
     UList = UList.reshape([nData, Ny, Nx])
     
@@ -156,10 +156,17 @@ if __name__ == '__main__':
     deltaStarBound = [np.min(deltaStarList), np.max(deltaStarList)]
     dpdxBound = [np.min(dpdxList), np.max(dpdxList)]
     tau_wBound = [np.min(tau_wList), np.max(tau_wList)]
+    delta99_Bound = [np.min(delta99List), np.max(delta99List)]
+    if delta99_Bound[1] >= D.Ly/2:
+        print("Warning: delta99 >= Ly/2")
     
     # overwrite
-    betaBound[0] = beta_t - 0.1#1.5*beta_t
-    betaBound[1] = beta_t + 0.1#1.5*beta_t
+    if beta_t==0:
+        betaBound[0] = beta_t - 0.1
+        betaBound[1] = beta_t + 0.1
+    else:
+        betaBound[0] = beta_t - 1.5*beta_t
+        betaBound[1] = beta_t + 1.5*beta_t
     
     for i in range(nData):
         # comp*.pdf
@@ -167,13 +174,13 @@ if __name__ == '__main__':
                         tau_wList[i], in_exc, out_exc, \
                             i+1, deltaStarBound, dpdxBound, tau_wBound, path2figs)
         # update beta figs
-        obj = main_post.calc_obj(betaList[i], beta_t, in_exc, out_exc)
-        main_post.save_beta_fig(i+1, x, betaList[i], delta99_in, in_exc, \
-                      out_exc, beta_t, obj, betaBound[0], betaBound[1], path2figs)
+        # obj = main_post.calc_obj(betaList[i], beta_t, in_exc, out_exc)
+        # main_post.save_beta_fig(i+1, x, betaList[i], delta99_in, in_exc, \
+        #               out_exc, beta_t, obj, betaBound[0], betaBound[1], path2figs)
         # update gp figs
         gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs+"/", \
                                  Rmin, Rmax,gpBounds)
         # update U figs
-        main_post.save_Ucontour(x/delta99_in, y/delta99_in, xc/delta99_in, \
-                                yc/delta99_in, UList[i], delta99List[i]/delta99_in, \
-                                    i+1, in_exc, out_exc, np.max(gpBounds), path2figs)
+        # main_post.save_Ucontour(x/delta99_in, y/delta99_in, xc/delta99_in, \
+                                # yc/delta99_in, UList[i], delta99List[i]/delta99_in, \
+                                #     i+1, in_exc, out_exc, np.max(gpBounds), path2figs)
