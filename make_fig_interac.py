@@ -70,7 +70,7 @@ def beta_components_fig(xc, x, delta99_in, U_infty, deltaStar, dpdx, tau_w, in_e
     # plot
     ln2, = ax2.plot(xc_delta, deltaStar/delta99_in, "C2", label=r"$\delta^* / \delta_{99}^{\rm in}$")
     ln1, = ax1.plot(x_delta[1:-1], dpdx*2*delta99_in/U_infty**2, "C1", \
-                    label=r"$\frac{dp}{dx} \left( \frac{\delta_{99}^{\rm in}} {\frac{1}{2}\rho U_{\infty}^{{\rm in}^2}} \right)$")
+                    label=r"$\frac{dP}{dx} \left( \frac{\delta_{99}^{\rm in}} {\frac{1}{2}\rho U_{\infty}^{{\rm in}^2}} \right)$")
     ln3, = ax3.plot(xc_delta, 2*tau_w/U_infty**2, "C3", label=r"$c_f$")
     
     ax1.vlines([x[int(Nx*in_exc)]/delta99_in,x[-int(Nx*out_exc)-1]/delta99_in], \
@@ -157,8 +157,9 @@ if __name__ == '__main__':
     dpdxBound = [np.min(dpdxList), np.max(dpdxList)]
     tau_wBound = [np.min(tau_wList), np.max(tau_wList)]
     delta99_Bound = [np.min(delta99List), np.max(delta99List)]
-    if delta99_Bound[1] >= D.Ly/2:
-        print("Warning: delta99 >= Ly/2")
+    
+    # if delta99_Bound[1] >= D.Ly/2:
+    #     print("Warning: delta99 >= Ly/2")
     
     # overwrite
     if beta_t==0:
