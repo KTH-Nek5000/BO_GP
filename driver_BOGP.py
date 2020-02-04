@@ -49,7 +49,7 @@ U_infty, delta99_in, Nx, Ny, Nz, tEnd, Lx, Ly = \
 # %% path
 import pathlib
 current_dir = str(pathlib.Path(__file__).resolve().parent)
-bupAddress = "/home/m/morita/OpenFOAM/morita-6/run/data/test"
+bupAddress = current_dir + "/storage/test"
 PATH2DATA = current_dir + "/data"
 PATH2FIGS = current_dir + "/figs"
 PATH2OFCASE = current_dir + "/OFcase"
@@ -111,8 +111,8 @@ if __name__ == '__main__':
         subprocess.call("decomposePar", shell=True)
         
         logger.info("MAIN SIMULATION START")
-        #bash OFrun.sh $nProcessors # for run in workstation (not cluster)
-        subprocess.call("sbatch jobScript", shell=True)
+        subprocess.call("bash OFrun.sh 10", shell=True) # for run in workstation (not cluster)
+        # subprocess.call("sbatch jobScript", shell=True)
         subprocess.call("wait", shell=True)
         logger.info("MAIN SIMULATION END")
         
