@@ -38,7 +38,7 @@ add_handler()
 
 # %% SETTINGS
 iStart = 1   # Starting iteration 
-iEnd = 20
+iEnd = 15
 beta_t = 0   # terget value for beta
 in_exc = 0.2   # ignore this region when assess the objective
 out_exc = 0.1
@@ -106,29 +106,29 @@ if __name__ == '__main__':
         subprocess.call("foamListTimes -rm", shell=True) # delete time directories (except 0)
         
         # preparation
-        subprocess.call("blockMesh", shell=True)
+        subprocess.check_call("blockMesh", shell=True)
         subprocess.call("wait", shell=True)
-        subprocess.call("decomposePar", shell=True)
+        subprocess.check_call("decomposePar", shell=True)
         
         logger.info("MAIN SIMULATION START")
-        subprocess.call("bash OFrun.sh 10", shell=True) # for run in workstation (not cluster)
+        subprocess.check_call("bash OFrun.sh 10", shell=True) # for run in workstation (not cluster)
         # subprocess.call("sbatch jobScript", shell=True)
         subprocess.call("wait", shell=True)
         logger.info("MAIN SIMULATION END")
         
         # post process
-        subprocess.call("reconstructPar -latestTime", shell=True)
-        subprocess.call("postProcess -func writeCellCentres -time 0", shell=True)
+        subprocess.check_call("reconstructPar -latestTime", shell=True)
+        subprocess.check_call("postProcess -func writeCellCentres -time 0", shell=True)
         # backup
         logger.info("COPY THE LATEST TIME DATA TO %s/%s" % (bupAddress,i))
         if not os.path.isdir(bupAddress + "/" + str(i)):
             os.mkdir(bupAddress + "/" + str(i))
-        subprocess.call("cp -r %d %s/%s/%d" % (tEnd,bupAddress,i,tEnd), shell=True)
-        subprocess.call("cp -r 0 %s/%s/" % (bupAddress,i), shell=True)
+        subprocess.check_call("cp -r %d %s/%s/%d" % (tEnd,bupAddress,i,tEnd), shell=True)
+        subprocess.check_call("cp -r 0 %s/%s/" % (bupAddress,i), shell=True)
         if not os.path.isdir(bupAddress + "/" + str(i) + "/constant"):
             os.mkdir(bupAddress + "/" + str(i) + "/constant")
-        subprocess.call("cp -r constant %s/%s/" % (bupAddress,i), shell=True)
-        subprocess.call("cp -r postProcessing %s/%s/" % (bupAddress,i), shell=True)
+        subprocess.check_call("cp -r constant %s/%s/" % (bupAddress,i), shell=True)
+        subprocess.check_call("cp -r postProcessing %s/%s/" % (bupAddress,i), shell=True)
         os.chdir("../")
         
         #4. Post-process OpenFOAM
@@ -146,9 +146,9 @@ if __name__ == '__main__':
         
     logger.info("################### MAIN LOOP END ####################")
     logger.info("make backup: figs/, data/, gpList.dat, log")
-    subprocess.call("cp -r %s %s/" % (PATH2FIGS,bupAddress), shell=True)
-    subprocess.call("cp -r %s %s/" % (PATH2DATA,bupAddress), shell=True)
-    subprocess.call("cp %s %s/" % (PATH2GPLIST,bupAddress), shell=True)
-    subprocess.call("cp log %s/" % (bupAddress), shell=True)
+    subprocess.check_call("cp -r %s %s/" % (PATH2FIGS,bupAddress), shell=True)
+    subprocess.check_call("cp -r %s %s/" % (PATH2DATA,bupAddress), shell=True)
+    subprocess.check_call("cp %s %s/" % (PATH2GPLIST,bupAddress), shell=True)
+    subprocess.check_call("cp log %s/" % (bupAddress), shell=True)
     
     logger.info("FINISHED")
