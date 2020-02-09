@@ -54,16 +54,17 @@ logger = logging.getLogger("Driver").getChild("gpOptim/gpOpt_TBL.py")
 #>>>> SETTINGS & PROBLEM DEFINITION -----------------------------------------
 sigma_d=0.0       #sdev of the white noise in the measured data   
 whichOptim='min'  #find 'max' or 'min' of f(x)?
-# tol_d=0.02        #minimum distace between two consequtive samples x to keep the code running
-# tol_b=0.1        #deviation between best f(x+) in two consequtive iterations (relative error)
-                  #note if err_d<tol_d and err_b<tol_b => convergence in (x_opt , f(x_opt))
-tol_abs=0.1
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
 qBound=[[40,46], [40,44]] # /delta99^in
+qMaxDist = norm([q[1]-q[0] for q in qBound])
 nPar = np.shape(qBound)[0] #number of parameters, p  dimension of x={x1,x2,...,xp} where y=f(x)
 nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
             #to avoid random sampling from the parameter space: see nextGPsample()
+tol_d=0.0*qMaxDist        #minimum distace between two consequtive samples x to keep the code running
+tol_b=0.1        #deviation between best f(x+) in two consequtive iterations (relative error)
+                  #note if err_d<tol_d and err_b<tol_b => convergence in (x_opt , f(x_opt))
+# tol_abs=0.05
 #---------------------------------------------------------------------------
 #---------------------------------------------------------------------------
 
@@ -296,7 +297,7 @@ def gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts):
         gprFinal=GPy.models.GPRegression(xGP_,yGP,kernel=K,noise_var=sigma_d**2.)
         gprFinal.constrain_positive()  #make all parameters positive
         # if you want to get exactly the same plot as "GPyOpt.plot_acquisition()",
-        # you need to let gaussicna_noise.variance to be optimized (unfixed) 
+        # you need to let gaussian_noise.variance to be optimized (unfixed) 
         gprFinal.Gaussian_noise.variance.fix()     #sigma_d = fixed
         gprFinal.optimize('bfgs', max_iters=200)   #optimization of hyperparameters
         logger.info('------------------------------------------')
@@ -377,7 +378,7 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
 
     xmin=qBound[0][0]
     xmax=qBound[0][1]
-    plt.xlabel(r'$q$',fontsize=22)
+    plt.xlabel(r'$q_1/\delta_{99}^{\rm in}$',fontsize=22)
     plt.ylabel(r'$\mathcal{R}$',fontsize=22)
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
@@ -386,7 +387,7 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
     if 'ylim' in plotOpts.keys():
        ylim=plotOpts['ylim']
        plt.ylim((ylim[0],ylim[1]))
-    plt.title(r"$N_i = %d,~ \min(\mathcal{R}) = %f$" % (np.size(yGP),xGP[-1],np.min(yGP)),fontsize=20)
+    # plt.title(r"$N_i = %d,~ \min(\mathcal{R}) = %f$" % (np.size(yGP),np.min(yGP)),fontsize=20)
     plt.grid(True);
     #save fig
     if 'figDir' in plotOpts.keys():
@@ -464,8 +465,8 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
     plt.plot(x[:,0],x[:,1],'--ok',markersize=7,label='Training Data')
     plt.plot(x[len(y)-1,0],x[len(y)-1,1],'--sr',markersize=7,label='Training Data')
     # plt.title(r'Mean GPR Prediction',fontsize=18)
-    plt.xlabel(r'$%s%s$' % ("q_", str(I+1)),fontsize=20)
-    plt.ylabel(r'$%s%s$' % ("q_", str(J+1)),fontsize=20)
+    plt.xlabel(r'$%s%s/\delta_{99}^{\rm in}$' % ("q_", str(I+1)),fontsize=20)
+    plt.ylabel(r'$%s%s/\delta_{99}^{\rm in}$' % ("q_", str(J+1)),fontsize=20)
     ##contours of uncertainty 
     ##plot only if nPar==2
     #plt.subplot(1,2,2)
@@ -483,9 +484,9 @@ def printSetting():
     """
     print global parameters
     """
-    logger.info("\nnPar = %d\nsigma_d = %f\nwhichOptim = %s\ntol_abs = %f"\
+    logger.info("\nnPar = %d\nsigma_d = %f\nwhichOptim = %s\ntol_d = %f\ntol_b = %f"\
                 "\nkernel = %s\nnGPinit = %d\nqBound = %s" % \
-                    (nPar, sigma_d, whichOptim, tol_abs, kernelType, nGPinit,\
+                    (nPar, sigma_d, whichOptim, tol_d, tol_b, kernelType, nGPinit,\
                      ', '.join(map(str, qBound))))
 
 def nextGPsample(path2gpList):
@@ -575,30 +576,40 @@ def BO_update_convergence(xLast, yLast, path2gpList='./workDir/gpList.dat', \
     if nData>1:
        [xDistList,yBestList]=\
            my_convergence_plot(xList_,yList_,whichOptim,path2figs,'bo_convergence')
-      #>>>> Converged Optimal Value:
-       # if (n>2): # check convergence
-       #     err_d=xDistList[-1]
-       #     if (err_d<tol_d):
-       #         err_b=abs(yBestList[-1]-yBestList[-2])/abs(yBestList[-1])
-       #         if (err_b<tol_b):
-       #             xOpt=xList_[xList_.shape[0]-1]
-       #             fxOpt=yList_[yList_.shape[0]-1]
-       #             print(' ******* Converged Optimal Values (x,f(x))= (%g,%g)' % (xOpt,fxOpt))
-       #             print('err_d, err_b=%f %f' %(err_d,err_b))
-       #             #send convergence signal
-       #             sys.exit(1)
+
     gpSurface_plot(xList_,yList_,nData)
+    
     # check convergence: only for minimize !!!
-    logger.debug("check convergence")
-    if yList_[-1]<=tol_abs: # take into acc
-        xOpt=xList_[-1]
-        fxOpt=yList_[-1]
-        logger.info(' ******* Converged Optimal Values q = %s, y = %f <= %f'\
-                    % (', '.join(map(str, xOpt)), fxOpt, tol_abs))
-        return 1
-    else:
-        logger.info("not converged yet, y = %f > %f" % (yList_[-1], tol_abs))
-        return 0
+    # logger.debug("check convergence")
+    # if yList_[-1]<=tol_abs: # take into acc
+    #     xOpt=xList_[-1]
+    #     fxOpt=yList_[-1]
+    #     logger.info(' ******* Converged Optimal Values q = %s, R = %f <= %f'\
+    #                 % (', '.join(map(str, xOpt)), fxOpt, tol_abs))
+    #     return 1
+    # else:
+    #     logger.info("not converged yet, R = %f > %f" % (yList_[-1], tol_abs))
+    #     return 0
+    
+          #>>>> Converged Optimal Value:
+    if nData>2: # check convergence
+        logger.debug("check convergence")
+        err_d = xDistList[-1]
+        err_b=abs(yBestList[-1]-yBestList[-2])/abs(yBestList[-1])
+        if err_d<tol_d and err_b<tol_b:
+            xOpt=xList_[-1]
+            fxOpt=yList_[-1]
+            logger.info(' ******* Converged Optimal Values q = %s, R = %f\n'
+                            ' err_d = %f < %f, err_b = %f < %f'\
+                    % (', '.join(map(str, xOpt)), fxOpt, err_d, tol_d,err_b,tol_b))
+                # print(' ******* Converged Optimal Values (x,f(x))= (%g,%g)' % (xOpt,fxOpt))
+                # print('err_d, err_b=%f %f' %(err_d,err_b))
+                #send convergence signal
+            return 1
+        else:
+            logger.info("not converged yet, err_d = %f > %f, err_b = %f > %f"\
+                            % (err_d, tol_d,err_b,tol_b))
+            return 0
     
 #////////////////////////////////////
 def gpSurface_plot(xList, yList, nData, path2figs="../figs/", Rmin=0, Rmax=0, \
@@ -614,8 +625,8 @@ def gpSurface_plot(xList, yList, nData, path2figs="../figs/", Rmin=0, Rmax=0, \
 
     #reshape the arrays according to GPy
     yGP=np.asarray(yList)
-    if nPar==1:
-        yGP=yGP[:,None]        #required by Gpy library
+    # if nPar==1:
+    #     yGP=yGP[:,None]        #required by Gpy library
     xGP=np.asarray(xList)
 
     #>>>> Reconstruct and Plot GP surrogate in parameter space

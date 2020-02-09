@@ -78,8 +78,9 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
     - update jobScript
 
   - When you change the parameterization
-    - gpOpt_TBL.py: change nPar, qBound and check ylim for gp_figure
+    - gpOpt_TBL.py: change qBound
     - check blockMeshDict
+    - check make_movie.py
 
   - When you change beta_t
     - driver: change beta_t
