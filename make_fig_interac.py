@@ -110,34 +110,43 @@ def beta_components_fig(xc, x, delta99_in, U_infty, deltaStar, dpdx, tau_w, in_e
     
 # %% ################## main ###########################
 if __name__ == '__main__':
-    # setting from driver
-    beta_t = D.beta_t
-    in_exc = D.in_exc
-    out_exc = D.out_exc
-    U_infty, delta99_in, Nx, Ny, Nz = D.U_infty, D.delta99_in, D.Nx, D.Ny, D.Nz
     
-    # paths
-    #############################
-    path2data = D.PATH2DATA
-    path2figs = D.PATH2FIGS
-    path2OFcase = D.PATH2OFCASE
-    path2gpList = D.PATH2GPLIST
-    #############################
-    # or
-    #############################
-    # PATH2CASE = D.current_dir + "/../data/2D_0.1"
-    # path2data = PATH2CASE + "/data"
-    # path2figs = PATH2CASE + "/figs"
-    # path2OFcase = PATH2CASE + "/1"
-    # path2gpList = PATH2CASE + "/gpList.dat"
-    #############################
+    isCurrentCase = True # IF FALSE, CHECK FOLLOWING IF STATEMENT CAREFULLY !!!!!
+    
+    if isCurrentCase:
+        # setting from driver
+        beta_t = D.beta_t
+        in_exc = D.in_exc
+        out_exc = D.out_exc
+        U_infty, delta99_in, Nx, Ny, Nz = D.U_infty, D.delta99_in, D.Nx, D.Ny, D.Nz
+        # paths
+        path2data = D.PATH2DATA
+        path2figs = D.PATH2FIGS
+        path2OFcase = D.PATH2OFCASE
+        path2gpList = D.PATH2GPLIST
+        # from gpOpt_TBL.py
+        gpBounds = gpOpt_TBL.BOUNDS #[(40,50),(40,50)]
+    else:
+        # setting from driver
+        beta_t = 0
+        in_exc = 0.2
+        out_exc = 0.1
+        U_infty, delta99_in, Nx, Ny, Nz = D.U_infty, D.delta99_in, D.Nx, D.Ny, D.Nz
+        # paths
+        PATH2CASE = D.current_dir + "/storage/2D_0.5"
+        path2data = PATH2CASE + "/data"
+        path2figs = PATH2CASE + "/figs"
+        path2OFcase = PATH2CASE + "/1"
+        path2gpList = PATH2CASE + "/gpList.dat"
+        # from gpOpt_TBL.py
+        gpBounds = [(60,80),(50,70)]
     
     # gp fig
-    [xList,yList]=gpOpt_TBL.read_available_GPsamples(path2gpList, gpOpt_TBL.nPar)
+    [xList,yList]=gpOpt_TBL.read_available_GPsamples(path2gpList, \
+                                                     np.shape(gpBounds)[0])
     nData = np.size(yList)
     Rmin=0
     Rmax=np.max(yList)
-    gpBounds = gpOpt_TBL.BOUNDS #[(40,50),(40,50)]
     
     xc, yc, x, y = main_post.load_grid(Nx, Ny, Nz, path2OFcase)
     
@@ -163,8 +172,8 @@ if __name__ == '__main__':
     
     # overwrite
     if beta_t==0:
-        betaBound[0] = beta_t - 0.1
-        betaBound[1] = beta_t + 0.1
+        betaBound[0] = -0.1
+        betaBound[1] = 0.1
     else:
         betaBound[0] = beta_t - 1.5*beta_t
         betaBound[1] = beta_t + 1.5*beta_t
@@ -174,13 +183,22 @@ if __name__ == '__main__':
         beta_components_fig(xc, x, delta99_in, U_infty, deltaStarList[i], dpdxList[i], \
                         tau_wList[i], in_exc, out_exc, \
                             i+1, deltaStarBound, dpdxBound, tau_wBound, path2figs)
+        
         # update beta figs
         # obj = main_post.calc_obj(betaList[i], beta_t, in_exc, out_exc)
         # main_post.save_beta_fig(i+1, x, betaList[i], delta99_in, in_exc, \
         #               out_exc, beta_t, obj, betaBound[0], betaBound[1], path2figs)
+        
         # update gp figs
-        gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs+"/", \
-                                 Rmin, Rmax,gpBounds)
+        # gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs+"/", \
+        #                           Rmin, Rmax,gpBounds)
+        # gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs+"/", \
+        #                          Rmin, Rmax,gpBounds,var=True)
+        
+        # update convergence plot
+        # gpOpt_TBL.my_convergence_plot(xList[:i+1], yList[:i+1], gpOpt_TBL.whichOptim, \
+        #                               path2figs, '/bo_convergence_%02d' % (i+1))
+        
         # update U figs
         # main_post.save_Ucontour(x/delta99_in, y/delta99_in, xc/delta99_in, \
                                 # yc/delta99_in, UList[i], delta99List[i]/delta99_in, \
