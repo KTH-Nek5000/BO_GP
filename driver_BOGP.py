@@ -37,9 +37,9 @@ def add_handler():
 add_handler()
 
 # %% SETTINGS
-iStart = 1   # Starting iteration 
+iStart = 1   # Starting iteration
 iEnd = 15
-beta_t = 0   # terget value for beta
+beta_t = 0.1   # terget value for beta
 in_exc = 0.2   # ignore this region when assess the objective
 out_exc = 0.1
 # setting for OFcase
@@ -85,6 +85,9 @@ if __name__ == '__main__':
         subprocess.call("rm -f figs/*.pdf", shell=True)
         subprocess.call("rm -f figs/png/*", shell=True)
         subprocess.call("rm -rf %s/*" % bupAddress, shell=True)
+    else:
+        assert len(X.read_available_GPsamples(PATH2GPLIST, X.nPar)[1])+1 == iStart, \
+            "gpList and iStart doesn't match"
         
     # MAIN LOOP
     for i in range(iStart, iEnd+1):

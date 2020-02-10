@@ -636,7 +636,7 @@ def gpSurface_plot(xList, yList, nData, path2figs="../figs/", Rmin=0, Rmax=0, \
     if nPar>1:
         #plot in 2D subspace of the parameters space
         plotOpts={'figDir':path2figs,
-                  'figName':'gp2D_%02d'% (nData),
+                  'figName':'gp%01dD_%02d'% (nPar,nData),
                   'kernelType':kernelType,   #required to construct the final GPR
                   'whichOptim':whichOptim}
         if not (Rmin==0 and Rmax==0):
