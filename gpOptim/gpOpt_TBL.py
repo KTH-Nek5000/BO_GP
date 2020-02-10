@@ -56,7 +56,7 @@ sigma_d=0.0       #sdev of the white noise in the measured data
 whichOptim='min'  #find 'max' or 'min' of f(x)?
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-qBound=[[40,46], [40,44]] # /delta99^in
+qBound=[[45,55], [40,50]] # /delta99^in
 qMaxDist = norm([q[1]-q[0] for q in qBound])
 nPar = np.shape(qBound)[0] #number of parameters, p  dimension of x={x1,x2,...,xp} where y=f(x)
 nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
@@ -165,19 +165,19 @@ def my_convergence_plot(xList,yList,whichOptim,figDir,figName):
     
     fig=plt.figure()
     plt.subplot(2,1,1)
-    plt.semilogy(range(1,nData),xDistList,'-ob',lw=2)
-    plt.title("Distance between 2 consecutive parameter samples",fontsize=20)
-    plt.xlabel(r'$N$',fontsize=20)
-    plt.ylabel(r'$\| \mbox{\boldmath{$q$}}^{(n+1)} - \mbox{\boldmath{$q$}}^{(n)} \|_2$',fontsize=22)
+    plt.semilogy(range(2,nData+1),xDistList,'-ob',lw=2)
+    # plt.title("Distance between 2 consecutive parameter samples",fontsize=20)
+    plt.xlabel(r'${\rm iteration}~i$',fontsize=20)
+    plt.ylabel(r'$\| \mbox{\boldmath{$q$}}_i - \mbox{\boldmath{$q$}}_{i-1} \|_2$',fontsize=22)
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
     plt.grid(True)
     plt.gca().get_xaxis().set_major_locator(ticker.MaxNLocator(integer=True))
     plt.subplot(2,1,2)
     plt.semilogy(range(1,nData+1),yBestList,'-or',lw=2)
-    plt.title('Best Value So Far',fontsize=20)
-    plt.xlabel(r'$N$',fontsize=20)
-    plt.ylabel(r'${\rm min}~(\mathcal{R})$',fontsize=22)
+    # plt.title('Best Value So Far',fontsize=20)
+    plt.xlabel(r'${\rm iteration}~i$',fontsize=20)
+    plt.ylabel(r'${\rm min}~(\mathcal{R}_{1:i})$',fontsize=22)
     plt.gca().get_xaxis().set_major_locator(ticker.MaxNLocator(integer=True))
     plt.tick_params(labelsize=20)
     plt.grid(True)
@@ -333,7 +333,10 @@ def gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts):
           os.makedirs(figDir)
     if 'figName' in plotOpts.keys():
        figName=plotOpts['figName']
+       if "varFlag" in plotOpts.keys():
+           figName="var_"+figName
        figSave=figDir+figName
+       
     fig = plt.gcf()
     DPI = fig.get_dpi()
     fig.set_size_inches(figSize/float(DPI),figSize/float(DPI))
@@ -351,7 +354,7 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
     if 'whichOptim' in plotOpts.keys():
        if plotOpts['whichOptim']=='max':   #for plotting the GPR after computing max
           meanPred=-meanPred;
-          yTrain=-yGP
+          # yTrain=-yGP
           # ifac=-1.0
     n=len(meanPred);
     #confidence interval
@@ -396,13 +399,13 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
           os.makedirs(figDir)
     if 'figName' in plotOpts.keys():
        figName=plotOpts['figName']
-       figSave=figDir+figName
+       # figSave=figDir+figName
     fig = plt.gcf()
     DPI = fig.get_dpi()
     fig.set_size_inches(1000/float(DPI),500/float(DPI))
-    if 'figSave' in locals():
-       plt.savefig(figDir+figName+'.pdf',bbox_inches='tight')
-       logger.info("save figure as %s%s.pdf" % (figDir,figName))
+    # if 'figSave' in locals():
+    plt.savefig(figDir+figName+'.pdf',bbox_inches='tight')
+    logger.info("save figure as %s%s.pdf" % (figDir,figName))
     #plt.show()
 
 #///////////////////////////
@@ -449,14 +452,10 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     if "Rmin" in plotOpts.keys():
-        # CS=plt.contourf(x1TestGrid,x2TestGrid,meanPredGrid,40,cmap="jet",vmin=plotOpts["Rmin"],vmax=plotOpts["Rmax"])#,label=r'$95\%$ confidence')
         CS=ax.contourf(x1TestGrid,x2TestGrid,meanPredGrid, \
                        levels=np.linspace(plotOpts["Rmin"],plotOpts["Rmax"],41), \
                            cmap="jet",norm=Normalize(vmin=plotOpts["Rmin"], vmax=plotOpts["Rmax"]),extend='both')
-        # CS.set_clim(vmin=plotOpts["Rmin"], vmax=plotOpts["Rmax"])
         clb = fig.colorbar(CS)
-        # print(plotOpts["Rmax"])
-        
     else:
         CS=plt.contourf(x1TestGrid,x2TestGrid,meanPredGrid,40,cmap="jet")#,label=r'$95\%$ confidence')
         clb = plt.colorbar(CS)
@@ -468,15 +467,18 @@ def gpyPlotter_2Dc(meanPred,covarPred,x,y,x1TestGrid,x2TestGrid,I,J,plotOpts):
     plt.xlabel(r'$%s%s/\delta_{99}^{\rm in}$' % ("q_", str(I+1)),fontsize=20)
     plt.ylabel(r'$%s%s/\delta_{99}^{\rm in}$' % ("q_", str(J+1)),fontsize=20)
     ##contours of uncertainty 
-    ##plot only if nPar==2
-    #plt.subplot(1,2,2)
-    #ax=plt.gca()
-    #CS=plt.contour(x1TestGrid,x2TestGrid,1.96*np.sqrt(covarPredGrid),40)#,label=r'$95\%$ confidence')
-    #plt.clabel(CS, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
-    #plt.xlabel('q'+str(I+1),fontsize=20)
-    #plt.ylabel('q'+str(J+1),fontsize=20)
-    #plt.title(r'$95\%$ Uncertainty',fontsize=18)
-    # fig.tight_layout()
+    if "varFlag" in plotOpts.keys():
+        fig=plt.figure()
+        ax=fig.add_subplot(111)
+        # CS=ax.contourf(x1TestGrid,x2TestGrid,1.96*np.sqrt(covarPredGrid),40,cmap="jet")#,label=r'$95\%$ confidence')
+        CS=ax.contourf(x1TestGrid,x2TestGrid,covarPredGrid,40,cmap="jet")#,label=r'$95\%$ confidence')
+        # plt.clabel(CS, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
+        clb = plt.colorbar(CS)
+        clb.set_label(r"${\rm Var}\left( \mathcal{R} \right)$")
+        plt.xlabel(r'$%s%s/\delta_{99}^{\rm in}$' % ("q_", str(I+1)),fontsize=20)
+        plt.ylabel(r'$%s%s/\delta_{99}^{\rm in}$' % ("q_", str(J+1)),fontsize=20)
+        # plt.title(r'$95\%$ Uncertainty',fontsize=18)
+        fig.tight_layout()
     return fig
 
 # %% EXECUTABLE FUNCTIONS
@@ -575,7 +577,8 @@ def BO_update_convergence(xLast, yLast, path2gpList='./workDir/gpList.dat', \
     nData=len(yList_)
     if nData>1:
        [xDistList,yBestList]=\
-           my_convergence_plot(xList_,yList_,whichOptim,path2figs,'bo_convergence')
+           my_convergence_plot(xList_,yList_,whichOptim,path2figs,\
+                               'bo_convergence_%02d' % nData)
 
     gpSurface_plot(xList_,yList_,nData)
     
@@ -613,7 +616,7 @@ def BO_update_convergence(xLast, yLast, path2gpList='./workDir/gpList.dat', \
     
 #////////////////////////////////////
 def gpSurface_plot(xList, yList, nData, path2figs="../figs/", Rmin=0, Rmax=0, \
-                   bounds=BOUNDS):
+                   bounds=BOUNDS,var=False):
     """ 
        Reconstruct the GPR and plot it in 2D (or 1D) planes of the parameters admissible space
     """
@@ -639,6 +642,8 @@ def gpSurface_plot(xList, yList, nData, path2figs="../figs/", Rmin=0, Rmax=0, \
         if not (Rmin==0 and Rmax==0):
             plotOpts["Rmin"]=Rmin
             plotOpts["Rmax"]=Rmax
+        if var==True:
+            plotOpts["varFlag"]=True
         gpOpt2d_postProc(nPar,xGP,yGP,sigma_d,bounds,plotOpts)
     elif nPar==1:
         if Rmin==0 and Rmax==0:
