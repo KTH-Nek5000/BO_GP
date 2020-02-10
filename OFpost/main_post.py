@@ -344,7 +344,7 @@ def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj, \
     plt.xlim(xmin,xmax)
     plt.ylim(ymin,ymax)
     plt.grid(True)
-    plt.title(r'$N_i = %d, \mathcal{R} = %f$' % (iMain,obj))
+    plt.title(r'$i = %d, \mathcal{R}_i = %f$' % (iMain,obj))
     saveFileName = "/beta_%02d" % iMain
     plt.savefig(path2figs + saveFileName + ".pdf",bbox_inches="tight")
     logger.info("save beta figure as %s%s.pdf" % (path2figs, saveFileName))
