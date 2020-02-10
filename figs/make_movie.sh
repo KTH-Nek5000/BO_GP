@@ -11,7 +11,7 @@ set -eu
 #fi
 
 outputFileName="opt_hist"
-figs=("beta" "gp2D" "U" "comp")
+figs=("beta" "gp2D" "U" "comp" "bo_convergence")
 
 for fig in ${figs[@]}; do
     files="$fig*.pdf" # take list of pdf files
@@ -24,7 +24,7 @@ for fig in ${figs[@]}; do
 	mv png/${filename}-1.png png/$filename.png # rename
     done
     echo "############### make $fig.avi from .png files###############"
-    ffmpeg -y -framerate 0.5 -i png/${fig}_%02d.png png/tmp.avi # overwrite, 1 pic/sec
+    ffmpeg -y -framerate 0.5 -i png/${fig}_%02d.png png/tmp.avi # overwritten, 0.5 pic/sec
     wait
     echo "############# rescaling#################"
     ffmpeg -y -i png/tmp.avi -vf scale=800:600 png/$fig.avi # rescale
@@ -42,4 +42,4 @@ echo "################### png/${figs[0]}.avi + png/${figs[1]}.avi + png/${figs[2
 # 4 figures
 #ffmpeg -y -i png/${figs[0]}.avi -i png/${figs[1]}.avi -i png/${figs[2]}.avi -i png/${figs[3]}.avi -filter_complex "[0:v][1:v][2:v][3:v]xstack=inputs=4:layout=0_0|w0_0|0_h0|w0_h0[v]" -map "[v]" png/$outputFileName.avi
 
-ffmpeg -y -i png/${figs[2]}.avi -i png/${figs[1]}.avi -i png/${figs[0]}.avi -i png/${figs[3]}.avi -filter_complex "[0:v][1:v]hstack=inputs=2[top];[2:v][3:v]hstack=inputs=2[bottom];[top][bottom]vstack=inputs=2[v]"  -map "[v]" png/$outputFileName.avi
+ffmpeg -y -i png/${figs[2]}.avi -i png/${figs[1]}.avi -i png/${figs[0]}.avi -i png/${figs[3]}.avi -filter_complex "[0:v][1:v]hstack=inputs=2[top];[2:v][3:v]hstack=inputs=2[bottom];[top][bottom]vstack=inputs=2[v]" -map "[v]" png/$outputFileName.wmv
