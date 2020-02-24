@@ -411,7 +411,7 @@ def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta, U, delta99_delta, iMain,
 #    cax = divider.new_horizontal(size="2%", pad=0.05)
 #    fig.add_axes(cax)
     clb = plt.colorbar(im,cax=cax)
-    clb.set_label(r"$U/U_\infty^{\rm in}$")
+    clb.set_label(r"$U/U_e^{\rm in}$")
     ax.set_xlim(0,xmax)
     ax.set_ylim(0,ymax)
     ax.set_xlabel(r"$x/ \delta_{99}^{\rm in}$")

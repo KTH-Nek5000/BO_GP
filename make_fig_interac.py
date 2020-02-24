@@ -85,7 +85,7 @@ def beta_components_fig(xc, x, delta99_in, U_infty, deltaStar, dpdx, tau_w, in_e
     
     ax1.set_xlabel(r'$x/\delta_{99}^{\rm in}$')
     ax2.set_ylabel(r'$\delta^*/\delta_{99}^{\rm in}$')
-    ax1.set_ylabel(r'$\frac{dp}{dx} \left( \frac{\delta_{99}^{\rm in}} {\frac{1}{2}\rho U_{\infty}^{{\rm in}^2}} \right)$')
+    ax1.set_ylabel(r'$\frac{dp}{dx} \left( \frac{\delta_{99}^{\rm in}} {\frac{1}{2}\rho U_e^{{\rm in}^2}} \right)$')
     ax3.set_ylabel(r"$c_f$")
     
     ax1.set_xlim(x_delta[0],x_delta[-1])
@@ -125,7 +125,7 @@ if __name__ == '__main__':
         path2OFcase = D.PATH2OFCASE
         path2gpList = D.PATH2GPLIST
         # from gpOpt_TBL.py
-        gpBounds = gpOpt_TBL.BOUNDS #[(40,50),(40,50)]
+        gpBounds = gpOpt_TBL.qBound#BOUNDS #[(40,50),(40,50)]
     else:
         # setting from driver
         beta_t = 0
@@ -180,9 +180,9 @@ if __name__ == '__main__':
     
     for i in range(nData):
         # comp*.pdf
-        beta_components_fig(xc, x, delta99_in, U_infty, deltaStarList[i], dpdxList[i], \
-                        tau_wList[i], in_exc, out_exc, \
-                            i+1, deltaStarBound, dpdxBound, tau_wBound, path2figs)
+        # beta_components_fig(xc, x, delta99_in, U_infty, deltaStarList[i], dpdxList[i], \
+        #                 tau_wList[i], in_exc, out_exc, \
+        #                     i+1, deltaStarBound, dpdxBound, tau_wBound, path2figs)
         
         # update beta figs
         # obj = main_post.calc_obj(betaList[i], beta_t, in_exc, out_exc)
@@ -190,8 +190,8 @@ if __name__ == '__main__':
         #               out_exc, beta_t, obj, betaBound[0], betaBound[1], path2figs)
         
         # update gp figs
-        # gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs+"/", \
-        #                           Rmin, Rmax,gpBounds)
+        gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs+"/", \
+                                  Rmin, Rmax,gpBounds)
         # gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs+"/", \
         #                          Rmin, Rmax,gpBounds,var=True)
         
