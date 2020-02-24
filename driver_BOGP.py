@@ -38,8 +38,8 @@ add_handler()
 
 # %% SETTINGS
 iStart = 1   # Starting iteration
-iEnd = 15
-beta_t = 0.1   # terget value for beta
+iEnd = 50
+beta_t = 1   # terget value for beta
 in_exc = 0.2   # ignore this region when assess the objective
 out_exc = 0.1
 # setting for OFcase

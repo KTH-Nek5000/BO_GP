@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-update U_infty, delta99_in, Nx, Ny, Nz in driver_BOGP
+update U_infty, delta99_in, Nx, Ny, Nz
 update yTopParams.in
 update blockMeshDict
 ##### EXECUTE "blockMesh" and "postProcess -func writeCellCentres -time 0"
-
+##### EXECUTE at pgTBL_optim/inflow
 """
 # %matplotlib inline
 import numpy as np
@@ -27,7 +27,7 @@ import database
 # rc('text', usetex=True)
 
 # %% global
-path2run = ".."
+path2run = "../.."
 caseName = 'OFcase' # for grid
 wall=2
 
@@ -175,18 +175,12 @@ if __name__ == '__main__':
     ref2010 = database.RefData(2010)
     ref2010.get_profile("0670")
     
-    epsilon_pr = np.loadtxt("./bl_data/bud_0670_dns_k.prof", skiprows=15, unpack=True)[4]
+    epsilon_pr = np.loadtxt("bl_data/bud_0670_dns_k.prof", skiprows=15, unpack=True)[4]
     
     # %% grid load
-    # cls_ = database.OFresult(caseName, autoLoad=False)
-    # cls_.get_grid()
-    # Nx = cls_.dict["Nx"]
-    # Ny = cls_.dict["Ny"]
-    # Uinf = cls_.dict["Uinf"]
-    # delta99_in = cls_.dict["delta99_in"]
     
-    Uinf, delta99_in, Nx, Ny, Nz = 1, 0.05, int(500), int(218), int(1)
-        
+    Uinf, delta99_in, Nx, Ny, Nz = 1, 0.05, int(1000), int(218), int(1)
+    
     xc, yc, x, y = postProcess_func.load_grid(path2run,caseName,Nx,Ny,Nz)
     yc = yc[:,0] # inlet
     

@@ -11,7 +11,7 @@ set -eu
 #fi
 
 outputFileName="opt_hist"
-figs=("beta" "gp2D" "U" "comp" "bo_convergence")
+figs=("beta" "gp3D" "U" "comp" "bo_convergence")
 
 for fig in ${figs[@]}; do
     files="$fig*.pdf" # take list of pdf files

@@ -77,9 +77,11 @@ blocks
 edges
 (
  spline 4 5 (
+	     (10 $theta3 0)
 	     ($LxHalf $theta2 0)
 	     )
  spline 10 11 (
+	       (10 $theta3 1)
 	       ($LxHalf $theta2 1)
 	       )
 );
