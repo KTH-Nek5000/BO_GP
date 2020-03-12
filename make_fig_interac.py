@@ -70,7 +70,7 @@ def beta_components_fig(xc, x, delta99_in, U_infty, deltaStar, dpdx, tau_w, in_e
     # plot
     ln2, = ax2.plot(xc_delta, deltaStar/delta99_in, "C2", label=r"$\delta^* / \delta_{99}^{\rm in}$")
     ln1, = ax1.plot(x_delta[1:-1], dpdx*2*delta99_in/U_infty**2, "C1", \
-                    label=r"$\frac{dP}{dx} \left( \frac{\delta_{99}^{\rm in}} {\frac{1}{2}\rho U_{\infty}^{{\rm in}^2}} \right)$")
+                    label=r"$\frac{dP}{dx} \left( \frac{\delta_{99}^{\rm in}} {\frac{1}{2}\rho U_e^{{\rm in}^2}} \right)$")
     ln3, = ax3.plot(xc_delta, 2*tau_w/U_infty**2, "C3", label=r"$c_f$")
     
     ax1.vlines([x[int(Nx*in_exc)]/delta99_in,x[-int(Nx*out_exc)-1]/delta99_in], \
@@ -111,7 +111,7 @@ def beta_components_fig(xc, x, delta99_in, U_infty, deltaStar, dpdx, tau_w, in_e
 # %% ################## main ###########################
 if __name__ == '__main__':
     
-    isCurrentCase = True # IF FALSE, CHECK FOLLOWING IF STATEMENT CAREFULLY !!!!!
+    isCurrentCase = False # IF FALSE, CHECK FOLLOWING IF STATEMENT CAREFULLY !!!!!
     
     if isCurrentCase:
         # setting from driver
@@ -125,30 +125,29 @@ if __name__ == '__main__':
         path2OFcase = D.PATH2OFCASE
         path2gpList = D.PATH2GPLIST
         # from gpOpt_TBL.py
-        gpBounds = gpOpt_TBL.qBound#BOUNDS #[(40,50),(40,50)]
+        gpBounds = gpOpt_TBL.qBound #BOUNDS #[(40,50),(40,50)]
     else:
         # setting from driver
-        beta_t = 0
-        in_exc = 0.2
+        beta_t = 1
+        in_exc = 0.4
         out_exc = 0.1
         U_infty, delta99_in, Nx, Ny, Nz = D.U_infty, D.delta99_in, D.Nx, D.Ny, D.Nz
         # paths
-        PATH2CASE = D.current_dir + "/storage/2D_0.5"
+        PATH2CASE = D.current_dir + "/storage/2D_1_0.4"
         path2data = PATH2CASE + "/data"
         path2figs = PATH2CASE + "/figs"
-        path2OFcase = PATH2CASE + "/1"
+        path2OFcase = PATH2CASE + "/1" # for grid
         path2gpList = PATH2CASE + "/gpList.dat"
         # from gpOpt_TBL.py
-        gpBounds = [(60,80),(50,70)]
+        gpBounds = [(75,95),(60,80)]
     
     # gp fig
     [xList,yList]=gpOpt_TBL.read_available_GPsamples(path2gpList, \
-                                                     np.shape(gpBounds)[0])
+                                                     nPar_=np.shape(gpBounds)[0])
     nData = np.size(yList)
-    Rmin=0
-    Rmax=np.max(yList)
+    Rlim = [0, np.max(yList)]
     
-    xc, yc, x, y = main_post.load_grid(Nx, Ny, Nz, path2OFcase)
+    xc, yc, x, y = main_post.load_grid(Nx, Ny, Nz, path2OFcase) # needs to be overwritten
     
     # load *.npy
     Re_thetaList = read_npy("Re_theta", nData, path2data)
@@ -178,6 +177,13 @@ if __name__ == '__main__':
         betaBound[0] = beta_t - 1.5*beta_t
         betaBound[1] = beta_t + 1.5*beta_t
     
+    # gp final
+    # gpOpt_TBL.gpSurface_plot(xList[:nData], yList[:nData], nData, path2figs=path2figs+"/", \
+    #                               Rlim=[0,5], bounds=gpBounds,var=False,final=True)
+    gpOpt_TBL.gpSurface_plot(xList[:nData], yList[:nData], nData, path2figs=path2figs+"/", \
+                                   bounds=gpBounds,var=True,final=True)
+    # for i in range(1):
+    # i=14
     for i in range(nData):
         # comp*.pdf
         # beta_components_fig(xc, x, delta99_in, U_infty, deltaStarList[i], dpdxList[i], \
@@ -186,20 +192,28 @@ if __name__ == '__main__':
         
         # update beta figs
         # obj = main_post.calc_obj(betaList[i], beta_t, in_exc, out_exc)
-        # main_post.save_beta_fig(i+1, x, betaList[i], delta99_in, in_exc, \
-        #               out_exc, beta_t, obj, betaBound[0], betaBound[1], path2figs)
-        
+        # main_post.save_beta_fig(i+1, x, betaList[i], delta99_in, in_exc,
+        #                         out_exc, beta_t, obj, betaMin=betaBound[0], 
+        #                         betaMax=betaBound[1], path2figs=path2figs)
+        # main_post.save_beta_fig(i+1, x, betaList[i], delta99_in, in_exc,
+                            # out_exc, beta_t, obj, betaMin=-0.01,betaMax=0.01,
+                            #  path2figs=path2figs+"/../../thesisFigs")    
         # update gp figs
-        gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs+"/", \
-                                  Rmin, Rmax,gpBounds)
-        # gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs+"/", \
-        #                          Rmin, Rmax,gpBounds,var=True)
+        # gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs=path2figs+"/", \
+        #                           Rlim=Rlim, bounds=gpBounds,var=False)
+        
+        gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs=path2figs+"/", \
+                                  bounds=gpBounds,var=True)
         
         # update convergence plot
         # gpOpt_TBL.my_convergence_plot(xList[:i+1], yList[:i+1], gpOpt_TBL.whichOptim, \
         #                               path2figs, '/bo_convergence_%02d' % (i+1))
         
         # update U figs
-        # main_post.save_Ucontour(x/delta99_in, y/delta99_in, xc/delta99_in, \
-                                # yc/delta99_in, UList[i], delta99List[i]/delta99_in, \
-                                #     i+1, in_exc, out_exc, np.max(gpBounds), path2figs)
+        # xc, yc, x, y = main_post.load_grid(Nx, Ny, Nz, PATH2CASE+"/%d"%(i+1))
+        
+        # main_post.save_Ucontour(x/delta99_in, y/delta99_in, xc/delta99_in,
+        #                         yc/delta99_in, UList[i], delta99List[i]/delta99_in,
+        #                         i+1, in_exc, out_exc, xList[i], ymax=np.max(gpBounds), 
+        #                         path2figs=path2figs)
+        
