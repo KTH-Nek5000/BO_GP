@@ -136,7 +136,7 @@ if __name__ == '__main__':
         
         #4. Post-process OpenFOAM
         obj = main_post.main(beta_t, in_exc, out_exc, i, U_infty, delta99_in, \
-                             Nx, Ny, Nz, tEnd)
+                             Nx, Ny, Nz, tEnd, newQ)
         
         #5. Post-process optimization
         os.chdir("./gpOptim")
