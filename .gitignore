@@ -18,3 +18,4 @@ gpOptim/__pycache__
 #gpOptim/workDir/gpList.dat
 inflow/__pycache__
 inflow/bl_data
+storage/
