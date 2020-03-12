@@ -7,7 +7,7 @@ called from driver_BOGP.py
 write new geometry to "path2case"/system/yTopParams.in
 """
 # %% import libraries
-# import numpy as np
+import numpy as np
 import sys
 
 # %% logging
@@ -40,6 +40,9 @@ def write_yTopParams(Nx,Ny,Lx,Ly,theta,U_infty,t,path2case):
     write theta, Nx, NxHalf, Ny, NyHalf, Lx, LxHalf, Ly, LyHalf, dt, tEnd
         to "path2case"/system/yTopParams.in
     """
+    nPar=np.size(theta)
+    dx=Lx/Nx
+    dt=dx/U_infty
     try:
         scf = open('%s/system/yTopParams.in' % path2case,'w')
         for i,param in enumerate(theta):
@@ -49,11 +52,10 @@ def write_yTopParams(Nx,Ny,Lx,Ly,theta,U_infty,t,path2case):
         scf.write("Ny %d;\n" % Ny)
         scf.write("NyHalf %d;\n" % (Ny//2))
         scf.write("Lx %f;\n" % Lx)
-        scf.write("LxHalf %f;\n" % (Lx/2))
+        for i in range(1,nPar):
+            scf.write("Lx%d %f;\n" % (i+1,Lx-Lx/nPar*i))
         scf.write("Ly %f;\n" % Ly)
         scf.write("LyHalf %f;\n" % (Ly/2))
-        dx=Lx/Nx
-        dt=dx/U_infty
         scf.write("dt %f;\n" % dt)
         scf.write("tEnd %d;\n" % t)
     except:
