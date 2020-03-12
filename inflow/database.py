@@ -91,46 +91,56 @@ def get_bl_ref(year):
 #        delta99,deltaStar,theta,Re_delta
 
 # from 2010(DNS) or 2014(LES) data
-def get_refProfile(path2file,LESflag=0): # default DNS
+def get_refProfile(path2file,LESflag=False): # default DNS
     if LESflag:
         skiprows=12
     else:
         skiprows=14
+        
     try:
-        y_delta99, yp, Up, urms_p, vrms_p, wrms_p\
-            = np.loadtxt(path2file, skiprows=skiprows, unpack=True)[:6]
+        tmp = np.loadtxt(path2file, skiprows=skiprows, unpack=True)
+        # y_delta99, yp, Up, urms_p, vrms_p, wrms_p\
+        #     = np.loadtxt(path2file, skiprows=skiprows, unpack=True)[:6]
+        # Vp = np.loadtxt(path2file, skiprows=skiprows)
     except:
         logger.error("Cannot read %s" % path2file)
         sys.exit(1)
-    return y_delta99, yp, Up, urms_p, vrms_p, wrms_p
-
-def get_refProfileAll(LESflag=0):
+    
+    y_delta99, yp, Up, urms_p, vrms_p, wrms_p = tmp[:6]
     if LESflag:
-        Re_thetaList = np.array(['01000','02000','03000','04000','05000','06000',\
-                         '07000','08000','09000','10000','11000'])
+        Vp = tmp[:,-1]
     else:
-        Re_thetaList = np.array(['0670','1000','1410','2000','2540','3030','3270',\
-                             '3630','3970','4060'])
+        Vp = tmp[:,13]
     
-    y_delta = np.empty(0)
-    yp = np.empty(0)
-    Up = np.empty(0)
+    return y_delta99, yp, Up, Vp, urms_p, vrms_p, wrms_p
+
+# def get_refProfileAll(LESflag=0):
+#     if LESflag:
+#         Re_thetaList = np.array(['01000','02000','03000','04000','05000','06000',\
+#                          '07000','08000','09000','10000','11000'])
+#     else:
+#         Re_thetaList = np.array(['0670','1000','1410','2000','2540','3030','3270',\
+#                              '3630','3970','4060'])
     
-    for i in Re_thetaList:
-        if LESflag:
-            path2file="./bl_data/LES/RE8000/vel_%s_.prof" % i
-        else:
-            path2file="./bl_data/vel_%s_dns.prof" % i
-        tmp,tmp1,tmp2 = get_refProfile(path2file,LESflag)[:3]
-        # 1D array
-        y_delta = np.append(y_delta,tmp)
-        yp = np.append(yp,tmp1)
-        Up = np.append(Up,tmp2)
+#     y_delta = np.empty(0)
+#     yp = np.empty(0)
+#     Up = np.empty(0)
     
-    y_delta = y_delta.reshape([len(Re_thetaList),-1])
-    yp = yp.reshape([len(Re_thetaList),-1])
-    Up = Up.reshape([len(Re_thetaList),-1])
-    return y_delta, yp, Up
+#     for i in Re_thetaList:
+#         if LESflag:
+#             path2file="./bl_data/LES/RE8000/vel_%s_.prof" % i
+#         else:
+#             path2file="./bl_data/vel_%s_dns.prof" % i
+#         tmp,tmp1,tmp2 = get_refProfile(path2file,LESflag)[:3]
+#         # 1D array
+#         y_delta = np.append(y_delta,tmp)
+#         yp = np.append(yp,tmp1)
+#         Up = np.append(Up,tmp2)
+    
+#     y_delta = y_delta.reshape([len(Re_thetaList),-1])
+#     yp = yp.reshape([len(Re_thetaList),-1])
+#     Up = Up.reshape([len(Re_thetaList),-1])
+#     return y_delta, yp, Up
 
 # %% classes
 class RefData(): 
@@ -146,26 +156,29 @@ class RefData():
         if self.year != 2010 and self.year != 2014:
             logger.critical("profile available only from 2010, 2014")
             sys.exit(1)
+            
         if self.year == 2014:
-            LESflag = 1
+            LESflag = True
         else:
-            LESflag = 0
+            LESflag = False
+            
         if LESflag:
             path2file="./bl_data/LES/RE8000/vel_%s_.prof" % Re_theta
         else:
             path2file="./bl_data/vel_%s_dns.prof" % Re_theta
-        self.y_delta, self.yp, self.Up, self.urms_p, self.vrms_p, self.wrms_p\
+            
+        self.y_delta, self.yp, self.Up, self.Vp, self.urms_p, self.vrms_p, self.wrms_p\
             = get_refProfile(path2file, LESflag)
     
-    def get_profileAll(self): # only for 2010 & 2014
-        if self.year != 2010 and self.year != 2014:
-            logger.critical("profile available only from 2010, 2014")
-            sys.exit(1)
-        if self.year == 2014:
-            LESflag = 1
-        else:
-            LESflag = 0
-        self.y_delta, self.yp, self.Up = get_refProfileAll(LESflag)
+    # def get_profileAll(self): # only for 2010 & 2014
+    #     if self.year != 2010 and self.year != 2014:
+    #         logger.critical("profile available only from 2010, 2014")
+    #         sys.exit(1)
+    #     if self.year == 2014:
+    #         LESflag = 1
+    #     else:
+    #         LESflag = 0
+    #     self.y_delta, self.yp, self.Up = get_refProfileAll(LESflag)
     
     def set_label(self, labelName):
         self.label = labelName
