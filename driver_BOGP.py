@@ -12,9 +12,9 @@
 import subprocess
 import os
 
-from OFpost import main_post
-from OFpre import main_pre
-from gpOptim import gpOpt_TBL as X
+# from OFpost import main_post
+# from OFpre import main_pre
+# from gpOptim import gpOpt_TBL as X
 
 # %% logging
 import logging
@@ -49,7 +49,7 @@ U_infty, delta99_in, Nx, Ny, Nz, tEnd, Lx, Ly = \
 # %% path
 import pathlib
 current_dir = str(pathlib.Path(__file__).resolve().parent)
-bupAddress = current_dir + "/storage/test"
+bupAddress = current_dir + "/storage/current"
 PATH2DATA = current_dir + "/data"
 PATH2FIGS = current_dir + "/figs"
 PATH2OFCASE = current_dir + "/OFcase"
@@ -57,6 +57,9 @@ PATH2GPLIST = current_dir + "/gpOptim/workDir/gpList.dat"
 
 # %% MAIN
 if __name__ == '__main__':
+    from OFpost import main_post
+    from OFpre import main_pre
+    from gpOptim import gpOpt_TBL as X
     # initialiization
     subprocess.call('clear')
     logger.info("CHECK KERBEROS VALIDITY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!")

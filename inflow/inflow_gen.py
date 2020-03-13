@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+inflow/
+
 update U_infty, delta99_in, Nx, Ny, Nz
 update yTopParams.in
 update blockMeshDict
 ##### EXECUTE "blockMesh" and "postProcess -func writeCellCentres -time 0"
 ##### EXECUTE at pgTBL_optim/inflow
 """
-# %matplotlib inline
+
 import numpy as np
 import matplotlib.pyplot as plt
 # import subprocess
@@ -17,23 +19,26 @@ from scipy import interpolate
 import postProcess_func
 import database
 
-# import pathlib
-# current_dir = pathlib.Path(__file__).resolve().parent
-# sys.path.append( str(current_dir) + '/..' )
-# import driver_BOGP as D
+import pathlib
+current_dir = pathlib.Path(__file__).resolve().parent
+sys.path.append( str(current_dir) + '/..' )
+import driver_BOGP as D
 
 # font setting
 # from matplotlib import rc
 # rc('text', usetex=True)
 
 # %% global
-path2run = "../.."
-caseName = 'OFcase' # for grid
+# path for grid
+path2case_grid = D.PATH2OFCASE
+# caseName_grid = 'OFcase' # for grid
+# Uinf, delta99_in, Nx, Ny, Nz = 1, 0.05, int(1000), int(218), int(1)
+Uinf, delta99_in, Nx, Ny, Nz = D.U_infty, D.delta99_in, D.Nx, D.Ny, D.Nz
 wall=2
 
 # %% logging
 import logging
-# # create logger
+# create logger
 logger = logging.getLogger() # root logger
 if (logger.hasHandlers()):
     logger.handlers.clear()
@@ -53,7 +58,7 @@ def add_handler():
 add_handler()
 
 # %% funcs
-def write_IC(profName, prof, Nx, path=""): # default: database.PATH2RUN/caseName/0/
+def write_IC(profName, prof, Nx, path2case=D.PATH2OFCASE, V=None):
     #  Headers
     header='/*--------------------------------*- C++ -*----------------------------------*\ \n'\
             '  =========                 |\n'\
@@ -70,6 +75,7 @@ def write_IC(profName, prof, Nx, path=""): # default: database.PATH2RUN/caseName
     ss='\n'
     
     if profName=="U":
+        # assert V is not None
         dataType = 'nonuniform List<vector>'
     else:
         dataType= 'nonuniform List<scalar>'
@@ -78,15 +84,22 @@ def write_IC(profName, prof, Nx, path=""): # default: database.PATH2RUN/caseName
     Ny=len(prof)
     
     # write
-    if len(path)==0:
-        scf=open(database.PATH2RUN+'/%s/0/%s_IC' % (caseName,profName),'w') # overwrite
-    else:
-        scf=open('%s/%s_IC' % (path,profName),'w') # overwrite
+    # if path:
+    #     scf=open('%s/%s_IC' % (path,profName),'w')
+    #     logger.info('%s/%s_IC is written' % (path,profName))
+    # else:
+    #     scf=open(database.PATH2RUN+'/%s/0/%s_IC' % (caseName,profName),'w')
+    #     logger.info('%s/%s/0/%s_IC is written' % (database.PATH2RUN,caseName,profName))
+    
+    scf=open('%s/0/%s_IC' % (path2case,profName),'w')
+    logger.info('%s/0/%s_IC is written' % (path2case,profName))
+    
     scf.write(header)
     scf.write('%s_inflow_low %s%s(%s' % (profName,dataType,ss,ss))
     for i in range(int(Ny/2)):
         if profName=="U":
             scf.write('    (%g %g %g)%s' %(prof[i],0,0,ss))
+            # scf.write('    (%g %g %g)%s' %(prof[i],V[i],0,ss))
         else:
             scf.write('    %g%s' %(prof[i],ss))
     scf.write(');%s' % (ss))
@@ -95,6 +108,7 @@ def write_IC(profName, prof, Nx, path=""): # default: database.PATH2RUN/caseName
     for i in range(int(Ny/2),Ny):
         if profName=="U":
             scf.write('    (%g %g %g)%s' %(prof[i],0,0,ss))
+            # scf.write('    (%g %g %g)%s' %(prof[i],V[i],0,ss))
         else:
             scf.write('    %g%s' %(prof[i],ss))
     scf.write(');%s' % (ss))
@@ -104,18 +118,19 @@ def write_IC(profName, prof, Nx, path=""): # default: database.PATH2RUN/caseName
         for j in range(Nx):
             if profName=="U":
                 scf.write('    (%g %g %g)%s' %(prof[i],0,0,ss))
+                # scf.write('    (%g %g %g)%s' %(prof[i],V[i],0,ss))
             else:
                 scf.write('    %g%s' %(prof[i],ss))
     scf.write(');%s' % (ss))
     scf.close()
     
     # info
-    if len(path)==0:
-        logger.info('%s/%s/0/%s_IC is written' % (database.PATH2RUN,caseName,profName))
-    else:
-        logger.info('%s/%s_IC is written' % (path,profName))
-
-def interpolation(yc,yr,Ur,kr,epsilon_r,Ny,nu):
+    # if len(path)==0:
+    #     logger.info('%s/%s/0/%s_IC is written' % (database.PATH2RUN,caseName,profName))
+    # else:
+    #     logger.info('%s/%s_IC is written' % (path,profName))
+###############
+def interpolation(yc, yr, Ur, Vr, kr, epsilon_r, Ny, nu):
     # take yc in the given data range
     y_tmp = yc[np.where(yc <= yr[-1])]
     Ny_tmp = y_tmp.size
@@ -123,12 +138,15 @@ def interpolation(yc,yr,Ur,kr,epsilon_r,Ny,nu):
     f1 = interpolate.interp1d(yr, Ur, kind="quadratic")
     f2 = interpolate.interp1d(yr, kr, kind="quadratic")
     f3 = interpolate.interp1d(yr, epsilon_r, kind="quadratic")
+    f4 = interpolate.interp1d(yr, Vr, kind="quadratic")
     U_tmp = f1(y_tmp)
     k_tmp = f2(y_tmp)
     epsilon_tmp = f3(y_tmp)
+    V_tmp = f4(y_tmp)
     
     if wall==1:
         U_new = np.concatenate([U_tmp, np.ones(Ny-Ny_tmp)*U_tmp[-1]])
+        V_new = np.concatenate([V_tmp, np.ones(Ny-Ny_tmp)*V_tmp[-1]])
         k_new = np.concatenate([k_tmp, np.ones(Ny-Ny_tmp)*k_tmp[-1]])
         epsilon_new = np.concatenate([epsilon_tmp, np.ones(Ny-Ny_tmp)*epsilon_tmp[-1]])
         omega_new = epsilon_new/k_new/0.09
@@ -136,6 +154,7 @@ def interpolation(yc,yr,Ur,kr,epsilon_r,Ny,nu):
         omega_new[(np.where(omega_new == np.min(omega_new))[0][0]+1):] = np.min(omega_new)
     elif wall == 2:
         U_new = np.concatenate([U_tmp, np.ones(Ny-2*Ny_tmp)*U_tmp[-1], np.flipud(U_tmp)])
+        V_new = np.concatenate([V_tmp, np.ones(Ny-2*Ny_tmp)*V_tmp[-1], np.flipud(V_tmp)])
         k_new = np.concatenate([k_tmp, np.ones(Ny-2*Ny_tmp)*k_tmp[-1], np.flipud(k_tmp)])
         epsilon_new = np.concatenate([epsilon_tmp, np.ones(Ny-2*Ny_tmp)*epsilon_tmp[-1], \
                                       np.flipud(epsilon_tmp)])
@@ -150,6 +169,10 @@ def interpolation(yc,yr,Ur,kr,epsilon_r,Ny,nu):
     # check results
     if np.min(U_new) < 0:
         logger.error('U_tmp: check interpolation')
+        sys.exit(1)
+    
+    if np.min(V_new) < 0:
+        logger.error('V_tmp: check interpolation')
         sys.exit(1)
     
     if np.min(k_new) < 0:
@@ -167,7 +190,7 @@ def interpolation(yc,yr,Ur,kr,epsilon_r,Ny,nu):
     
     nut_new=k_new/omega_new
     
-    return U_new, k_new, omega_new, nut_new
+    return U_new, V_new, k_new, omega_new, nut_new
 
 # %% MAIN
 if __name__ == '__main__':
@@ -179,9 +202,12 @@ if __name__ == '__main__':
     
     # %% grid load
     
-    Uinf, delta99_in, Nx, Ny, Nz = 1, 0.05, int(1000), int(218), int(1)
+    # Uinf, delta99_in, Nx, Ny, Nz = 1, 0.05, int(1000), int(218), int(1)
     
-    xc, yc, x, y = postProcess_func.load_grid(path2run,caseName,Nx,Ny,Nz)
+    path2run = path2case_grid.rsplit("/",1)[0]
+    caseName = path2case_grid.rsplit("/",1)[1]
+    xc, yc, x, y = \
+        postProcess_func.load_grid(path2run,caseName,Nx,Ny,Nz)
     yc = yc[:,0] # inlet
     
     # %% dimentionalize
@@ -196,6 +222,7 @@ if __name__ == '__main__':
         logger.info("first y+ = %f" % yp_w)
     
     Ur = ref2010.Up*u_tau_in
+    Vr = ref2010.Vp*u_tau_in
     yr = ref2010.y_delta*delta99_in
     
     # compute from DNS
@@ -205,7 +232,8 @@ if __name__ == '__main__':
     omega_r[0] = np.nan
     
     # %% interpolation
-    U_new, k_new, omega_new, nut_new = interpolation(yc,yr,Ur,kr,epsilon_r,Ny,nu)
+    U_new, V_new, k_new, omega_new, nut_new = \
+        interpolation(yc, yr, Ur, Vr, kr, epsilon_r, Ny, nu)
     
     # check profile
     # plt.figure()
@@ -234,9 +262,10 @@ if __name__ == '__main__':
     # plt.legend()
     
     # %% write
-    write_IC("U",U_new,Nx,path=(path2run+"/"+caseName+"/0"))
-    write_IC("k",k_new,Nx,path=(path2run+"/"+caseName+"/0"))
-    write_IC("omega",omega_new,Nx,path=(path2run+"/"+caseName+"/0"))
-    write_IC("nut",nut_new,Nx,path=(path2run+"/"+caseName+"/0"))
+    # write_IC("U", U_new, Nx, V=V_new)
+    write_IC("U", U_new, Nx)
+    write_IC("k",k_new,Nx)
+    write_IC("omega",omega_new,Nx)
+    write_IC("nut",nut_new,Nx)
     
     print("set nu to %s" % str(nu))

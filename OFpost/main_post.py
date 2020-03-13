@@ -309,7 +309,7 @@ def calc_obj(beta, beta_t, in_exc, out_exc):
     obj = np.linalg.norm(beta[int(in_exc*Nx)-1:-int(out_exc*Nx)+1] - beta_t) # L2norm
     return obj
 
-def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj, \
+def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj,
                   betaMin=None, betaMax=None, path2figs=D.PATH2FIGS):
     """
     Parameters

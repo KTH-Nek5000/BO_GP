@@ -110,7 +110,7 @@ def get_refProfile(path2file,LESflag=False): # default DNS
     if LESflag:
         Vp = tmp[:,-1]
     else:
-        Vp = tmp[:,13]
+        Vp = tmp[13]
     
     return y_delta99, yp, Up, Vp, urms_p, vrms_p, wrms_p
 
