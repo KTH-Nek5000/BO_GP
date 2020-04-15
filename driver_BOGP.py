@@ -38,7 +38,7 @@ add_handler()
 
 # %% SETTINGS
 iStart = 1   # Starting iteration
-iEnd = 50
+iEnd = 100
 beta_t = 1   # terget value for beta
 in_exc = 0.2   # ignore this region when assess the objective
 out_exc = 0.1

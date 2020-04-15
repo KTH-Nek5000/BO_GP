@@ -77,10 +77,12 @@ blocks
 edges
 (
  spline 4 5 (
+	     ($Lx4 $theta4 0)
 	     ($Lx3 $theta3 0)
 	     ($Lx2 $theta2 0)
 	     )
  spline 10 11 (
+	       ($Lx4 $theta4 1)
 	       ($Lx3 $theta3 1)
 	       ($Lx2 $theta2 1)
 	       )

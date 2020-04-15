@@ -56,7 +56,7 @@ sigma_d=0.0       #sdev of the white noise in the measured data
 whichOptim='min'  #find 'max' or 'min' of f(x)?
 kernelType='Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-qBound=[[75,95], [60,80],[50,70]] # /delta99^in
+qBound=[[90,110], [80,100], [70,90], [55,75]] # /delta99^in
 qMaxDist = norm([q[1]-q[0] for q in qBound])
 nPar = np.shape(qBound)[0] #number of parameters, p  dimension of x={x1,x2,...,xp} where y=f(x)
 nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
@@ -448,9 +448,15 @@ def gpyPlotter_2Dc(fig, ax, meanPred, covarPred, x, y, x1TestGrid, x2TestGrid,
     if nPar==2:
         fontsize=20
         markersize=7
-    if nPar==3:
+    elif nPar==3:
         fontsize=9
         markersize=3
+    elif nPar==4:
+        fontsize=7
+        markersize=2
+    else:
+        logger.error("unsupported number of parameters")
+        sys.exit(1)
     
     ##contours of uncertainty (ONLY FOR 2D)!
     if "varFlag" in plotOpts.keys():
@@ -505,7 +511,7 @@ def printSetting():
     print global parameters
     """
     logger.info("\nnPar = %d\nsigma_d = %f\nwhichOptim = %s\ntol_d = %f\ntol_b = %f"\
-                "\nkernel = %s\nnGPinit = %d\nqBound = %s" % \
+                "\nkernel = %s\nnGPinit = %d\nqBound = [%s]" % \
                     (nPar, sigma_d, whichOptim, tol_d, tol_b, kernelType, nGPinit,\
                      ', '.join(map(str, qBound))))
 

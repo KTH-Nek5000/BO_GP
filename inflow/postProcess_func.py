@@ -25,7 +25,6 @@ logger.addHandler(logging.NullHandler())
 # logger.setLevel(logging.INFO)
 
 # %%
-
 def load_grid(path2run,casename,Nx,Ny,Nz):
     logger.info("func.: load_grid")
     
@@ -43,13 +42,13 @@ def load_grid(path2run,casename,Nx,Ny,Nz):
         sys.exit(1)
     
     grid = np.loadtxt('./Cdata')
-
+    
     xc = grid[:Nx,0]
     yc = grid[:,1]
     yc = yc.reshape([Ny,Nx])
     # grid data structure
     # Nx*Ny*Nz
-        
+    
     # points
     b='sed \'1,20d\' %s/%s/constant/polyMesh/points | ' % (path2run,casename)
     c='head -%s | sed -e \'s/(//g\' | sed -e \'s/)//g\' > ./pointsdata'\
@@ -75,7 +74,7 @@ def load_grid(path2run,casename,Nx,Ny,Nz):
     logger.info("func.: load_grid finished")
     return xc, yc, x, y
 
-# %% return law data
+# %% return raw data
 
 def load_data(path2run,casename,Nx,Ny,Nz,t):
     logger.info("func.: load_data")
@@ -136,7 +135,7 @@ def load_data(path2run,casename,Nx,Ny,Nz,t):
     return Ux, Uy, p, nut, k, omega, tau_w
 
 # %% ##################### CHECK delta99 calc. #######################
-def bl_calc(Nx,Ny,Nz,xc,yc,x,y,U_infty,nu,U,V,p,nut,k,omega,tau_w):
+def bl_calc(Nx,Ny,Nz,xc,yc,x,y,U_eIn,nu,U,V,p,nut,k,omega,tau_w):
     logger.info("func.: bl_calc")
     # nondimentionalize
     # wall unit
@@ -170,7 +169,7 @@ def bl_calc(Nx,Ny,Nz,xc,yc,x,y,U_infty,nu,U,V,p,nut,k,omega,tau_w):
     # normal unit
     # delta99
     delta99 = np.zeros(Nx)
-    U_max = np.max(U[:int(Ny/2),:]/U_infty,axis=0)
+    U_max = np.max(U[:int(Ny/2),:],axis=0)/U_eIn
     for i in range(Nx):
         U_tmp = U[:,i]/U_max[i]
         # U_tmp = U[:,i]/U_infty # ONLY FOR DNS inflow !!!! (because of U_max fluc.)
@@ -178,14 +177,11 @@ def bl_calc(Nx,Ny,Nz,xc,yc,x,y,U_infty,nu,U,V,p,nut,k,omega,tau_w):
         counter = 0 # avoid infinity loop
         while True:
             while True:
-                # print("thre=",thre)
                 for j in range(Ny):
                     if U_tmp[j] > thre:
                         index = j
                         break
                 try:
-#                    print('counter =',counter,',i =', i,',j =', j)
-#                    print('U_tmp[index-1] =',U_tmp[index-1])
                     f1 = interpolate.interp1d(U_tmp[:index+1].reshape(-1),\
                                               yc[:index+1,i], kind="quadratic")
                     break
@@ -193,20 +189,18 @@ def bl_calc(Nx,Ny,Nz,xc,yc,x,y,U_infty,nu,U,V,p,nut,k,omega,tau_w):
                     thre = thre-0.001
                     counter += 1
                     if counter > 1000:
-                        print('too many loop in delta99 1')
-                        print('i =', i,',j =', j)
+                        logger.error('too many loop in delta99 1')
+                        logger.error('i =', i,',j =', j)
                         sys.exit(1)
             try:
                 delta99[i] = f1(0.99)
-#                print('counter =',counter,',i =', i,',j =', j)
-#                print('U_tmp[index] =',U_tmp[index])
                 break
             except: # if 0.99 is the out of the range
                 thre = thre+0.0003
                 counter += 1
                 if counter > 1000:
-                        print('too many loop in delta99 2')
-                        print('i =', i,',j =', j)
+                        logger.error('too many loop in delta99 2')
+                        logger.error('i =', i,',j =', j)
                         sys.exit(1)
 #     for i in range(Nx):
 #         U_tmp = U[:,i]/U_max[i]
@@ -243,15 +237,15 @@ def bl_calc(Nx,Ny,Nz,xc,yc,x,y,U_infty,nu,U,V,p,nut,k,omega,tau_w):
     theta = np.zeros(Nx)
     for i in range(Nx):
         index = np.where(yc[:,i] < delta99[i])
-        U_U_infty = np.append(U[index,i]/U_max[i],0.99) # add last point
+        U_U_infty = np.append(U[index,i]/U_max[i], 0.99) # add last point
 #        U_U_infty = np.append(U[index,i],0.99) # add last point
         deltaStar[i] = integrate.simps(1-U_U_infty,\
                          np.append(yc[index,i],delta99[i]))
         theta[i] = integrate.simps(U_U_infty*(1-U_U_infty),\
                      np.append(yc[index,i],delta99[i]))
     
-    Re_deltaStar = U_infty*deltaStar/nu
-    Re_theta = U_infty*theta/nu
+    Re_deltaStar = U_max*deltaStar/nu
+    Re_theta = U_max*theta/nu
     H12 = deltaStar/theta
     
     beta = np.zeros(Nx-1)
@@ -260,12 +254,13 @@ def bl_calc(Nx,Ny,Nz,xc,yc,x,y,U_infty,nu,U,V,p,nut,k,omega,tau_w):
         beta[i] = np.mean(deltaStar[i]+deltaStar[i+1])/np.mean(tau_w[i]+tau_w[i+1])*dpdx[i]
     
     # msc.
-    Cf = tau_w/(1/2*U_infty**2) # incompressible
+    Cf = tau_w/(1/2*U_max**2) # incompressible
     Re_tau = u_tau*delta99/nu
     
+    G = calcG(H12,Cf)
     logger.info("func.: bl_calc finished")
     return u_tau,xc_p,xp,yc_p,yp,Up,kp,delta99,U_max,deltaStar,theta,Re_deltaStar,\
-            Re_theta,H12,beta,Cf,Re_tau
+            Re_theta,H12,beta,Cf,Re_tau,G
     
     #  DON'T RUN TWICE!
 #    U=U/U_infty
@@ -308,6 +303,10 @@ def getNu(path2run,caseName):
     logger.info("case = %s" % caseName)
     logger.info("################### nu = %g ##################" % nu)
     return nu
+
+def calcG(H12, Cf):
+    G = (H12-1)/(H12*np.sqrt(Cf/2))
+    return G
 
     # %% some figures
     
