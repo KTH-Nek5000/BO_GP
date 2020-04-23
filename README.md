@@ -13,14 +13,16 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
      - blockMeshDict
      - controlDict
      - decomposeParDict
-     - etc.
+     - fvSchemes
+     - fvSolution
    - 0/
+     - U,p,k,omega,nut
      - *_IC files (use inflow.py to make these files)
    - constant/
-     - polyMesh/
+     - polyMesh/ (not included)
      - transportProperties
    - jobscript
-
+   - OFrun.sh
  - OFpost/   : Post-processing the results of OpenFOAM
    - main_post.py
 
@@ -42,8 +44,8 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
    - make_movie.sh: make movie in png/ from pdf files
 
  - driver_BOGP.py: main driver
- - reset_gpList.sh: reset gpOptim/workDir/gpList.dat
- - reset_fig.sh: delete all the pdf files in figs/
+ - data/
+ - storage/
 
 # setting & input:
  - driver: U_infty, delta99_in, Nx, Ny, Nz, t, loop params, path, beta_t etc.
@@ -70,8 +72,8 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
     - create the new inflow from precursor using bl_inflow.py (precursor results required)
 -->
     - create the new inflow using inflow/inflow.py
-    - check blockMeshDict
-    - update driver
+    - check the blockMeshDict
+    - update the driver
     
   - When you change the nProcessor
     - update decomposeParDict
@@ -85,4 +87,5 @@ Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
   - When you change beta_t
     - driver: change beta_t
 
-  - Use reset_gpList.sh & reset_fig.sh before running new case
+  - When you clone this repository to a new machine
+    - make data/, storage/ & OFcase/constant/polyMesh/ directories
