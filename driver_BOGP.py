@@ -13,6 +13,7 @@ import subprocess
 import os
 import logging
 import pathlib
+import numpy as np
 
 # %% logging
 
@@ -54,7 +55,7 @@ PATH2OFCASE = current_dir + "/OFcase"
 PATH2GPLIST = current_dir + "/gpOptim/workDir/gpList.dat"
 
 # %% misc.
-#minInd
+minInd, minR = 0, np.inf
 
 # %% MAIN
 if __name__ == '__main__':
@@ -141,11 +142,14 @@ if __name__ == '__main__':
         #4. Post-process OpenFOAM
         obj = main_post.main(beta_t, in_exc, out_exc, i, U_infty, delta99_in, \
                              Nx, Ny, Nz, tEnd, newQ)
+        # update minInd
+        if obj < minR:
+            minR = obj
+            minInd = i
         
         #5. Post-process optimization
-        # os.chdir("./gpOptim")
         isConv = X.BO_update_convergence(newQ, obj, path2gpList=PATH2GPLIST, path2figs=PATH2FIGS)
-        os.chdir(current_dir)
+#        os.chdir(current_dir)
         
         #6. check convergence
         if isConv:
@@ -157,5 +161,6 @@ if __name__ == '__main__':
     subprocess.check_call("cp -r %s %s/" % (PATH2DATA, PATH2BUP), shell=True)
     subprocess.check_call("cp %s %s/" % (PATH2GPLIST, PATH2BUP), shell=True)
     subprocess.check_call("cp log %s/" % (PATH2BUP), shell=True)
-    
+
+    logger.info("The iteration gave the smallest R: %d" % minInd)
     logger.info("FINISHED")

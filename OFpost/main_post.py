@@ -305,7 +305,7 @@ def calc_obj(beta, beta_t, in_exc, out_exc):
     """
     
     logger.debug("################### calc objective ####################")
-    Nx = len(beta)+1
+    Nx = len(beta) + 1
     obj = np.linalg.norm(beta[int(in_exc*Nx)-1:-int(out_exc*Nx)+1] - beta_t) # L2norm
     return obj
 
@@ -326,16 +326,16 @@ def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj,
     xmin = x[0]/delta99_in
     xmax = x[-1]/delta99_in
     
-    if betaMin==None:
-        if beta_t==0:
+    if betaMin is None:
+        if beta_t == 0:
             ymin = -0.1
         else:
             ymin = beta_t - 1.5*beta_t # set depends on your beta_t
     else:
         ymin = betaMin
     
-    if betaMax==None:
-        if beta_t==0:
+    if betaMax is None:
+        if beta_t == 0:
             ymax = 0.1
         else:
             ymax = beta_t + 1.5*beta_t
