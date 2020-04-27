@@ -40,6 +40,7 @@ def read_npy(dataName, n, path2data=D.PATH2DATA): # Re_theta, beta, deltaStar, d
 
 def beta_components_fig(xc, x, delta99_in, U_infty, deltaStar, dpdx, tau_w, in_exc, out_exc, \
                     iMain, deltaStarBound, dpdxBound, tau_wBound, path2figs=D.PATH2FIGS):
+    # use log so that it's easier to see the superposition
     Nx = np.size(xc)
     xc_delta = xc/delta99_in
     x_delta = x/delta99_in
@@ -199,15 +200,15 @@ if __name__ == '__main__':
                             # out_exc, beta_t, obj, betaMin=-0.01,betaMax=0.01,
                             #  path2figs=path2figs+"/../../thesisFigs")    
         # update gp figs
-        # gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs=path2figs+"/", \
+        # gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs=path2figs, \
         #                           Rlim=Rlim, bounds=gpBounds,var=False)
         
-        gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs=path2figs+"/", \
-                                  bounds=gpBounds,var=True)
+        gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs=path2figs,
+                                 bounds=gpBounds,var=True)
         
         # update convergence plot
         # gpOpt_TBL.my_convergence_plot(xList[:i+1], yList[:i+1], gpOpt_TBL.whichOptim, \
-        #                               path2figs, '/bo_convergence_%02d' % (i+1))
+        #                               path2figs, 'bo_convergence_%02d' % (i+1))
         
         # update U figs
         # xc, yc, x, y = main_post.load_grid(Nx, Ny, Nz, PATH2CASE+"/%d"%(i+1))

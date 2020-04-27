@@ -52,148 +52,142 @@ logger = logging.getLogger("Driver").getChild("gpOptim/gpOpt_TBL.py")
 # %% global variables
 #----------------------------------------------------------------------------
 #>>>> SETTINGS & PROBLEM DEFINITION -----------------------------------------
-sigma_d=0.0       #sdev of the white noise in the measured data   
-whichOptim='min'  #find 'max' or 'min' of f(x)?
-kernelType='Matern52'  #'RBF', 'Matern52'
+sigma_d = 0.0       #sdev of the white noise in the measured data   
+whichOptim = 'min'  #find 'max' or 'min' of f(x)?
+kernelType = 'Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-qBound=[[100,120], [80,100], [70,90], [55,75]] # /delta99^in
+qBound = [[100,120], [80,100], [70,90], [55,75]] # /delta99^in
 qMaxDist = norm([q[1]-q[0] for q in qBound])
 nPar = np.shape(qBound)[0] #number of parameters, p  dimension of x={x1,x2,...,xp} where y=f(x)
-nGPinit=1   #minimum number of GP samples in the list to start BO-GP algorithm
+nGPinit = 1   #minimum number of GP samples in the list to start BO-GP algorithm
             #to avoid random sampling from the parameter space: see nextGPsample()
-tol_d=0.0*qMaxDist        #minimum distace between two consequtive samples x to keep the code running
-tol_b=0.1        #deviation between best f(x+) in two consequtive iterations (relative error)
+tol_d = 0.0*qMaxDist        #minimum distace between two consequtive samples x to keep the code running
+tol_b = 0.1        #deviation between best f(x+) in two consequtive iterations (relative error)
                   #note if err_d<tol_d and err_b<tol_b => convergence in (x_opt , f(x_opt))
 # tol_abs=0.05
 #---------------------------------------------------------------------------
-    
-#domain bounds
-# BOUNDS=[]
-# for i in range(nPar):
-#     BOUNDS.append(domain[i]['domain'])
 
 # %% FUNCTIONS
-def read_available_GPsamples(gpInputFile,nPar_=nPar):
+def read_available_GPsamples(gpInputFile, nPar_=nPar):
     """
         Read the most updated list of (x,y) GP samples from gpInputFile
     """
-    F1=open(gpInputFile,'r')
-    ain=F1.readlines()
-    ain_sep=[];
+    F1 = open(gpInputFile, 'r')
+    ain = F1.readlines()
+    ain_sep = []
     for i in range(len(ain)):
         ain_sep.append(ain[i].split())
-    iskip=2;  # no. of lines to skip from the beginning of the input file
-    n=len(ain_sep)-iskip;
-    xList=np.zeros((n,nPar_))
-    yList=np.zeros(n)
+    iskip = 2;  # no. of lines to skip from the beginning of the input file
+    n = len(ain_sep) - iskip
+    xList = np.zeros((n, nPar_))
+    yList = np.zeros(n)
     for i in range(n):
         for j in range(nPar_):
-            xList[i,j]=float(ain_sep[i+iskip][j+1])
-        yList[i]=float(ain_sep[i+iskip][nPar_+1])
+            xList[i, j] = float(ain_sep[i+iskip][j+1])
+        yList[i] = float(ain_sep[i+iskip][nPar_+1])
     F1.close()
     if n < 1:
         logger.warning("No available sample in %s" % gpInputFile)
     else:
         logger.info("read available samples from %s" % gpInputFile)
-    return xList,yList
+    return xList, yList
 
 #//////////////////////////////////////////////////////////
-def update_GPsamples(gpOutputFile,xList,yList,xNext,yNext):
+def update_GPsamples(gpOutputFile, xList, yList, xNext, yNext):
     """
         Update the existing list of GP samples with the recent sample & response
     """
-    F2=open(gpOutputFile,'w')
+    F2 = open(gpOutputFile, 'w')
     F2.write('#List of GP samples." \n')
-    tmp='#iter'+'\t'
+    tmp = '#iter' + '\t'
     for i in range(len(xNext)):
-        tmp=tmp+'p'+str(i+1)+'\t'
-    tmp=tmp+'response\n'
+        tmp += 'p' + str(i+1) + '\t'
+    tmp += 'response\n'
     F2.write(tmp)
-    nData=xList.shape[0]
+    nData = xList.shape[0]
     #write the datalist before observing the new sample
     for i in range(nData):
-        tmpList=str(i+1)+'\t'
+        tmpList = str(i+1) + '\t'
         for j in range(nPar):
-            tmpList=tmpList+str(xList[i][j])+'\t'
-        tmpList=tmpList+str(yList[i][0])+'\n'
+            tmpList += str(xList[i][j]) + '\t'
+        tmpList += str(yList[i][0]) + '\n'
         F2.write(tmpList)
     #write the most recent parameters and associated response
-    tmpList=str((nData+1))+'\t'
+    tmpList = str((nData+1)) + '\t'
     for j in range(nPar):
-        tmpList=tmpList+str(xNext[j])+'\t'
-    tmpList=tmpList+str(yNext)+'\n'
+        tmpList += str(xNext[j]) + '\t'
+    tmpList += str(yNext) + '\n'
     F2.write(tmpList)
     F2.close()
     logger.info('**** %s is updated!' % gpOutputFile)
 
 #//////////////////////////////////////////////////////////////
-def my_convergence_plot(xList,yList,figDir,figName):
+def my_convergence_plot(xList, yList, figDir, figName):
     """
        Plot convergence of parameter samples and associated response
     """
-    xDistList=[]  #Distance between two consecutive parameter samples  
-    yBestList=[]  #Best response value up to any iteration
-    nData=xList.shape[0]
-    for i in range(1,nData):
-        xDistList.append(norm(xList[i][:]-xList[i-1][:])) # 2-norm
+    xDistList = []  #Distance between two consecutive parameter samples  
+    yBestList = []  #Best response value up to any iteration
+    nData = xList.shape[0]
+    for i in range(1, nData):
+        xDistList.append(norm(xList[i][:] - xList[i-1][:])) # 2-norm
     for i in range(nData):
-        if whichOptim=='min':
+        if whichOptim == 'min':
            yBestList.append(min(yList[:i+1]))
-        elif whichOptim=='max':
+        elif whichOptim == 'max':
            yBestList.append(max(yList[:i+1]))
     
-    fig=plt.figure()
-    plt.subplot(2,1,1)
-    plt.semilogy(range(2,nData+1),xDistList,'-ob',lw=2)
+    fig = plt.figure()
+    plt.subplot(2, 1, 1)
+    plt.semilogy(range(2, nData+1), xDistList, '-ob', lw=2)
     # plt.title("Distance between 2 consecutive parameter samples",fontsize=20)
-    plt.xlabel(r'${\rm iteration}~i$',fontsize=20)
-    plt.ylabel(r'$\| \mbox{\boldmath{$q$}}_i - \mbox{\boldmath{$q$}}_{i-1} \|_2$',fontsize=22)
+    plt.xlabel(r'${\rm iteration}~i$', fontsize=20)
+    plt.ylabel(r'$\| \mbox{\boldmath{$q$}}_i - \mbox{\boldmath{$q$}}_{i-1} \|_2$', fontsize=22)
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
     plt.grid(True)
     plt.gca().get_xaxis().set_major_locator(ticker.MaxNLocator(integer=True))
-    plt.subplot(2,1,2)
-    plt.semilogy(range(1,nData+1),yBestList,'-or',lw=2)
+    plt.subplot(2, 1, 2)
+    plt.semilogy(range(1, nData+1), yBestList, '-or', lw=2)
     # plt.title('Best Value So Far',fontsize=20)
-    plt.xlabel(r'${\rm iteration}~i$',fontsize=20)
-    plt.ylabel(r'${\rm min}~(\mathcal{R}_{1:i})$',fontsize=22)
+    plt.xlabel(r'${\rm iteration}~i$', fontsize=20)
+    plt.ylabel(r'${\rm min}~(\mathcal{R}_{1:i})$', fontsize=22)
     plt.gca().get_xaxis().set_major_locator(ticker.MaxNLocator(integer=True))
     plt.tick_params(labelsize=20)
     plt.grid(True)
     fig = plt.gcf()
     DPI = fig.get_dpi()
-    fig.set_size_inches(600/float(DPI),1200/float(DPI))
-    plt.savefig(figDir+figName+'.pdf',bbox_inches='tight')
-    logger.info('save: %s%s.pdf' % (figDir,figName))
-    #plt.show()
-    return xDistList,yBestList
+    fig.set_size_inches(600/float(DPI), 1200/float(DPI))
+    plt.savefig(figDir + "/" + figName + '.pdf', bbox_inches='tight')
+    logger.info('save: %s/%s.pdf' % (figDir, figName))
+    return xDistList, yBestList
 
 #////////////////////////////////////////////
-def test_grid(bounds1,bounds2,nTest1,nTest2):
+def test_grid(bounds1, bounds2, nTest1, nTest2):
     """
        Construct a 2D mesh (test data) with uniformly spaced points to 
        illustrate contours of the response
     """
-    nTest=nTest1*nTest2
-    x1Test=np.linspace(bounds1[0],bounds1[1],nTest1)
-    x2Test=np.linspace(bounds2[0],bounds2[1],nTest2)
-    x1TestGrid=np.zeros((nTest1,nTest2))  
-    x2TestGrid=np.zeros((nTest1,nTest2))
+    nTest = nTest1*nTest2
+    x1Test = np.linspace(bounds1[0], bounds1[1], nTest1)
+    x2Test = np.linspace(bounds2[0], bounds2[1], nTest2)
+    x1TestGrid = np.zeros((nTest1, nTest2))
+    x2TestGrid = np.zeros((nTest1, nTest2))
     # yTestGrid=np.zeros((nTest1,nTest2))
-    xTestArr=np.zeros((nTest,2));
+    xTestArr = np.zeros((nTest, 2))
     for i in range(nTest1):
         for j in range(nTest2):
-            k=i+j*nTest1
-            xTestArr[k,0]=x1Test[i]
-            xTestArr[k,1]=x2Test[j]
-            x1TestGrid[i,j]=x1Test[i]
-            x2TestGrid[i,j]=x2Test[j]
-    xTestArr=np.asarray(xTestArr)   #n* x p=2
-    return x1TestGrid,x2TestGrid,xTestArr
+            k = i + j*nTest1
+            xTestArr[k, 0] = x1Test[i]
+            xTestArr[k, 1] = x2Test[j]
+            x1TestGrid[i, j] = x1Test[i]
+            x2TestGrid[i, j] = x2Test[j]
+    xTestArr = np.asarray(xTestArr)   #n* x p=2
+    return x1TestGrid, x2TestGrid, xTestArr
 
 #>>>>> plots
 #////////////////////////////////////////////////////////////////////
-def gpOpt1d_postProc(xGP,yGP,bounds,plotOpts,nTest=100,kernelType_=kernelType):
+def gpOpt1d_postProc(xGP, yGP, bounds, plotOpts, nTest=100, kernelType_=kernelType):
     """ 
        Postprocess the Bayesian optimization on a 1D parameter space.
        This method constructs a GPR based on the final set of GP samples taken 
@@ -204,15 +198,15 @@ def gpOpt1d_postProc(xGP,yGP,bounds,plotOpts,nTest=100,kernelType_=kernelType):
     # if "kernelType" in plotOpts.keys():
     #     kernelType=plotOpts["kernelType"]
         
-    if kernelType_=='RBF':
-        K=GPy.kern.RBF(input_dim=1,lengthscale=1.0,variance=1.0)
-    elif kernelType_=='Matern52':
-        K=GPy.kern.Matern52(input_dim=1,lengthscale=1.0,variance=1.0)
+    if kernelType_ == 'RBF':
+        K = GPy.kern.RBF(input_dim=1, lengthscale=1.0, variance=1.0)
+    elif kernelType_ == 'Matern52':
+        K = GPy.kern.Matern52(input_dim=1, lengthscale=1.0, variance=1.0)
     else:
         logger.error("unsupported kernel type")
     
     #define the GPR
-    gprFinal=GPy.models.GPRegression(xGP,yGP,kernel=K,noise_var=sigma_d**2.)
+    gprFinal = GPy.models.GPRegression(xGP, yGP, kernel=K, noise_var=sigma_d**2.)
     gprFinal.constrain_positive()  #make all parameters positive
 
     #if you want to get exactly the same plot as "GPyOpt.plot_acquisition()", 
@@ -224,13 +218,13 @@ def gpOpt1d_postProc(xGP,yGP,bounds,plotOpts,nTest=100,kernelType_=kernelType):
     # domain_=domain[0]['domain']
     # xTest_=np.linspace(domain_[0],domain_[1],nTest)
     # xTest_=np.linspace(qBound[0][0],qBound[0][1],nTest)
-    xTest_=np.linspace(bounds[0][0],bounds[0][1],nTest)
-    xTest=xTest_.reshape(nTest,1)
-    [meanPred,covarPred]=gprFinal.predict(xTest,full_cov=True)
-    gpyPlotter_1D(meanPred[:,0],covarPred,xGP,yGP,xTest,plotOpts)
+    xTest_ = np.linspace(bounds[0][0], bounds[0][1], nTest)
+    xTest = xTest_.reshape(nTest, 1)
+    [meanPred, covarPred] = gprFinal.predict(xTest, full_cov=True)
+    gpyPlotter_1D(meanPred[:, 0], covarPred, xGP, yGP, xTest, plotOpts)
 
 #//////////////////////////////////////////////////////////
-def gpOpt2d_postProc(xGP,yGP,bounds,plotOpts,final=False,kernelType_=kernelType):
+def gpOpt2d_postProc(xGP, yGP, bounds, plotOpts, final=False, kernelType_=kernelType):
     """ 
        Postprocess the Bayesian optimization on a 2D parameter space.
        This method constructs a GPR based on the final set of GP samples taken 
@@ -239,56 +233,48 @@ def gpOpt2d_postProc(xGP,yGP,bounds,plotOpts,final=False,kernelType_=kernelType)
     """
     nPar = np.shape(bounds)[0]
     #>>> 0. Assign the ID od mutual parameters
-    parID=[]
-    if nPar==2:
-        parID.append([0,1])
-    elif nPar==3:
-        parID.append([0,1])
-        parID.append([0,2])
+    parID = []
+    if nPar == 2:
+        parID.append([0, 1])
+    elif nPar == 3:
+        parID.append([0, 1])
+        parID.append([0, 2])
         parID.append([1,2])
-        loc=[1,3,4]
-    elif nPar==4:
-       parID.append([0,1])
-       parID.append([0,2])
-       parID.append([1,2])
-       parID.append([0,3])
-       parID.append([1,3])
-       parID.append([2,3])
-       loc=[1,4,5,7,8,9]  #location in subplot
-       #
-       # parID.append([1,3])
-       # parID.append([0,2])
-       # parID.append([1,2])
-       # parID.append([3,2])
-       # parID.append([1,0])
-       # parID.append([3,0])
-       # loc=[7,4,1,5,2,3]  #location in subplot
+        loc = [1, 3, 4]
+    elif nPar == 4:
+       parID.append([0, 1])
+       parID.append([0, 2])
+       parID.append([1, 2])
+       parID.append([0, 3])
+       parID.append([1, 3])
+       parID.append([2, 3])
+       loc = [1, 4, 5, 7, 8, 9]  #location in subplot
     else:
         logger.error("nPar should be 2, 3 or 4: given %d" % nPar)
     
-    fig=plt.figure()
+    fig = plt.figure()
     for i in range(len(parID)):  #param-pair loop
-        I=parID[i][0]   #ID of param 1 in the pair
-        J=parID[i][1]   #ID of param 2
+        I = parID[i][0]   #ID of param 1 in the pair
+        J = parID[i][1]   #ID of param 2
 
         #>>> 1. Construct the GPR for each 2 parameters
         #assign GP kernel
         # if "kernelType" in plotOpts.keys():
         #     kernelType=plotOpts["kernelType"]
         
-        if kernelType_=='RBF':
-            K=GPy.kern.RBF(input_dim=2,lengthscale=1.0,variance=1.0)
-        elif kernelType_=='Matern52':
-            K=GPy.kern.Matern52(input_dim=2,lengthscale=1.0,variance=1.0)
+        if kernelType_ == 'RBF':
+            K = GPy.kern.RBF(input_dim=2, lengthscale=1.0, variance=1.0)
+        elif kernelType_ == 'Matern52':
+            K = GPy.kern.Matern52(input_dim=2, lengthscale=1.0, variance=1.0)
         else:
             logger.error("unsupported kernel type")
         
         #define the GPR
-        xGP_=[]
+        xGP_ = []
         for j in range(len(yGP)):
-            xGP_.append([xGP[j][I] , xGP[j][J]])
-        xGP_=np.asarray(xGP_)
-        gprFinal=GPy.models.GPRegression(xGP_,yGP,kernel=K,noise_var=sigma_d**2.)
+            xGP_.append([xGP[j][I], xGP[j][J]])
+        xGP_ = np.asarray(xGP_)
+        gprFinal = GPy.models.GPRegression(xGP_, yGP, kernel=K, noise_var=sigma_d**2.)
         gprFinal.constrain_positive()  #make all parameters positive
         # if you want to get exactly the same plot as "GPyOpt.plot_acquisition()",
         # you need to let gaussian_noise.variance to be optimized (unfixed) 
@@ -300,23 +286,23 @@ def gpOpt2d_postProc(xGP,yGP,bounds,plotOpts,final=False,kernelType_=kernelType)
         logger.info(str(gprFinal))
 
         #>>> 2. Generate a mesh of test parameters in a 2d-plane
-        bound1=bounds[I]#[bounds[I][0],bounds[I][1]]
-        bound2=bounds[J]#[bounds[J][0],bounds[J][1]]
-        [x1_grid,x2_grid,x_grid]=test_grid(bound1,bound2,40,40)
+        bound1 = bounds[I]#[bounds[I][0],bounds[I][1]]
+        bound2 = bounds[J]#[bounds[J][0],bounds[J][1]]
+        [x1_grid, x2_grid, x_grid] = test_grid(bound1, bound2, 40, 40)
 
         #>>> 3. Make predictions at the test samples
-        [meanPred,covarPred]=gprFinal.predict(x_grid)
+        [meanPred, covarPred] = gprFinal.predict(x_grid)
 
         #>>> 4. Plot response surface predicted by GPR at test mesh
         #plot the GPR      
-        if nPar==2:
-            ax=fig.add_subplot(1,1,1)
+        if nPar == 2:
+            ax = fig.add_subplot(1, 1, 1)
             # figSize=500
-        elif nPar==3:
-            ax=fig.add_subplot(2,2,loc[i])
+        elif nPar == 3:
+            ax = fig.add_subplot(2, 2, loc[i])
             # figSize=1500
-        elif nPar==4:
-            ax=fig.add_subplot(3,3,loc[i])
+        elif nPar == 4:
+            ax = fig.add_subplot(3, 3, loc[i])
             # figSize=1500
             
         gpyPlotter_2Dc(fig, ax, meanPred, covarPred, xGP_, yGP, x1_grid, x2_grid,
@@ -324,52 +310,53 @@ def gpOpt2d_postProc(xGP,yGP,bounds,plotOpts,final=False,kernelType_=kernelType)
     
     #save fig
     if 'figDir' in plotOpts.keys():
-        figDir=plotOpts['figDir']
+        figDir = plotOpts['figDir']
         if not os.path.exists(figDir):
             os.makedirs(figDir)
             
     if final:
-        figName="finalGP"
+        figName = "finalGP"
     else:
-        figName=plotOpts['figName']
+        figName = plotOpts['figName']
     
     if "varFlag" in plotOpts.keys():
-        figName="var_"+figName # considering copatibility with make_movie.sh
-    figSave=figDir+figName
+        figName = "var_" + figName # considering copatibility with make_movie.sh
+    figSave = figDir + "/" + figName
     
     fig = plt.gcf()
     # DPI = fig.get_dpi()
     # fig.set_size_inches(figSize/float(DPI),figSize/float(DPI))
-    plt.savefig(figSave+'.pdf',bbox_inches='tight')
+    plt.savefig(figSave + '.pdf', bbox_inches='tight')
     logger.info("save: %s.pdf" % figSave)
 
 #//////////////////////////////////////////////////////////////////
-def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
+def gpyPlotter_1D(meanPred, covarPred, xGP, yGP, xTest_, plotOpts):
     """ 
        plot training data (GP samples), mean prediction, 95% confidence, an abitrary sample
     """
-    xTest=xTest_[:,0]
+    xTest = xTest_[:,0]
     #Assigning
     # if 'whichOptim' in plotOpts.keys():
-    if whichOptim=='max':   #for plotting the GPR after computing max
-        meanPred=-meanPred
+    if whichOptim == 'max':   #for plotting the GPR after computing max
+        meanPred = -meanPred
           # yTrain=-yGP
     
-    n=len(meanPred)
+    n = len(meanPred)
     #confidence interval
-    confidPred=[]
+    confidPred = []
     for i in range(n):
-        confidPred.append(1.96*mt.sqrt(covarPred[i,i]))  #95% confidence interval
+        confidPred.append(1.96*mt.sqrt(covarPred[i, i]))  #95% confidence interval
     #arbitrary sample from the prediction distribution
-    if 'arbitSample' in plotOpts.keys(): arbitSamp=plotOpts['arbitSample']
-    if (arbitSamp=='yes' and covarPred.ndim == 2 and covarPred.shape[0]==covarPred.shape[1]):
-       ySample1=np.random.multivariate_normal(meanPred,covarPred)
+    if 'arbitSample' in plotOpts.keys(): arbitSamp = plotOpts['arbitSample']
+    if arbitSamp == 'yes' and covarPred.ndim == 2 and covarPred.shape[0] == covarPred.shape[1]:
+       ySample1 = np.random.multivariate_normal(meanPred, covarPred)
     else:  #if single test data is used
-       ySample1=[]
+       ySample1 = []
     #plot
     plt.figure(figsize=(20,8))
-    ax=plt.gca()
-    ax.fill_between(xTest,meanPred+confidPred,meanPred-confidPred,color='powderblue',alpha=0.5)
+    ax = plt.gca()
+    ax.fill_between(xTest, meanPred + confidPred, meanPred - confidPred, 
+                    color='powderblue', alpha=0.5)
     plt.semilogy(xTest,meanPred+confidPred,'-',color='b',linewidth=1,alpha=0.2)#,label=r'$95\%$ confidence')
     plt.semilogy(xTest,meanPred-confidPred,'-',color='b',linewidth=1,alpha=0.2)
     plt.semilogy(xGP[:-1],yGP[:-1],'o r',markersize=7,label=r'Dataset $\mathcal{D}$')
@@ -398,14 +385,11 @@ def gpyPlotter_1D(meanPred,covarPred,xGP,yGP,xTest_,plotOpts):
           os.makedirs(figDir)
     if 'figName' in plotOpts.keys():
        figName=plotOpts['figName']
-       # figSave=figDir+figName
     fig = plt.gcf()
     DPI = fig.get_dpi()
     fig.set_size_inches(1000/float(DPI),500/float(DPI))
-    # if 'figSave' in locals():
-    plt.savefig(figDir+figName+'.pdf',bbox_inches='tight')
-    logger.info("save figure as %s%s.pdf" % (figDir,figName))
-    #plt.show()
+    plt.savefig(figDir + "/" + figName + '.pdf', bbox_inches='tight')
+    logger.info("save figure as %s/%s.pdf" % (figDir, figName))
 
 #///////////////////////////
 def gpyPlotter_2Dc(fig, ax, meanPred, covarPred, x, y, x1TestGrid, x2TestGrid, 
@@ -594,13 +578,13 @@ def nextGPsample(path2gpList,kernelType_=kernelType):
 
        #Find the next x-sample
        xNext=gprOpt.suggest_next_locations(context=None, pending_X=None, ignored_X=None)
-    logger.info('**** New GP sample is: %s' % ', '.join(map(str, xNext[0])))
     
+    logger.info('**** New GP sample is: %s' % ', '.join(map(str, xNext[0])))
     return np.array(xNext[0])
 
 #///////////////////////////
 def BO_update_convergence(xLast, yLast, path2gpList='./workDir/gpList.dat', \
-                          path2figs='../figs/'):
+                          path2figs='../figs'):
     """
        1. Update gpList.dat by adding the last sample and associated response
        2. Check if BO-GP is converged or not (criteria need to be decided)
@@ -625,7 +609,7 @@ def BO_update_convergence(xLast, yLast, path2gpList='./workDir/gpList.dat', \
            my_convergence_plot(xList_,yList_,path2figs,\
                                'bo_convergence_%02d' % nData)
 
-    gpSurface_plot(xList_,yList_,nData)
+    gpSurface_plot(xList_,yList_,nData, path2figs=path2figs)
     
     # check convergence: only for minimize !!!
     # logger.debug("check convergence")
@@ -639,7 +623,7 @@ def BO_update_convergence(xLast, yLast, path2gpList='./workDir/gpList.dat', \
     #     logger.info("not converged yet, R = %f > %f" % (yList_[-1], tol_abs))
     #     return 0
     
-          #>>>> Converged Optimal Value:
+    isConv = False
     if nData>2: # check convergence
         logger.debug("check convergence")
         err_d = xDistList[-1]
@@ -650,14 +634,14 @@ def BO_update_convergence(xLast, yLast, path2gpList='./workDir/gpList.dat', \
             logger.info(' ******* Converged Optimal Values q = %s, R = %f\n'
                             ' err_d = %f < %f, err_b = %f < %f'\
                     % (', '.join(map(str, xOpt)), fxOpt, err_d, tol_d,err_b,tol_b))
-            return 1 #send convergence signal
+            isConv =True
         else:
             logger.info("not converged yet, err_d = %f > %f, err_b = %f > %f"\
                             % (err_d, tol_d,err_b, tol_b))
-            return 0
+    return isConv
     
 #////////////////////////////////////
-def gpSurface_plot(xList, yList, nData, path2figs="../figs/", Rlim=None, \
+def gpSurface_plot(xList, yList, nData, path2figs="../figs", Rlim=None, \
                    bounds=qBound, var=False,final=False):
     """ 
        Reconstruct the GPR and plot it in 2D (or 1D) planes of the parameters admissible space

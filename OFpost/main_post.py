@@ -228,7 +228,7 @@ def bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w):
     
     delta99 = np.zeros(Nx)
     U_max = np.zeros(Nx)
-    # U_max = np.max(U[np.where(yc),:]/U_infty,axis=0)
+    
     for i in range(Nx):
         U_max[i] = np.max(U[np.where(yc[:,i] < yc[-1,i]/2),i]/U_infty)
         U_tmp = U[:,i]/U_max[i]
@@ -403,23 +403,15 @@ def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta, U, delta99_delta, iMain,
     X = np.outer(np.ones(Ny),xc_delta)
     Y = yc_delta
     
-    # fig = plt.figure(figsize=(12,3))
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    # im = ax.pcolormesh(X,Y,U, cmap='jet',vmin=0, vmax=1)
     im = ax.contourf(X,Y,U, levels=np.linspace(0,1,41),cmap='jet',extend='both')
     for c in im.collections: # delete lines between contour colors.
         c.set_edgecolor("face")
     plt.plot(xc_delta,delta99_delta, "k")
     plt.plot(x_delta,y_delta[-1,:],"k") # the top wall
     for i in range(nPar):
-        plt.plot(x_delta[-1]*(1-1/nPar*i),q[i],"ro", markersize=5)
-        # if i==1:
-        #     plt.plot(x_delta[-1]/2,q[i],"ro", markersize=5)
-        # elif i==2:
-        #     plt.plot(x_delta[-1]/5,q[i],"ro", markersize=5)
-        # else:
-        #     plt.plot(x_delta[-1]*(1-1/nPar*i),q[i],"ro", markersize=5)
+        plt.plot(x_delta[-1]*(1-1/nPar*i),q[i],"ro", markersize=8)
     plt.vlines([x_delta[int(Nx*in_exc)], x_delta[-int(Nx*out_exc)-1]], 0, ymax, \
                'k',linestyles='dashdot')
     # plt.plot(x_delta, y_delta[Ny//2], "k--") #middle line
@@ -459,7 +451,7 @@ def main(beta_t, in_exc, out_exc, iMain, U_infty, delta99_in, Nx, Ny, Nz, t, q):
 
     #6. save beta & U contour
     save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj)
-    save_Ucontour(x/delta99_in, y/delta99_in,xc/delta99_in, yc/delta99_in, U, delta99/delta99_in, \
+    save_Ucontour(x/delta99_in, y/delta99_in, xc/delta99_in, yc/delta99_in, U, delta99/delta99_in, \
                   iMain, in_exc, out_exc, q)
     
     return obj

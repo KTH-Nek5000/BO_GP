@@ -11,14 +11,12 @@
 # %% libralies
 import subprocess
 import os
-
-# from OFpost import main_post
-# from OFpre import main_pre
-# from gpOptim import gpOpt_TBL as X
+import logging
+import pathlib
 
 # %% logging
-import logging
-# # create logger
+
+# create logger
 logger = logging.getLogger("Driver")
 if (logger.hasHandlers()):
     logger.handlers.clear()
@@ -38,22 +36,25 @@ add_handler()
 
 # %% SETTINGS
 iStart = 1   # Starting iteration
-iEnd = 100
+iEnd = 80 # < 100
+assert iEnd < 100
 beta_t = 1   # terget value for beta
-in_exc = 0.2   # ignore this region when assess the objective
-out_exc = 0.1
+in_exc = 0.1   # ignore this region when assess the objective
+out_exc = 0.05
 # setting for OFcase
 U_infty, delta99_in, Nx, Ny, Nz, tEnd, Lx, Ly = \
     1, 0.05, int(500), int(218), int(1), int(200), 50, 2
 
 # %% path
-import pathlib
 current_dir = str(pathlib.Path(__file__).resolve().parent)
-bupAddress = current_dir + "/storage/current"
+PATH2BUP = current_dir + "/storage/current"
 PATH2DATA = current_dir + "/data"
 PATH2FIGS = current_dir + "/figs"
 PATH2OFCASE = current_dir + "/OFcase"
 PATH2GPLIST = current_dir + "/gpOptim/workDir/gpList.dat"
+
+# %% misc.
+#minInd
 
 # %% MAIN
 if __name__ == '__main__':
@@ -61,7 +62,7 @@ if __name__ == '__main__':
     from OFpre import main_pre
     from gpOptim import gpOpt_TBL as X
     # initialiization
-    subprocess.call('clear')
+    #subprocess.call('clear')
     logger.info("CHECK KERBEROS VALIDITY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     logger.info("process id = %d" % os.getpid())
     logger.info("pwd = %s" % current_dir)
@@ -73,8 +74,8 @@ if __name__ == '__main__':
     X.printSetting()
     
     # make directories
-    if not os.path.isdir(bupAddress):
-       os.mkdir(bupAddress)
+    if not os.path.isdir(PATH2BUP):
+       os.mkdir(PATH2BUP)
     if not os.path.isdir(PATH2DATA):
        os.mkdir(PATH2DATA)
     if not os.path.isdir(PATH2FIGS):
@@ -82,18 +83,18 @@ if __name__ == '__main__':
     
     # clean remaining data
     if iStart == 1:
-        logger.info("RESET figs/, gpList, data/, backup !!!!!!!!!!!!!!!")
-        subprocess.call("rm -f data/*.npy", shell=True)
-        subprocess.call("sed -i '3,$d' gpOptim/workDir/gpList.dat", shell=True)
-        subprocess.call("rm -f figs/*.pdf", shell=True)
-        subprocess.call("rm -f figs/png/*", shell=True)
-        subprocess.call("rm -rf %s/*" % bupAddress, shell=True)
+        logger.info("RESET figs/, gpList, data/, %s !!!!!!!!!!!!!!!" % PATH2BUP)
+        subprocess.call("rm -f %s/*.npy" % PATH2DATA, shell=True)
+        subprocess.call("sed -i '3,$d' %s" % PATH2GPLIST, shell=True)
+        subprocess.call("rm -f %s/*.pdf" % PATH2FIGS, shell=True)
+        subprocess.call("rm -f %s/png/*" % PATH2FIGS, shell=True)
+        subprocess.call("rm -rf %s/*" % PATH2BUP, shell=True)
     else:
-        assert len(X.read_available_GPsamples(PATH2GPLIST, X.nPar)[1])+1 == iStart, \
+        assert len(X.read_available_GPsamples(PATH2GPLIST, X.nPar)[1]) + 1 == iStart, \
             "gpList and iStart doesn't match"
         
     # MAIN LOOP
-    for i in range(iStart, iEnd+1):
+    for i in range(iStart, iEnd + 1):
         logger.info("############### START LOOP i = %d #################" % i)
         #1. Generate a sample from the parameters space
         newQ = X.nextGPsample(PATH2GPLIST)#"gpOptim/workDir/gpList.dat") # path2gpList
@@ -103,7 +104,7 @@ if __name__ == '__main__':
             (Nx, Ny, Lx, Ly, newQ*delta99_in, U_infty, tEnd, PATH2OFCASE)
         
         #3. Run OpenFOAM
-        os.chdir("./OFcase")
+        os.chdir(PATH2OFCASE)
         
         logger.info("clean OFcase files")
         subprocess.call("rm -rf processor*", shell=True)
@@ -126,35 +127,35 @@ if __name__ == '__main__':
         subprocess.check_call("reconstructPar -latestTime", shell=True)
         subprocess.check_call("postProcess -func writeCellCentres -time 0", shell=True)
         # backup
-        logger.info("COPY THE LATEST TIME DATA TO %s/%s" % (bupAddress,i))
-        if not os.path.isdir(bupAddress + "/" + str(i)):
-            os.mkdir(bupAddress + "/" + str(i))
-        subprocess.check_call("cp -r %d %s/%s/%d" % (tEnd,bupAddress,i,tEnd), shell=True)
-        subprocess.check_call("cp -r 0 %s/%s/" % (bupAddress,i), shell=True)
-        if not os.path.isdir(bupAddress + "/" + str(i) + "/constant"):
-            os.mkdir(bupAddress + "/" + str(i) + "/constant")
-        subprocess.check_call("cp -r constant %s/%s/" % (bupAddress,i), shell=True)
-        subprocess.check_call("cp -r postProcessing %s/%s/" % (bupAddress,i), shell=True)
-        os.chdir("../")
+        logger.info("COPY THE LATEST TIME DATA TO %s/%s" % (PATH2BUP, i))
+        if not os.path.isdir(PATH2BUP + "/" + str(i)):
+            os.mkdir(PATH2BUP + "/" + str(i))
+        subprocess.check_call("cp -r %d %s/%s/%d" % (tEnd,PATH2BUP, i, tEnd), shell=True)
+        subprocess.check_call("cp -r 0 %s/%s/" % (PATH2BUP, i), shell=True)
+        if not os.path.isdir(PATH2BUP + "/" + str(i) + "/constant"):
+            os.mkdir(PATH2BUP + "/" + str(i) + "/constant")
+        subprocess.check_call("cp -r constant %s/%s/" % (PATH2BUP, i), shell=True)
+        subprocess.check_call("cp -r postProcessing %s/%s/" % (PATH2BUP, i), shell=True)
+        os.chdir(current_dir)
         
         #4. Post-process OpenFOAM
         obj = main_post.main(beta_t, in_exc, out_exc, i, U_infty, delta99_in, \
                              Nx, Ny, Nz, tEnd, newQ)
         
         #5. Post-process optimization
-        os.chdir("./gpOptim")
-        isConv = X.BO_update_convergence(newQ, obj) # 0: unconverged, 1: converged
-        os.chdir("../")
+        # os.chdir("./gpOptim")
+        isConv = X.BO_update_convergence(newQ, obj, path2gpList=PATH2GPLIST, path2figs=PATH2FIGS)
+        os.chdir(current_dir)
         
         #6. check convergence
         if isConv:
             break
         
     logger.info("################### MAIN LOOP END ####################")
-    logger.info("make backup: figs/, data/, gpList.dat, log")
-    subprocess.check_call("cp -r %s %s/" % (PATH2FIGS,bupAddress), shell=True)
-    subprocess.check_call("cp -r %s %s/" % (PATH2DATA,bupAddress), shell=True)
-    subprocess.check_call("cp %s %s/" % (PATH2GPLIST,bupAddress), shell=True)
-    subprocess.check_call("cp log %s/" % (bupAddress), shell=True)
+    logger.info("copy figs/, data/, gpList.dat, log to %s" % PATH2BUP)
+    subprocess.check_call("cp -r %s %s/" % (PATH2FIGS, PATH2BUP), shell=True)
+    subprocess.check_call("cp -r %s %s/" % (PATH2DATA, PATH2BUP), shell=True)
+    subprocess.check_call("cp %s %s/" % (PATH2GPLIST, PATH2BUP), shell=True)
+    subprocess.check_call("cp log %s/" % (PATH2BUP), shell=True)
     
     logger.info("FINISHED")
