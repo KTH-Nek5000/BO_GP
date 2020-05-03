@@ -249,7 +249,7 @@ def bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w):
                     counter += 1
                     if counter > 1000:
                         logger.error('too many loop in delta99 1')
-                        logger.error('i =', i,',j =', j)
+                        logger.error('i = %d, j = %d' % (i, j))
                         sys.exit(1)
             try:
                 delta99[i] = f1(0.99)
@@ -258,9 +258,9 @@ def bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w):
                 thre = thre+0.0003
                 counter += 1
                 if counter > 1000:
-                        logger.error('too many loop in delta99 2')
-                        logger.error('i =', i,',j =', j)
-                        sys.exit(1)
+                    logger.error('too many loop in delta99 2')
+                    logger.error('i = %d, j = %d' % (i, j))
+                    sys.exit(1)
     
     # integral quantities
     deltaStar = np.zeros(Nx)
@@ -288,10 +288,17 @@ def bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w):
     
     return Re_theta, beta, deltaStar, dpdx, delta99
 
-def calc_obj(beta, beta_t, in_exc, out_exc):
+def beta_target(x):
+    # 1 if you want beta=1 constant
+    n=len(x)
+    beta_t=0*np.ones(n) #x/50
+    return beta_t
+
+def calc_obj(x, beta, in_exc, out_exc):
     """
     Parameters
     ----------
+    x : np.array, Nx+1
     beta : np.array, Nx-1
         output of calc_beta
     beta_t : float
@@ -305,11 +312,13 @@ def calc_obj(beta, beta_t, in_exc, out_exc):
     """
     
     logger.debug("################### calc objective ####################")
-    Nx = len(beta) + 1
-    obj = np.linalg.norm(beta[int(in_exc*Nx)-1:-int(out_exc*Nx)+1] - beta_t) # L2norm
+    Nx = len(x) - 1
+    #obj = np.linalg.norm(beta[int(in_exc*Nx)-1:-int(out_exc*Nx)+1] - beta_t) # L2norm
+    obj = np.linalg.norm(beta[int(in_exc*Nx)-1:-int(out_exc*Nx)+1]
+                         - beta_target(x[int(in_exc*Nx):-int(out_exc*Nx)]))
     return obj
 
-def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj,
+def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, obj,
                   betaMin=None, betaMax=None, path2figs=D.PATH2FIGS):
     """
     Parameters
@@ -323,28 +332,18 @@ def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj,
     
     plt.figure()
     plt.plot(x[1:-1]/delta99_in, beta)
+    beta_t = beta_target(x[1:-1])
+    plt.plot(x[1:-1]/delta99_in, beta_t, "r:")
+    
     xmin = x[0]/delta99_in
     xmax = x[-1]/delta99_in
-    
-    if betaMin is None:
-        if beta_t == 0:
-            ymin = -0.1
-        else:
-            ymin = beta_t - 1.5*beta_t # set depends on your beta_t
-    else:
-        ymin = betaMin
-    
-    if betaMax is None:
-        if beta_t == 0:
-            ymax = 0.1
-        else:
-            ymax = beta_t + 1.5*beta_t
-    else:
-        ymax = betaMax
-    
+    ymin = betaMin if betaMin is not None else np.min(beta_t)-abs(np.min(beta_t))*0.2
+    ymax = betaMax if betaMax is not None else np.max(beta_t)+abs(np.max(beta_t))*0.2
+    if ymin==ymax:
+        ymin -= 0.1
+        ymax += 0.1
     plt.vlines(x[int(Nx*in_exc)]/delta99_in,ymin,ymax,'k',linestyles='dashdot')
     plt.vlines(x[-int(Nx*out_exc)-1]/delta99_in,ymin,ymax,'k',linestyles='dashdot')
-    plt.hlines(beta_t,xmin,xmax,'r',linestyles='dashed')
     plt.xlabel(r'$x/\delta_{99}^{\rm in}$')
     plt.ylabel(r'$\beta$')
     plt.xlim(xmin,xmax)
@@ -354,7 +353,7 @@ def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj,
     plt.title(r'$i = %d, \mathcal{R}_i = %f$' % (iMain,obj))
     saveFileName = "/beta_%02d" % iMain
     plt.savefig(path2figs + saveFileName + ".pdf",bbox_inches="tight")
-    logger.info("save beta figure as %s%s.pdf" % (path2figs, saveFileName))
+    logger.info("save beta_figure as %s%s.pdf" % (path2figs, saveFileName))
     
 def save_data(Re_theta, beta, deltaStar, dpdx, tau_w, U, delta99, iMain):
     """
@@ -432,7 +431,7 @@ def save_Ucontour(x_delta, y_delta, xc_delta, yc_delta, U, delta99_delta, iMain,
     plt.savefig(path2figs + saveFileName + ".pdf", bbox_inches="tight")
     logger.info("save U figure as %s%s.pdf" % (path2figs, saveFileName))
 
-def main(beta_t, in_exc, out_exc, iMain, U_infty, delta99_in, Nx, Ny, Nz, t, q):
+def main(in_exc, out_exc, iMain, U_infty, delta99_in, Nx, Ny, Nz, t, q):
     #1. load data
     nu = getNu(D.PATH2OFCASE)
     xc, yc, x, y = load_grid(Nx, Ny, Nz, D.PATH2OFCASE)
@@ -443,14 +442,14 @@ def main(beta_t, in_exc, out_exc, iMain, U_infty, delta99_in, Nx, Ny, Nz, t, q):
         bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w)
     
     #3. assess objective R
-    obj = calc_obj(beta, beta_t, in_exc, out_exc)
+    obj = calc_obj(x, beta, in_exc, out_exc)
     logger.info("objective = %g" % obj)
     
     #4. save data as .npy
     save_data(Re_theta, beta, deltaStar, dpdx, tau_w, U, delta99, iMain)
 
     #6. save beta & U contour
-    save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, beta_t, obj)
+    save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, obj)
     save_Ucontour(x/delta99_in, y/delta99_in, xc/delta99_in, yc/delta99_in, U, delta99/delta99_in, \
                   iMain, in_exc, out_exc, q)
     

@@ -39,7 +39,7 @@ add_handler()
 iStart = 1   # Starting iteration
 iEnd = 80 # < 100
 assert iEnd < 100
-beta_t = 1   # terget value for beta
+#beta_t = 1   # set target function in OFpost/main_post.beta_target()
 in_exc = 0.1   # ignore this region when assess the objective
 out_exc = 0.05
 # setting for OFcase
@@ -67,8 +67,8 @@ if __name__ == '__main__':
     logger.info("CHECK KERBEROS VALIDITY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     logger.info("process id = %d" % os.getpid())
     logger.info("pwd = %s" % current_dir)
-    logger.info("iStart = %d, iEnd = %d, beta_t = %f, in_exc = %f, out_exc = %f" \
-                    % (iStart, iEnd, beta_t, in_exc, out_exc))
+    logger.info("iStart = %d, iEnd = %d, in_exc = %f, out_exc = %f" \
+                    % (iStart, iEnd, in_exc, out_exc))
     logger.info("U_infty = %f, delta99_in = %f, Nx = %d, Ny = %d, Nz = %d, "\
                 "tEnd = %d, Lx = %f, Ly = %f" % \
                     (U_infty, delta99_in, Nx, Ny, Nz, tEnd, Lx, Ly))
@@ -140,7 +140,7 @@ if __name__ == '__main__':
         os.chdir(current_dir)
         
         #4. Post-process OpenFOAM
-        obj = main_post.main(beta_t, in_exc, out_exc, i, U_infty, delta99_in, \
+        obj = main_post.main(in_exc, out_exc, i, U_infty, delta99_in, \
                              Nx, Ny, Nz, tEnd, newQ)
         # update minInd
         if obj < minR:
@@ -156,11 +156,11 @@ if __name__ == '__main__':
             break
         
     logger.info("################### MAIN LOOP END ####################")
+    logger.info("The iteration gave the smallest R: %d" % minInd)
     logger.info("copy figs/, data/, gpList.dat, log to %s" % PATH2BUP)
     subprocess.check_call("cp -r %s %s/" % (PATH2FIGS, PATH2BUP), shell=True)
     subprocess.check_call("cp -r %s %s/" % (PATH2DATA, PATH2BUP), shell=True)
     subprocess.check_call("cp %s %s/" % (PATH2GPLIST, PATH2BUP), shell=True)
     subprocess.check_call("cp log %s/" % (PATH2BUP), shell=True)
-
-    logger.info("The iteration gave the smallest R: %d" % minInd)
+    
     logger.info("FINISHED")

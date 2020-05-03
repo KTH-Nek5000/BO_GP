@@ -21,7 +21,7 @@ from OFpost import main_post
 import driver_BOGP as D
 from gpOptim import gpOpt_TBL
 
-# %% global
+# %% global variables
 
 # %% funcs
 def make_patch_spines_invisible(ax):
@@ -112,11 +112,11 @@ def beta_components_fig(xc, x, delta99_in, U_infty, deltaStar, dpdx, tau_w, in_e
 # %% ################## main ###########################
 if __name__ == '__main__':
     
-    isCurrentCase = False # IF FALSE, CHECK FOLLOWING IF STATEMENT CAREFULLY !!!!!
+    isCurrentCase = True # IF FALSE, CHECK FOLLOWING IF STATEMENT CAREFULLY !!!!!
     
     if isCurrentCase:
         # setting from driver
-        beta_t = D.beta_t
+#        beta_t = D.beta_t
         in_exc = D.in_exc
         out_exc = D.out_exc
         U_infty, delta99_in, Nx, Ny, Nz = D.U_infty, D.delta99_in, D.Nx, D.Ny, D.Nz
@@ -129,7 +129,7 @@ if __name__ == '__main__':
         gpBounds = gpOpt_TBL.qBound #BOUNDS #[(40,50),(40,50)]
     else:
         # setting from driver
-        beta_t = 1
+#        beta_t = 1
         in_exc = 0.4
         out_exc = 0.1
         U_infty, delta99_in, Nx, Ny, Nz = D.U_infty, D.delta99_in, D.Nx, D.Ny, D.Nz
@@ -143,7 +143,7 @@ if __name__ == '__main__':
         gpBounds = [(75,95),(60,80)]
     
     # gp fig
-    [xList,yList]=gpOpt_TBL.read_available_GPsamples(path2gpList, \
+    [xList,yList] = gpOpt_TBL.read_available_GPsamples(path2gpList, \
                                                      nPar_=np.shape(gpBounds)[0])
     nData = np.size(yList)
     Rlim = [0, np.max(yList)]
@@ -171,18 +171,14 @@ if __name__ == '__main__':
     #     print("Warning: delta99 >= Ly/2")
     
     # overwrite
-    if beta_t==0:
-        betaBound[0] = -0.1
-        betaBound[1] = 0.1
-    else:
-        betaBound[0] = beta_t - 1.5*beta_t
-        betaBound[1] = beta_t + 1.5*beta_t
+    betaBound[0] = 0
+    betaBound[1] = 1.2
     
     # gp final
     # gpOpt_TBL.gpSurface_plot(xList[:nData], yList[:nData], nData, path2figs=path2figs+"/", \
     #                               Rlim=[0,5], bounds=gpBounds,var=False,final=True)
-    gpOpt_TBL.gpSurface_plot(xList[:nData], yList[:nData], nData, path2figs=path2figs+"/", \
-                                   bounds=gpBounds,var=True,final=True)
+    #gpOpt_TBL.gpSurface_plot(xList[:nData], yList[:nData], nData, path2figs=path2figs+"/", \
+     #                              bounds=gpBounds,var=True,final=True)
     # for i in range(1):
     # i=14
     for i in range(nData):
@@ -193,18 +189,19 @@ if __name__ == '__main__':
         
         # update beta figs
         # obj = main_post.calc_obj(betaList[i], beta_t, in_exc, out_exc)
-        # main_post.save_beta_fig(i+1, x, betaList[i], delta99_in, in_exc,
-        #                         out_exc, beta_t, obj, betaMin=betaBound[0], 
-        #                         betaMax=betaBound[1], path2figs=path2figs)
-        # main_post.save_beta_fig(i+1, x, betaList[i], delta99_in, in_exc,
-                            # out_exc, beta_t, obj, betaMin=-0.01,betaMax=0.01,
-                            #  path2figs=path2figs+"/../../thesisFigs")    
+        obj = yList[i]
+        main_post.save_beta_fig(i+1, x, betaList[i], delta99_in, in_exc,
+                                 out_exc, obj, betaMin=betaBound[0], 
+                                 betaMax=betaBound[1], path2figs=path2figs)
+        #main_post.save_beta_fig(i+1, x, betaList[i], delta99_in, in_exc,
+         #                    out_exc, obj, 
+          #                    path2figs=path2figs)    
         # update gp figs
         # gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs=path2figs, \
         #                           Rlim=Rlim, bounds=gpBounds,var=False)
         
-        gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs=path2figs,
-                                 bounds=gpBounds,var=True)
+        #gpOpt_TBL.gpSurface_plot(xList[:i+1], yList[:i+1], i+1, path2figs=path2figs,
+        #                         bounds=gpBounds,var=True)
         
         # update convergence plot
         # gpOpt_TBL.my_convergence_plot(xList[:i+1], yList[:i+1], gpOpt_TBL.whichOptim, \

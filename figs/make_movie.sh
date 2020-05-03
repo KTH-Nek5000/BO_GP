@@ -16,7 +16,6 @@ figs=("beta" "gp4D" "U" "bo_convergence" "comp")
 
 # check if png/ exists
 if [ ! -d ./png ]; then
-    echo "I'm here"
     mkdir png
 fi
 
