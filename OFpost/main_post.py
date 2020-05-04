@@ -288,10 +288,32 @@ def bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w):
     
     return Re_theta, beta, deltaStar, dpdx, delta99
 
-def beta_target(x):
+def beta_target_(x):
     # 1 if you want beta=1 constant
     n=len(x)
     beta_t=0*np.ones(n) #x/50
+    return beta_t
+
+def beta_target(x):
+    from scipy.io import loadmat
+    n=len(x)
+    Lx=50
+    path2file="/scratch/morita/OpenFOAM/morita-7/MATLAB/naca0012.mat"
+    naca0012=loadmat(path2file)["top4n12"]
+    xa=naca0012["xa"].reshape(-1)
+    beta=naca0012["beta"].reshape(-1)
+    xa=[v[0][0] for v in xa]
+    beta=[v[0][0] for v in beta]
+#    print(xa,beta)
+    f = interpolate.interp1d(xa, beta, kind="quadratic")
+    beta_t=np.zeros(n)
+    for i in range(n):
+        if x[i]/Lx<=xa[0]:
+            beta_t[i]=beta[0]
+        elif x[i]/Lx>=xa[-1]:
+            beta_t[i]=beta[-1]
+        else:
+            beta_t[i]=f(x[i]/Lx)
     return beta_t
 
 def calc_obj(x, beta, in_exc, out_exc):

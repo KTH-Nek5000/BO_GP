@@ -34,11 +34,11 @@ logger = logging.getLogger("Driver").getChild("gpOptim/gpOpt_TBL.py")
 # %% global variables
 #----------------------------------------------------------------------------
 #>>>> SETTINGS & PROBLEM DEFINITION -----------------------------------------
-sigma_d = 0.0       #sdev of the white noise in the measured data   
+sigma_d = 0.01       #sdev of the white noise in the measured data   
 whichOptim = 'min'  #find 'max' or 'min' of f(x)?
 kernelType = 'Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-qBound = [[43,45], [42,44], [41,43], [40,42]] # /delta99^in
+qBound = [[50,80], [40,70], [40,60], [40,50]] # /delta99^in
 qMaxDist = norm([q[1]-q[0] for q in qBound])
 nPar = np.shape(qBound)[0] #number of parameters, p  dimension of x={x1,x2,...,xp} where y=f(x)
 nGPinit = 1   #minimum number of GP samples in the list to start BO-GP algorithm
