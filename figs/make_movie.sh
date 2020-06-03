@@ -11,6 +11,8 @@ set -eu
 #    exit 1
 #fi
 
+makeMovie=${1:-0}
+
 outputFileName="opt_hist"
 figs=("beta" "gp4D" "U" "bo_convergence" "comp")
 
@@ -29,7 +31,7 @@ for fig in ${figs[@]}; do
 	wait
 	mv png/${filename}-1.png png/$filename.png # rename
     done
-    if [ $1 -eq 1 ]; then
+    if [ $makeMovie -eq 1 ]; then
        echo "############### make $fig.avi from .png files###############"
        ffmpeg -y -framerate 0.5 -i png/${fig}_%02d.png png/tmp.avi # overwritten, 0.5 pic/sec
        wait
@@ -39,7 +41,7 @@ for fig in ${figs[@]}; do
     fi
 done
 
-if [ $1 -eq 1 ]; then
+if [ $makeMovie -eq 1 ]; then
 # 2 figures
 #echo "################### png/${figs[0]}.avi + png/${figs[1]}.avi -> png/$outputFileName.avi ####################"
 #ffmpeg -y -i png/${figs[0]}.avi -i png/${figs[1]}.avi -filter_complex "hstack" png/$outputFileName.avi
