@@ -296,14 +296,18 @@ def beta_target_(x):
 
 def beta_target(x):
     from scipy.io import loadmat
-    n=len(x)
-    Lx=50
-    path2file="/scratch/morita/OpenFOAM/morita-7/MATLAB/naca0012.mat"
-    naca0012=loadmat(path2file)["top4n12"]
-    xa=naca0012["xa"].reshape(-1)
-    beta=naca0012["beta"].reshape(-1)
-    xa=[v[0][0] for v in xa]
-    beta=[v[0][0] for v in beta]
+    n = len(x)
+    Lx = 50*0.95
+    path2file = "/scratch/morita/OpenFOAM/morita-7/MATLAB/naca0012.mat"
+    naca0012 = loadmat(path2file)["top4n12"]
+    xa = naca0012["xa"].reshape(-1)
+    beta = naca0012["beta"].reshape(-1)
+    xa = [v[0][0] for v in xa][7:]
+    start = xa[0]
+    xa -= start
+    Lwing = xa[-1]
+    xa /= Lwing
+    beta=[v[0][0] for v in beta][7:]
 #    print(xa,beta)
     f = interpolate.interp1d(xa, beta, kind="quadratic")
     beta_t=np.zeros(n)
@@ -336,8 +340,8 @@ def calc_obj(x, beta, in_exc, out_exc):
     logger.debug("################### calc objective ####################")
     Nx = len(x) - 1
     #obj = np.linalg.norm(beta[int(in_exc*Nx)-1:-int(out_exc*Nx)+1] - beta_t) # L2norm
-    obj = np.linalg.norm(beta[int(in_exc*Nx)-1:-int(out_exc*Nx)+1]
-                         - beta_target(x[int(in_exc*Nx):-int(out_exc*Nx)]))
+    obj = np.linalg.norm(beta[int(in_exc*Nx):-int(out_exc*Nx)+1]
+                         - beta_target(x[int(in_exc*Nx)+1:-int(out_exc*Nx)]))
     return obj
 
 def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, obj,
@@ -371,7 +375,7 @@ def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, obj,
     plt.xlim(xmin,xmax)
     plt.ylim(ymin,ymax)
     plt.grid(True)
-    plt.ticklabel_format(style='sci', axis='y', scilimits=(2,-1))
+    plt.ticklabel_format(style='sci', axis='y', scilimits=(2,-2))
     plt.title(r'$i = %d, \mathcal{R}_i = %f$' % (iMain,obj))
     saveFileName = "/beta_%02d" % iMain
     plt.savefig(path2figs + saveFileName + ".pdf",bbox_inches="tight")
