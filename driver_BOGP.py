@@ -37,11 +37,10 @@ add_handler()
 
 # %% SETTINGS
 iStart = 1   # Starting iteration
-iEnd = 80 # < 100
-assert iEnd < 100
-#beta_t = 1   # set target function in OFpost/main_post.beta_target()
-in_exc = 0.1   # ignore this region when assess the objective
-out_exc = 0.05
+iEnd = 50 # < 100
+# assert iEnd < 100
+in_exc = 0.3   # ignore this region when assess the objective
+out_exc = 0.1
 # setting for OFcase
 U_infty, delta99_in, Nx, Ny, Nz, tEnd, Lx, Ly = \
     1, 0.05, int(500), int(218), int(1), int(200), 50, 2

@@ -217,60 +217,60 @@ if __name__ == '__main__':
     
     # %% from ZPG TBL
     # read DNS profile (https://www.mech.kth.se/~pschlatt/DATA/vel_0670_dns.prof, 2010)
-    # ref2010 = database.RefData(2010)
-    # ref2010.get_profile("0670")
+    ref2010 = database.RefData(2010)
+    ref2010.get_profile("0670")
     
-    # epsilon_pr = np.loadtxt("bl_data/bud_0670_dns_k.prof", skiprows=15, unpack=True)[4]
-    # u_tau_in = np.sqrt(0.5*Uinf**2*ref2010.cf[0]) # Re_theta=670
-    # nu = u_tau_in*delta99_in/ref2010.Re_tau[0]
-    # Ur = ref2010.Up*u_tau_in
-    # Vr = ref2010.Vp*u_tau_in
-    # yr = ref2010.y_delta*delta99_in
+    epsilon_pr = np.loadtxt("bl_data/bud_0670_dns_k.prof", skiprows=15, unpack=True)[4]
+    u_tau_in = np.sqrt(0.5*Uinf**2*ref2010.cf[0]) # Re_theta=670
+    nu = u_tau_in*delta99_in/ref2010.Re_tau[0]
+    Ur = ref2010.Up*u_tau_in
+    Vr = ref2010.Vp*u_tau_in
+    yr = ref2010.y_delta*delta99_in
     
-    # # compute from DNS
-    # epsilon_r = -epsilon_pr*u_tau_in**4/nu
-    # kr = 0.5*(ref2010.urms_p**2+ref2010.vrms_p**2+ref2010.wrms_p**2)*u_tau_in**2
-    # omega_r = epsilon_r/kr/0.09
-    # omega_r[0] = np.nan
-    
-    # %% from wing
-    from scipy.io import loadmat
-    path2file="/scratch/morita/OpenFOAM/morita-7/MATLAB/naca0012.mat"
-    naca0012=loadmat(path2file)["top4n12"]
-    ind=7
-
-    #Ue = naca0012["Ue"][0][ind].reshape(1)
-    u_tau_org=naca0012["ut"][0][ind].reshape(1)
-    nu_org=naca0012["nu"][0][ind].reshape(1)
-    u_tau_in=np.sqrt(0.5*Uinf**2*naca0012["Cf"][0][ind].reshape(1))
-    nu=u_tau_in*delta99_in/naca0012["Ret"][0][ind].reshape(1)
-    
-    epsilon_r = -naca0012["Dk"][0][ind].reshape(-1)
-    for i in range(len(epsilon_r)):
-        if epsilon_r[i]<0:
-            epsilon_r[i]=1e-15
-    Ur=naca0012["U"][0][ind].reshape(-1)
-    Vr=naca0012["V"][0][ind].reshape(-1)
-    yr=naca0012["yn"][0][ind].reshape(-1)
-    kr=(naca0012["uu"][0][ind]+naca0012["vv"][0][ind]+naca0012["ww"][0][ind])/2
-    kr=kr.reshape(-1)
-    def calc_dpdx(ind):
-        p_pre=naca0012["P"][0][ind-1].reshape(-1)
-        p_post=naca0012["P"][0][ind+1].reshape(-1)
-        dx=naca0012["xa"][0][ind+1].reshape(-1) - naca0012["xa"][0][ind-1].reshape(-1)
-        return (p_post-p_pre)/dx
-    dpdx=calc_dpdx(ind)
-    
-    # rescale to have Ue=1
-    Ur=Ur/u_tau_org*u_tau_in
-    Vr=Vr/u_tau_org*u_tau_in
-    kr=kr/u_tau_org**2*u_tau_in**2
-    epsilon_r=epsilon_r/u_tau_org**4*nu_org*u_tau_in**4/nu
-    yr=yr*u_tau_org/nu_org/u_tau_in*nu
-    dpdx=dpdx*nu_org/u_tau_org**3/nu*u_tau_in**3
-    
+    # compute from DNS
+    epsilon_r = -epsilon_pr*u_tau_in**4/nu
+    kr = 0.5*(ref2010.urms_p**2+ref2010.vrms_p**2+ref2010.wrms_p**2)*u_tau_in**2
     omega_r = epsilon_r/kr/0.09
     omega_r[0] = np.nan
+    
+    # %% from wing
+    # from scipy.io import loadmat
+    # path2file="/scratch/morita/OpenFOAM/morita-7/MATLAB/naca0012.mat"
+    # naca0012=loadmat(path2file)["top4n12"]
+    # ind=7
+
+    # #Ue = naca0012["Ue"][0][ind].reshape(1)
+    # u_tau_org=naca0012["ut"][0][ind].reshape(1)
+    # nu_org=naca0012["nu"][0][ind].reshape(1)
+    # u_tau_in=np.sqrt(0.5*Uinf**2*naca0012["Cf"][0][ind].reshape(1))
+    # nu=u_tau_in*delta99_in/naca0012["Ret"][0][ind].reshape(1)
+    
+    # epsilon_r = -naca0012["Dk"][0][ind].reshape(-1)
+    # for i in range(len(epsilon_r)):
+    #     if epsilon_r[i]<0:
+    #         epsilon_r[i]=1e-15
+    # Ur=naca0012["U"][0][ind].reshape(-1)
+    # Vr=naca0012["V"][0][ind].reshape(-1)
+    # yr=naca0012["yn"][0][ind].reshape(-1)
+    # kr=(naca0012["uu"][0][ind]+naca0012["vv"][0][ind]+naca0012["ww"][0][ind])/2
+    # kr=kr.reshape(-1)
+    # def calc_dpdx(ind):
+    #     p_pre=naca0012["P"][0][ind-1].reshape(-1)
+    #     p_post=naca0012["P"][0][ind+1].reshape(-1)
+    #     dx=naca0012["xa"][0][ind+1].reshape(-1) - naca0012["xa"][0][ind-1].reshape(-1)
+    #     return (p_post-p_pre)/dx
+    # dpdx=calc_dpdx(ind)
+    
+    # # rescale to have Ue=1
+    # Ur=Ur/u_tau_org*u_tau_in
+    # Vr=Vr/u_tau_org*u_tau_in
+    # kr=kr/u_tau_org**2*u_tau_in**2
+    # epsilon_r=epsilon_r/u_tau_org**4*nu_org*u_tau_in**4/nu
+    # yr=yr*u_tau_org/nu_org/u_tau_in*nu
+    # dpdx=dpdx*nu_org/u_tau_org**3/nu*u_tau_in**3
+    
+    # omega_r = epsilon_r/kr/0.09
+    # omega_r[0] = np.nan
     
     # %% estimate y^+
     yp_w = y[1,0]*u_tau_in/nu
@@ -281,7 +281,7 @@ if __name__ == '__main__':
     
     # %% interpolation
     U_new, V_new, k_new, omega_new, nut_new, dpdx_new = \
-        interpolation(yc, yr, Ur, kr, epsilon_r, Ny, nu, dpdx)
+        interpolation(yc, yr, Ur, kr, epsilon_r, Ny, nu)
     
     # check profile
     plt.figure()
@@ -302,7 +302,7 @@ if __name__ == '__main__':
     plt.semilogx(omega_new,yc,color='b',label='inflow')
     plt.semilogx(omega_r,yr,'k--',label='DNS')
     plt.grid()
-    plt.xlim(0,100)
+    plt.xlim(1,100)
     plt.legend()
     
     plt.figure()
@@ -311,13 +311,13 @@ if __name__ == '__main__':
     plt.grid()
     plt.legend()
     
-    plt.figure()
-    plt.plot(dpdx_new,yc/delta99_in,'b',label='inflow')
-    plt.plot(dpdx,yr/delta99_in,'k--',label='data of NACA0012')
-    plt.xlabel(r"$dp/dx$")
-    plt.ylabel(r"$y/\delta_{99}^{\rm in}$")
-    plt.grid()
-    plt.legend()
+    # plt.figure()
+    # plt.plot(dpdx_new,yc/delta99_in,'b',label='inflow')
+    # plt.plot(dpdx,yr/delta99_in,'k--',label='data of NACA0012')
+    # plt.xlabel(r"$dp/dx$")
+    # plt.ylabel(r"$y/\delta_{99}^{\rm in}$")
+    # plt.grid()
+    # plt.legend()
     
     # %% write
     # write_IC("U", U_new, Nx, V=V_new)
@@ -325,6 +325,6 @@ if __name__ == '__main__':
     write_IC("k",k_new,Nx)
     write_IC("omega",omega_new,Nx)
     write_IC("nut",nut_new,Nx)
-    write_IC("dpdx",dpdx_new,Nx)
+    # write_IC("dpdx",dpdx_new,Nx)
     
     print("set nu to %s" % str(nu))

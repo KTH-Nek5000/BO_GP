@@ -288,33 +288,34 @@ def bl_calc(Nx, Ny, Nz, U_infty, nu, xc, yc, U, p, tau_w):
     
     return Re_theta, beta, deltaStar, dpdx, delta99
 
-def beta_target_(x):
+def beta_target(x):
     # 1 if you want beta=1 constant
     n=len(x)
-    beta_t=0*np.ones(n) #x/50
+    beta_t=1*np.ones(n) #x/50
     return beta_t
 
-def beta_target(x):
+def beta_target_(x):
     from scipy.io import loadmat
     n = len(x)
-    Lx = 50*0.95
+    Lx = x[-1]*0.95 # bug
     path2file = "/scratch/morita/OpenFOAM/morita-7/MATLAB/naca0012.mat"
     naca0012 = loadmat(path2file)["top4n12"]
     xa = naca0012["xa"].reshape(-1)
     beta = naca0012["beta"].reshape(-1)
-    xa = [v[0][0] for v in xa][7:]
-    start = xa[0]
-    xa -= start
+    xa = [v[0][0] for v in xa]#[7:]
+    beta=[v[0][0] for v in beta]#[7:]
+    
+    # start = xa[0]
+    # xa -= start
     Lwing = xa[-1]
     xa /= Lwing
-    beta=[v[0][0] for v in beta][7:]
-#    print(xa,beta)
+    
     f = interpolate.interp1d(xa, beta, kind="quadratic")
     beta_t=np.zeros(n)
     for i in range(n):
-        if x[i]/Lx<=xa[0]:
+        if x[i]/Lx<xa[0]:
             beta_t[i]=beta[0]
-        elif x[i]/Lx>=xa[-1]:
+        elif x[i]/Lx>xa[-1]:
             beta_t[i]=beta[-1]
         else:
             beta_t[i]=f(x[i]/Lx)
@@ -357,9 +358,13 @@ def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, obj,
     Nx = len(x)-1
     
     plt.figure()
-    plt.plot(x[1:-1]/delta99_in, beta)
     beta_t = beta_target(x[1:-1])
-    plt.plot(x[1:-1]/delta99_in, beta_t, "r:")
+    #plt.plot(x[1:-1]/delta99_in, beta_t, "r:")
+    #beta_t = beta_target(x[int(in_exc*Nx)+1:-int(out_exc*Nx)])
+    plt.plot(x[int(in_exc*Nx)+1:-int(out_exc*Nx)]/delta99_in, beta_t[int(in_exc*Nx):-int(out_exc*Nx)+1], "k--", label=r'Target distribution')
+    plt.plot(x[1:-1]/delta99_in, beta, 'b-', label='Result of the optimization')
+    plt.axvspan(x[0], x[int(in_exc*Nx)]/delta99_in, color='gray', alpha=0.4)
+    plt.axvspan(x[-int(out_exc*Nx)]/delta99_in, x[-1]/delta99_in, color='gray', alpha=0.4)
     
     xmin = x[0]/delta99_in
     xmax = x[-1]/delta99_in
@@ -368,15 +373,20 @@ def save_beta_fig(iMain, x, beta, delta99_in, in_exc, out_exc, obj,
     if ymin==ymax:
         ymin -= 0.1
         ymax += 0.1
-    plt.vlines(x[int(Nx*in_exc)]/delta99_in,ymin,ymax,'k',linestyles='dashdot')
-    plt.vlines(x[-int(Nx*out_exc)-1]/delta99_in,ymin,ymax,'k',linestyles='dashdot')
-    plt.xlabel(r'$x/\delta_{99}^{\rm in}$')
-    plt.ylabel(r'$\beta$')
+    #plt.vlines(x[int(Nx*in_exc)]/delta99_in,ymin,ymax,'k',linestyles='dashdot')
+    #plt.vlines(x[-int(Nx*out_exc)-1]/delta99_in,ymin,ymax,'k',linestyles='dashdot')
+    plt.xlabel(r'$x/\delta_{99}^{\rm in}$',fontsize=18)
+    plt.ylabel(r'$\beta$',fontsize=18)
     plt.xlim(xmin,xmax)
     plt.ylim(ymin,ymax)
-    plt.grid(True)
-    plt.ticklabel_format(style='sci', axis='y', scilimits=(2,-2))
-    plt.title(r'$i = %d, \mathcal{R}_i = %f$' % (iMain,obj))
+    plt.grid(alpha=0.4)
+    plt.tick_params(labelsize=17)
+    plt.legend(ncol=1, fontsize=14)
+    #plt.ticklabel_format(style='sci', axis='y', scilimits=(2,-2))
+    #plt.title(r'$i = %d, \mathcal{R}_i = %f$' % (iMain,obj))
+    fig = plt.gcf()
+    DPI = fig.get_dpi()
+    fig.set_size_inches(800/float(DPI),400/float(DPI))
     saveFileName = "/beta_%02d" % iMain
     plt.savefig(path2figs + saveFileName + ".pdf",bbox_inches="tight")
     logger.info("save beta_figure as %s%s.pdf" % (path2figs, saveFileName))

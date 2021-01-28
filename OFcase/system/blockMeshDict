@@ -77,11 +77,21 @@ blocks
 edges
 (
  spline 4 5 (
+	     // ($Lx9 $theta9 0)
+	     // ($Lx8 $theta8 0)
+	     // ($Lx7 $theta7 0)
+	     // ($Lx6 $theta6 0)
+	     // ($Lx5 $theta5 0)
 	     ($Lx4 $theta4 0)
 	     ($Lx3 $theta3 0)
 	     ($Lx2 $theta2 0)
 	     )
  spline 10 11 (
+	       // ($Lx9 $theta9 1)
+	       // ($Lx8 $theta8 1)
+	       // ($Lx7 $theta7 1)
+	       // ($Lx6 $theta6 1)
+	       // ($Lx5 $theta5 1)
 	       ($Lx4 $theta4 1)
 	       ($Lx3 $theta3 1)
 	       ($Lx2 $theta2 1)

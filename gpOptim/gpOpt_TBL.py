@@ -16,7 +16,7 @@ matplotlib.use('PDF')
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from matplotlib import rc
-plt.rcParams["font.size"] = 20
+plt.rcParams["font.size"] = 17
 rc('text', usetex=True)
 import numpy as np
 import GPy
@@ -38,7 +38,8 @@ sigma_d = 0.01       #sdev of the white noise in the measured data
 whichOptim = 'min'  #find 'max' or 'min' of f(x)?
 kernelType = 'Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-qBound = [[50,80], [40,70], [40,60], [40,50]] # /delta99^in
+# qBound = [[50,70], [45,60], [45,55], [40,50], [40,50], [40,45],[40,45],[40,45],[39,42]] # /delta99^in
+qBound = [[95,110], [85,100], [75,85], [55,65]] # /delta99^in
 qMaxDist = norm([q[1]-q[0] for q in qBound])
 nPar = np.shape(qBound)[0] #number of parameters, p  dimension of x={x1,x2,...,xp} where y=f(x)
 nGPinit = 1   #minimum number of GP samples in the list to start BO-GP algorithm
@@ -412,7 +413,7 @@ def gpyPlotter_2Dc(fig, ax, meanPred, covarPred, x, y, x1TestGrid, x2TestGrid,
             covarPredGrid[i,j]=covarPred[k]
     
     if nPar==2:
-        fontsize=20
+        fontsize=17
         markersize=7
     elif nPar==3:
         fontsize=9
@@ -426,47 +427,38 @@ def gpyPlotter_2Dc(fig, ax, meanPred, covarPred, x, y, x1TestGrid, x2TestGrid,
     
     ##contours of uncertainty (ONLY FOR 2D)!
     if "varFlag" in plotOpts.keys():
-        # CS=ax.contourf(x1TestGrid,x2TestGrid,1.96*np.sqrt(covarPredGrid),40,cmap="jet")#,label=r'$95\%$ confidence')
-        CS=ax.contourf(x1TestGrid,x2TestGrid,covarPredGrid,40,cmap="jet")#,label=r'$95\%$ confidence')
+        CS=ax.contourf(x1TestGrid,x2TestGrid,1.96*np.sqrt(covarPredGrid),40,cmap="jet")#,label=r'$95\%$ confidence')
+#         CS=ax.contourf(x1TestGrid,x2TestGrid,covarPredGrid,40,cmap="jet")#,label=r'$95\%$ confidence')
         # plt.clabel(CS, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
-        clb = fig.colorbar(CS,ax=ax)
-        clb.set_label(r"${\rm Var}\left( \mathcal{R} \right)$",fontsize=fontsize)
-        # ax.set_xlabel(r'$%s%s/\delta_{99}^{\rm in}$' % ("q_", str(I+1)),fontsize=fontsize)
-        # ax.set_ylabel(r'$%s%s/\delta_{99}^{\rm in}$' % ("q_", str(J+1)),fontsize=fontsize)
-        # plt.title(r'$95\%$ Uncertainty',fontsize=18)
-        # ax.tick_params(labelsize=fontsize)
-        # fig.tight_layout()
-        ax.plot(x[:,0],x[:,1],'--ok',markersize=markersize)
-        if final:
-            argOpt=np.argmin(y)
-            ax.plot(x[argOpt,0],x[argOpt,1],'sr',markersize=markersize+2)
-        else:
-            ax.plot(x[len(y)-1,0],x[len(y)-1,1],'sr',markersize=markersize+2)
+        clb = fig.colorbar(CS, ax=ax)
+        clb.set_label(r"$95\%~{\rm CI}$",fontsize=fontsize)
+
     else:
         #2D contourplot
         if "Rmin" in plotOpts.keys():
             CS=ax.contourf(x1TestGrid,x2TestGrid,meanPredGrid, \
                            levels=np.linspace(plotOpts["Rmin"],plotOpts["Rmax"],41), \
                                cmap="jet",norm=Normalize(vmin=plotOpts["Rmin"], vmax=plotOpts["Rmax"]),extend='both')
-            # clb = fig.colorbar(CS,ax=ax)
         else:
             CS=ax.contourf(x1TestGrid,x2TestGrid,meanPredGrid,40,cmap="jet")#,label=r'$95\%$ confidence')
-        clb = fig.colorbar(CS,ax=ax)
+        clb = fig.colorbar(CS, ax=ax)
         # plt.clabel(CS, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
-        clb.set_label(r"$\mathcal{R}$",fontsize=fontsize)
-        ax.plot(x[:,0],x[:,1],'--ok',markersize=markersize)
-        if final:
-            # show optimal param
-            argOpt=np.argmin(y)
-            ax.plot(x[argOpt,0],x[argOpt,1],'sr',markersize=markersize+2)
-        else:
-            ax.plot(x[len(y)-1,0],x[len(y)-1,1],'sr',markersize=markersize+2)
-        
-    # plt.title(r'Mean GPR Prediction',fontsize=18)
+        clb.set_label(r"Predicted Mean of $r(\mathbf{q})$",fontsize=18)
+      
+    ax.plot(x[:,0],x[:,1],'--ok',markersize=markersize, mfc='none')
+    if final:
+        # show optimal param
+        argOpt=np.argmin(y)
+        ax.plot(x[argOpt,0],x[argOpt,1],'or',markersize=markersize)
+    else:
+        ax.plot(x[len(y)-1,0],x[len(y)-1,1],'sr',markersize=markersize+2)
+     
     clb.ax.tick_params(labelsize=fontsize)
-    ax.set_xlabel(r'$%s%s/\delta_{99}^{\rm in}$' % ("q_", str(I+1)),fontsize=fontsize)
-    ax.set_ylabel(r'$%s%s/\delta_{99}^{\rm in}$' % ("q_", str(J+1)),fontsize=fontsize)
+    ax.set_xlabel(r'$%s%s/\delta_{99}^{\rm in}$' % ("q_", str(I+1)),fontsize=18)
+    ax.set_ylabel(r'$%s%s/\delta_{99}^{\rm in}$' % ("q_", str(J+1)),fontsize=18)
     ax.tick_params(labelsize=fontsize)
+    DPI = 120 #fig.get_dpi()
+    fig.set_size_inches(800/float(DPI),500/float(DPI))
     fig.tight_layout()
 
     return fig
