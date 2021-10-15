@@ -1,18 +1,15 @@
-##################################################################################
-#*********** Bayesian Optimization using Gaussian Processes ****************
-# Find optimal shape of the upper boundary s.t. th TBL at the lower wall has a 
-#      specific value.
-##################################################################################
+###################################################
+# Bayesian Optimization using Gaussian Processes, 
+#  externally linked to a CFD solver
+###################################################
 # Saleh Rezaeiravesh, salehr@kth.se
-#---------------------------------------------------------------------------------
-
+#--------------------------------------------------
+#
 import sys
 import os
 import math as mt
 import matplotlib
 matplotlib.use('PDF')
-# import matplotlib.cm as cm
-# import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from matplotlib import rc
@@ -29,7 +26,7 @@ from matplotlib.colors import Normalize
 import logging
 
 # %% logging
-logger = logging.getLogger("Driver").getChild("gpOptim/gpOpt_TBL.py")
+logger = logging.getLogger("Driver").getChild("gpOptim/gpOpt.py")
 
 # %% global variables
 #----------------------------------------------------------------------------
@@ -38,8 +35,7 @@ sigma_d = 0.01       #sdev of the white noise in the measured data
 whichOptim = 'min'  #find 'max' or 'min' of f(x)?
 kernelType = 'Matern52'  #'RBF', 'Matern52'
 #admissible range of parameters
-# qBound = [[50,70], [45,60], [45,55], [40,50], [40,50], [40,45],[40,45],[40,45],[39,42]] # /delta99^in
-qBound = [[95,110], [85,100], [75,85], [55,65]] # /delta99^in
+qBound = [[95,110], [85,100], [75,85], [55,65]] 
 qMaxDist = norm([q[1]-q[0] for q in qBound])
 nPar = np.shape(qBound)[0] #number of parameters, p  dimension of x={x1,x2,...,xp} where y=f(x)
 nGPinit = 1   #minimum number of GP samples in the list to start BO-GP algorithm
@@ -49,8 +45,7 @@ tol_b = 0.1        #deviation between best f(x+) in two consequtive iterations (
                   #note if err_d<tol_d and err_b<tol_b => convergence in (x_opt , f(x_opt))
 # tol_abs=0.05
 #---------------------------------------------------------------------------
-
-# %% FUNCTIONS
+#
 def read_available_GPsamples(gpInputFile, nPar_=nPar):
     """
         Read the most updated list of (x,y) GP samples from gpInputFile
@@ -74,8 +69,7 @@ def read_available_GPsamples(gpInputFile, nPar_=nPar):
     else:
         logger.info("read available samples from %s" % gpInputFile)
     return xList, yList
-
-#//////////////////////////////////////////////////////////
+#
 def update_GPsamples(gpOutputFile, xList, yList, xNext, yNext):
     """
         Update the existing list of GP samples with the recent sample & response
@@ -103,8 +97,7 @@ def update_GPsamples(gpOutputFile, xList, yList, xNext, yNext):
     F2.write(tmpList)
     F2.close()
     logger.info('**** %s is updated!' % gpOutputFile)
-
-#//////////////////////////////////////////////////////////////
+#
 def my_convergence_plot(xList, yList, figDir, figName):
     """
        Plot convergence of parameter samples and associated response
@@ -144,8 +137,7 @@ def my_convergence_plot(xList, yList, figDir, figName):
     plt.savefig(figDir + "/" + figName + '.pdf', bbox_inches='tight')
     logger.info('save: %s/%s.pdf' % (figDir, figName))
     return xDistList, yBestList
-
-#////////////////////////////////////////////
+#
 def test_grid(bounds1, bounds2, nTest1, nTest2):
     """
        Construct a 2D mesh (test data) with uniformly spaced points to 
@@ -167,9 +159,7 @@ def test_grid(bounds1, bounds2, nTest1, nTest2):
             x2TestGrid[i, j] = x2Test[j]
     xTestArr = np.asarray(xTestArr)   #n* x p=2
     return x1TestGrid, x2TestGrid, xTestArr
-
-#>>>>> plots
-#////////////////////////////////////////////////////////////////////
+#
 def gpOpt1d_postProc(xGP, yGP, bounds, plotOpts, nTest=100, kernelType_=kernelType):
     """ 
        Postprocess the Bayesian optimization on a 1D parameter space.
@@ -205,8 +195,7 @@ def gpOpt1d_postProc(xGP, yGP, bounds, plotOpts, nTest=100, kernelType_=kernelTy
     xTest = xTest_.reshape(nTest, 1)
     [meanPred, covarPred] = gprFinal.predict(xTest, full_cov=True)
     gpyPlotter_1D(meanPred[:, 0], covarPred, xGP, yGP, xTest, plotOpts)
-
-#//////////////////////////////////////////////////////////
+#
 def gpOpt2d_postProc(xGP, yGP, bounds, plotOpts, final=False, kernelType_=kernelType):
     """ 
        Postprocess the Bayesian optimization on a 2D parameter space.
@@ -311,8 +300,7 @@ def gpOpt2d_postProc(xGP, yGP, bounds, plotOpts, final=False, kernelType_=kernel
     # fig.set_size_inches(figSize/float(DPI),figSize/float(DPI))
     plt.savefig(figSave + '.pdf', bbox_inches='tight')
     logger.info("save: %s.pdf" % figSave)
-
-#//////////////////////////////////////////////////////////////////
+#
 def gpyPlotter_1D(meanPred, covarPred, xGP, yGP, xTest_, plotOpts):
     """ 
        plot training data (GP samples), mean prediction, 95% confidence, an abitrary sample
@@ -373,8 +361,7 @@ def gpyPlotter_1D(meanPred, covarPred, xGP, yGP, xTest_, plotOpts):
     fig.set_size_inches(1000/float(DPI),500/float(DPI))
     plt.savefig(figDir + "/" + figName + '.pdf', bbox_inches='tight')
     logger.info("save figure as %s/%s.pdf" % (figDir, figName))
-
-#///////////////////////////
+#
 def gpyPlotter_2Dc(fig, ax, meanPred, covarPred, x, y, x1TestGrid, x2TestGrid, 
                    I, J, plotOpts, nPar, final=False):
     """ 
@@ -428,7 +415,7 @@ def gpyPlotter_2Dc(fig, ax, meanPred, covarPred, x, y, x1TestGrid, x2TestGrid,
     ##contours of uncertainty (ONLY FOR 2D)!
     if "varFlag" in plotOpts.keys():
         CS=ax.contourf(x1TestGrid,x2TestGrid,1.96*np.sqrt(covarPredGrid),40,cmap="jet")#,label=r'$95\%$ confidence')
-#         CS=ax.contourf(x1TestGrid,x2TestGrid,covarPredGrid,40,cmap="jet")#,label=r'$95\%$ confidence')
+        # CS=ax.contourf(x1TestGrid,x2TestGrid,covarPredGrid,40,cmap="jet")#,label=r'$95\%$ confidence')
         # plt.clabel(CS, inline=True, fontsize=13,colors='k',fmt='%0.2f',rightside_up=True,manual=False)
         clb = fig.colorbar(CS, ax=ax)
         clb.set_label(r"$95\%~{\rm CI}$",fontsize=fontsize)
@@ -462,7 +449,7 @@ def gpyPlotter_2Dc(fig, ax, meanPred, covarPred, x, y, x1TestGrid, x2TestGrid,
     fig.tight_layout()
 
     return fig
-
+#
 # %% EXECUTABLE FUNCTIONS
 def printSetting():
     """
@@ -472,7 +459,7 @@ def printSetting():
                 "\nkernel = %s\nnGPinit = %d\nqBound = [%s]" % \
                     (nPar, sigma_d, whichOptim, tol_d, tol_b, kernelType, nGPinit,\
                      ', '.join(map(str, qBound))))
-
+#
 def nextGPsample(path2gpList,kernelType_=kernelType):
     """
        Take the next sample of the parameters from their admissible space. 
@@ -555,8 +542,7 @@ def nextGPsample(path2gpList,kernelType_=kernelType):
     
     logger.info('**** New GP sample is: %s' % ', '.join(map(str, xNext[0])))
     return np.array(xNext[0])
-
-#///////////////////////////
+#
 def BO_update_convergence(xLast, yLast, path2gpList='./workDir/gpList.dat', \
                           path2figs='../figs'):
     """
@@ -613,8 +599,7 @@ def BO_update_convergence(xLast, yLast, path2gpList='./workDir/gpList.dat', \
             logger.info("not converged yet, err_d = %f > %f, err_b = %f > %f"\
                             % (err_d, tol_d,err_b, tol_b))
     return isConv
-    
-#////////////////////////////////////
+#    
 def gpSurface_plot(xList, yList, nData, path2figs="../figs", Rlim=None, \
                    bounds=qBound, var=False,final=False):
     """ 
@@ -661,3 +646,4 @@ def gpSurface_plot(xList, yList, nData, path2figs="../figs", Rlim=None, \
     else:
         logger.error("nPar should be >= 1")
         sys.exit(1)
+#

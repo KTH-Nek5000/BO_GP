@@ -1,8 +1,8 @@
-#---------------
-# pgTBL_optim  |
-#---------------
+# BO-GP
 
-Bayesian optimization based on Gaussian processes for TBL with non-zero pressure gradient. 
+## Bayesian optimization based on Gaussian processes for CFD simulations. 
+
+### exmaple TBL with non-zero pressure gradient. 
 Linne' FLOW Centre, KTH Mechanics, KTH, Sweden
 
 # list of included files and folders:
