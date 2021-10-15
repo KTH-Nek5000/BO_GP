@@ -60,7 +60,7 @@ Questions can be forwarded to `salehr@kth.se`, `morita@kth.se`, and `pschlatt@kt
 6. [`OpenFOAM`](https://openfoam.org/) v.7 (or v.6)
 7. `bl_data/` in `OFpre/inflow/` (DNS data from [here](https://www.mech.kth.se/~pschlatt/DATA/))
 
-## How to test the example for different parameters:
+## How to test the example for different settings:
   - When you change the structure of the geometry:
     - create the new inflow from precursor using `OFpre/inflow/inflow_gen.py` (precursor results required)
     - check the `blockMeshDict`
