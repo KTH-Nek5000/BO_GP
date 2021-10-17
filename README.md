@@ -5,7 +5,7 @@ The BO-GP codes are developed using [`GPy`](https://github.com/SheffieldML/GPy) 
 ### Reference:
 Y. Morita, S. Rezaeiravesh, N. Tabatabaeia, R. Vinuesaa, K. Fukagata, P. Schlatter, Applying Bayesian Optimization with Gaussian Process Regression to Computational Fluid Dynamics Problems, Journal of Computational Physics, 2021.
 
-### Exmaple: Turbulent boundary layer (TBL) with with non-zero pressure gradient. 
+### Exmaple: Turbulent boundary layer (TBL) with non-zero pressure gradient. 
 See Section 5 in the above reference. The flow is simulated using  [`OpenFOAM`](https://openfoam.org/).
 
 ### Questions/Remarks:
@@ -19,9 +19,9 @@ Questions can be forwarded to `salehr@kth.se`, `morita@kth.se`, and `pschlatt@kt
      - `gpList.dat`
    - `gpOpt.py`
    
- - `OFcase/`: [`OpenFOAM`](https://openfoam.org/) case
+ - `OFcase/`: [`OpenFOAM`](https://openfoam.org/) case folder
    - `system/`
-     - `yTopParams.in` (from `main_pre.py`, used in `blockMeshDict` & `controlDict`).
+     - `yTopParams.in` (written in `main_pre.py`, used by `blockMeshDict` & `controlDict`).
      - `blockMeshDict`
      - `controlDict`
      - `decomposeParDict`
@@ -38,7 +38,7 @@ Questions can be forwarded to `salehr@kth.se`, `morita@kth.se`, and `pschlatt@kt
  - `OFpost/`: Post-processing the results of `OFcase`.
    - `main_post.py`
 
- - `OFpre/`: Pre-processing the `OFcase` 
+ - `OFpre/`: Pre-processing the `OFcase`
    - `main_pre.py`: creating `yTopParams.in` using the latest parameter sample.
    - `inflow/inflow_gen.py`: Creating inflow conditions for RANS of TBL with pressure gradient using DNS data for the TBL with zero-pressure gradient.
    
@@ -61,24 +61,24 @@ Questions can be forwarded to `salehr@kth.se`, `morita@kth.se`, and `pschlatt@kt
 7. `bl_data/` in `OFpre/inflow/` (DNS data from [here](https://www.mech.kth.se/~pschlatt/DATA/))
 
 ## How to test the example for different settings:
-  - When you change the structure of the geometry:
+  - To change the structure of the geometry
     - create the new inflow from precursor using `OFpre/inflow/inflow_gen.py` (precursor results required)
-    - check the `blockMeshDict`
-    - update the driver
+    - update the `blockMeshDict`
+    - update the driver accordingly
     
-  - When you change the nProcessor in `OFcase`:
+  - To change the number of prosessors used for the OpenFOAM simulation
+    - update `nProcessors` in the driver
     - update `decomposeParDict`
     - update `jobScript`
 
-  - When you change the parameterization
-    - `gpOpt_TBL.py`: change qBound
-    - check `blockMeshDict`
-    - check `make_movie.py`
+  - To change the parameterization of the upper wall
+    - change `qBound` in `gpOpt.py`
+    - update `blockMeshDict`
 
-  - When you change beta_t (target pressure gradient):
-    - driver: change beta_t
+  - To change beta_t (target pressure-gradient parameter beta)
+    - change `beta_t` in the driver
 
-  - When you clone this repository to a new optimization:
+  - When you clone this repository and get errors, please try run:
     - `mkdir data`
     - `mkdir storage`
     - `mkdir OFcase/constant/polyMesh/`

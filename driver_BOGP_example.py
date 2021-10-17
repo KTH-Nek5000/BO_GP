@@ -42,8 +42,8 @@ iEnd = 50 # < 100
 in_exc = 0.3   # ignore this region when assess the objective
 out_exc = 0.1
 # setting for OFcase
-U_infty, delta99_in, Nx, Ny, Nz, tEnd, Lx, Ly = \
-    1, 0.05, int(500), int(218), int(1), int(200), 50, 2
+U_infty, delta99_in, Nx, Ny, Nz, tEnd, Lx, Ly, nProcessors = \
+    1, 0.05, int(500), int(218), int(1), int(200), 50, 2, 10
 
 # %% path
 current_dir = str(pathlib.Path(__file__).resolve().parent)
@@ -118,7 +118,7 @@ if __name__ == '__main__':
         subprocess.check_call("decomposePar", shell=True)
         
         logger.info("MAIN SIMULATION START")
-        subprocess.check_call("bash OFrun.sh 10", shell=True) # for run in workstation (not cluster)
+        subprocess.check_call("bash OFrun.sh %d" % (nProcessors), shell=True) # for run in workstation (not cluster)
         # subprocess.call("sbatch jobScript", shell=True)
         subprocess.call("wait", shell=True)
         logger.info("MAIN SIMULATION END")
