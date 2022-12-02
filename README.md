@@ -3,13 +3,13 @@
 The BO-GP codes are developed using [`GPy`](https://github.com/SheffieldML/GPy) and [`GPyOpt`](https://github.com/SheffieldML/GPyOpt). The optimizer is non-intrusive and can be linked to any CFD solver. 
 
 ### Reference:
-Y. Morita, S. Rezaeiravesh, N. Tabatabaeia, R. Vinuesaa, K. Fukagata, P. Schlatter, Applying Bayesian Optimization with Gaussian Process Regression to Computational Fluid Dynamics Problems, Journal of Computational Physics, 2021.
+[Y. Morita, S. Rezaeiravesh, N. Tabatabaeia, R. Vinuesaa, K. Fukagata, P. Schlatter, Applying Bayesian Optimization with Gaussian Process Regression to Computational Fluid Dynamics Problems, Journal of Computational Physics, 449, 110788, 2022.](https://www.sciencedirect.com/science/article/pii/S0021999121006835)
 
 ### Exmaple: Turbulent boundary layer (TBL) with non-zero pressure gradient. 
 See Section 5 in the above reference. The flow is simulated using  [`OpenFOAM`](https://openfoam.org/).
 
 ### Questions/Remarks:
-Questions can be forwarded to `salehr@kth.se`, `morita@kth.se`, and `pschlatt@kth.se`.
+Questions can be forwarded to `salehr@mech.kth.se` (current: `saleh.rezaeiravesh@manchester.ac.uk`), `morita@kth.se`, and `pschlatt@mech.kth.se`.
 
 ### List of included files and folders:
  - `driver_BOGP.py`: main driver for running the example, i.e. BO-GP of pessure-gradient TBL simulated by OpenFOAM. 
